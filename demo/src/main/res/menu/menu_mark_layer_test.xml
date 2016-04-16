@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="com.onlylemi.mapview.BitmapLayerTestActivity">
+
+    <item
+        android:id="@+id/bitmap_layer_set_position"
+        android:title="Change Bitmap Positon"/>
+
+    <item
+        android:id="@+id/bitmap_layer_set_mode"
+        android:title="Set Bitmap Scale"/>
+
+</menu>

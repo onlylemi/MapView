@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">MapView</string>
+
+    <array name="maplayer_name">
+        <item>MapLayerTest</item>
+        <item>BitmapLayerTest</item>
+        <item>LocationLayerTest</item>
+        <item>MarkLayerTest</item>
+        <item>RouteLayerTest</item>
+    </array>
 </resources>

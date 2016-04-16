@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="com.onlylemi.mapview.MapLayerTestActivity">
+
+    <item
+        android:id="@+id/map_layer_set_rotate"
+        android:title="Set CurrentRotate Random"/>
+
+    <item
+        android:id="@+id/map_layer_set_zoom1"
+        android:title="Set CurrentZoom / 2"/>
+
+    <item
+        android:id="@+id/map_layer_set_zoom2"
+        android:title="Set CurrentZoom * 2"/>
+
+    <item
+        android:id="@+id/map_layer_set_auto_rotate_and_scale"
+        android:title="Set Rotate and Scale Together"/>
+</menu>

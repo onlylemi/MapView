@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="com.onlylemi.mapview.BitmapLayerTestActivity">
+
+    <item
+        android:id="@+id/location_layer_set_mode"
+        android:title="Close Compass"/>
+
+    <item
+        android:id="@+id/location_layer_set_compass_circle_rotate"
+        android:title="Set Compass CircleRotate"/>
+
+    <item
+        android:id="@+id/location_layer_set_compass_arrow_rotate"
+        android:title="Set Compass ArrowRotate"/>
+
+    <item
+        android:id="@+id/location_layer_set_auto_sensor"
+        android:title="Open Sensor"/>
+
+</menu>

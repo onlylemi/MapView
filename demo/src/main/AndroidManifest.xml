@@ -15,6 +15,26 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity
+            android:name=".MapLayerTestActivity"
+            android:label="MapLayerTest">
+        </activity>
+        <activity
+            android:name=".LocationLayerTestActivity"
+            android:label="LocationLayerTest">
+        </activity>
+        <activity
+            android:name=".BitmapLayerTestActivity"
+            android:label="BitmapLayerTest">
+        </activity>
+        <activity
+            android:name=".MarkLayerTestActivity"
+            android:label="MarkLayerTest">
+        </activity>
+        <activity
+            android:name=".RouteLayerTestActivity"
+            android:label="RouteLayerTest">
+        </activity>
     </application>
 
 </manifest>
