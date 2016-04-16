@@ -21,18 +21,16 @@ public class BitmapLayer extends MapBaseLayer {
     private Bitmap bitmap;
     private Paint paint;
 
-    public BitmapLayer(MapView mapView) {
-        this(mapView, 0, null);
+    private boolean autoScale = false;
+
+    public BitmapLayer(MapView mapView, Bitmap bitmap) {
+        this(mapView, bitmap, null);
     }
 
-    public BitmapLayer(MapView mapView, int bmpId) {
-        this(mapView, bmpId, null);
-    }
-
-    public BitmapLayer(MapView mapView, int bmpId, PointF location) {
+    public BitmapLayer(MapView mapView, Bitmap bitmap, PointF location) {
         super(mapView);
         this.location = location;
-        this.bitmap = BitmapFactory.decodeResource(mapView.getResources(), bmpId);
+        this.bitmap = bitmap;
 
         paint = new Paint();
     }
@@ -48,7 +46,11 @@ public class BitmapLayer extends MapBaseLayer {
         if (isVisible && bitmap != null) {
             canvas.save();
             float goal[] = {location.x, location.y};
-            currentMatrix.mapPoints(goal);
+            if (!autoScale) {
+                currentMatrix.mapPoints(goal);
+            } else {
+                canvas.setMatrix(currentMatrix);
+            }
             canvas.drawBitmap(bitmap, goal[0] - bitmap.getWidth() / 2, goal[1]
                     - bitmap.getHeight(), paint);
             canvas.restore();
@@ -69,5 +71,13 @@ public class BitmapLayer extends MapBaseLayer {
 
     public void setBitmap(Bitmap bitmap) {
         this.bitmap = bitmap;
+    }
+
+    public void setAutoScale(boolean autoScale) {
+        this.autoScale = autoScale;
+    }
+
+    public boolean isAutoScale() {
+        return autoScale;
     }
 }

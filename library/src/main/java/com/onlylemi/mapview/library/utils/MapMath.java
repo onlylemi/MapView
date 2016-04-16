@@ -1,10 +1,14 @@
 package com.onlylemi.mapview.library.utils;
 
 import android.graphics.PointF;
+import android.util.Log;
 
-import com.onlylemi.mapview.library.utils.math.FloydMath;
+import com.onlylemi.mapview.library.utils.math.FloydAlgorithm;
+import com.onlylemi.mapview.library.utils.math.GeneticAlgorithm;
 import com.onlylemi.mapview.library.utils.math.TSPNearestNeighbour;
 
+import java.lang.annotation.Target;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,7 +46,7 @@ public final class MapMath {
 
 
     /**
-     * 得到地图中两点间的最短路径点集list (FloydMath)
+     * 得到地图中两点间的最短路径点集list (FloydAlgorithm)
      *
      * @param begin  起点
      * @param end    终点
@@ -50,20 +54,41 @@ public final class MapMath {
      * @return
      */
     public static List<Integer> getShortestPathBetweenTwoPoints(int begin,
-                                                                int end, int[][] matrix) {
+                                                                int end, float[][] matrix) {
 
-        return new FloydMath().findCheapestPath(begin, end, matrix);
+        return FloydAlgorithm.getInstance().findCheapestPath(begin, end, matrix);
     }
 
     /**
-     * 任意点间最优路径list (邻近点)
+     * 任意点间最优路径 (邻近点)
      *
      * @param matrix
      * @return
      */
-    public static List<Integer> getShortestPathBetweenPoints(int[][] matrix) {
+    public static List<Integer> getShortestPathBetweenPoints(float[][] matrix) {
         // TSP 计算最优路线
         List<Integer> result = new TSPNearestNeighbour().tsp(matrix);
+        Log.i("MApMath:", result.toString());
+        return result;
+    }
+
+    /**
+     * 任意点间最优路径 (遗传算法)
+     *
+     * @param matrix
+     * @return
+     */
+    public static List<Integer> getBestPathByGeneticAlgorithm(float[][] matrix) {
+        // 遗传算法 tsp
+        GeneticAlgorithm ga = GeneticAlgorithm.getInstance();
+        ga.setAutoNextGeneration(true);
+        ga.setMaxGeneration(200);
+        int[] best = ga.tsp(matrix);
+
+        List<Integer> result = new ArrayList<>(best.length);
+        for (int i = 0; i < best.length; i++) {
+            result.add(best[i]);
+        }
         return result;
     }
 

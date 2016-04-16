@@ -4,21 +4,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * FloydMath
+ * FloydAlgorithm
  *
  * @author: onlylemi
  */
-public final class FloydMath {
+public final class FloydAlgorithm {
 
     private static final int INF = Integer.MAX_VALUE; // 无边
-    private int[][] dist;
+    private float[][] dist;
 
     // 顶点i 到 j的最短路径长度，初值是i到j的边的权重
     private int[][] path;
-    private List<Integer> result = new ArrayList<Integer>();
+    private List<Integer> result;
 
-    public void init(int[][] matrix) {
-        this.dist = new int[matrix.length][matrix.length];
+    public static FloydAlgorithm getInstance() {
+        return FloydAlgorithmHolder.instance;
+    }
+
+    private static class FloydAlgorithmHolder {
+        private static FloydAlgorithm instance = new FloydAlgorithm();
+    }
+
+    private void init(float[][] matrix) {
+        dist = null;
+        path = null;
+        result = new ArrayList<>();
+
+        this.dist = new float[matrix.length][matrix.length];
         this.path = new int[matrix.length][matrix.length];
     }
 
@@ -29,7 +41,7 @@ public final class FloydMath {
      * @param end
      * @param matrix
      */
-    public List<Integer> findCheapestPath(int begin, int end, int[][] matrix) {
+    public List<Integer> findCheapestPath(int begin, int end, float[][] matrix) {
         init(matrix);
 
         floyd(matrix);
@@ -40,7 +52,7 @@ public final class FloydMath {
         return result;
     }
 
-    public void findPath(int i, int j) {
+    private void findPath(int i, int j) {
         int k = path[i][j];
         if (k == -1)
             return;
@@ -49,7 +61,7 @@ public final class FloydMath {
         findPath(k, j);
     }
 
-    public void floyd(int[][] matrix) {
+    private void floyd(float[][] matrix) {
         int size = matrix.length;
         // initialize dist and path
         for (int i = 0; i < size; i++) {

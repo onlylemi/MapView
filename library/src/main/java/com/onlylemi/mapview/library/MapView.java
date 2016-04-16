@@ -15,6 +15,7 @@ import android.view.SurfaceView;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
 import com.onlylemi.mapview.library.utils.MapMath;
+import com.onlylemi.mapview.library.utils.MapUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     private float currentZoom = 1.0f;
     private float saveZoom = 0f;
     private float currentRotateDegrees = 0.0f;
+    private float saveRotateDegrees = 0.0f;
 
     private static final int TOUCH_STATE_NO = 0; // no touch
     private static final int TOUCH_STATE_SCROLL = 1; // scroll(one point)
@@ -136,7 +138,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void loadMap(Bitmap bitmap) {
-
+        loadMap(MapUtils.getPictureFromBitmap(bitmap));
     }
 
     /**
@@ -191,6 +193,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 if (event.getPointerCount() == 2) {
                     saveMatrix.set(currentMatrix);
                     saveZoom = currentZoom;
+                    saveRotateDegrees = currentRotateDegrees;
                     startTouch.set(event.getX(0), event.getY(0));
                     currentTouchState = MapView.TOUCH_STATE_TWO_POINTED;
 
@@ -201,7 +204,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 break;
             case MotionEvent.ACTION_UP:
                 if (withFloorPlan(event.getX(), event.getY())) {
-                    Log.i(TAG, event.getX() + " " + event.getY());
+//                    Log.i(TAG, event.getX() + " " + event.getY());
                     // layers on touch
                     for (MapBaseLayer layer : layers) {
                         layer.onTouch(event);
@@ -273,12 +276,12 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                         currentMatrix.set(saveMatrix);
                         newDegree = rotation(event, mid);
                         float rotate = newDegree - oldDegree;
-                        currentRotateDegrees = (rotate + currentRotateDegrees) % 360;
+                        currentRotateDegrees = (rotate + saveRotateDegrees) % 360;
                         currentRotateDegrees = currentRotateDegrees > 0 ? currentRotateDegrees :
                                 currentRotateDegrees + 360;
                         currentMatrix.postRotate(rotate, mid.x, mid.y);
                         refresh();
-                        refresh();
+//                        Log.i(TAG, "rotate:" + currentRotateDegrees);
                         break;
                     default:
                         break;
@@ -361,8 +364,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      * @param degrees
      */
     public void setCurrentRotateDegrees(float degrees) {
-        setCurrentRotateDegrees(degrees, mapLayer.getImage().getWidth() / 2, mapLayer.getImage()
-                .getHeight() / 2);
+        setCurrentRotateDegrees(degrees, getWidth() / 2, getHeight() / 2);
     }
 
     /**
@@ -384,6 +386,10 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         return currentZoom;
     }
 
+    public boolean isScaleAndRotateTogether() {
+        return isScaleAndRotateTogether;
+    }
+
     /**
      * setting scale&rotate is/not together on touch
      *
@@ -399,6 +405,10 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
     public void setMinZoom(float minZoom) {
         this.minZoom = minZoom;
+    }
+
+    public void setCurrentZoom(float zoom) {
+        setCurrentZoom(zoom, getWidth() / 2, getHeight() / 2);
     }
 
     public void setCurrentZoom(float zoom, float x, float y) {
@@ -434,4 +444,11 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 && goal[1] < mapLayer.getImage().getHeight();
     }
 
+    public float getMapWidth() {
+        return mapLayer.getImage().getWidth();
+    }
+
+    public float getMapHeight() {
+        return mapLayer.getImage().getHeight();
+    }
 }

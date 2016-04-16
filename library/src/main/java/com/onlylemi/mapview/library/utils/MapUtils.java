@@ -1,8 +1,16 @@
 package com.onlylemi.mapview.library.utils;
 
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Picture;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.util.Log;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +23,7 @@ public class MapUtils {
 
     private static final String TAG = "MapUtils: ";
 
-    private static final int INF = Integer.MAX_VALUE;
+    private static final float INF = Float.MAX_VALUE;
     private static int nodesSize;
     private static int nodesContactSize;
 
@@ -52,10 +60,12 @@ public class MapUtils {
      * @param nodes
      * @return
      */
-    public static List<Float> getDegreeBetweenTwoPointsWithHorizontal(List<Integer> routeList, List<PointF> nodes) {
+    public static List<Float> getDegreeBetweenTwoPointsWithHorizontal(List<Integer> routeList,
+                                                                      List<PointF> nodes) {
         List<Float> routeListDegrees = new ArrayList<>();
         for (int i = 0; i < routeList.size() - 1; i++) {
-            routeListDegrees.add(MapMath.getDegreeBetweenTwoPointsWithHorizontal(nodes.get(routeList.get(i)),
+            routeListDegrees.add(MapMath.getDegreeBetweenTwoPointsWithHorizontal(nodes.get
+                            (routeList.get(i)),
                     nodes.get(routeList.get(i + 1))));
         }
         return routeListDegrees;
@@ -68,10 +78,12 @@ public class MapUtils {
      * @param nodes
      * @return
      */
-    public static List<Float> getDegreeBetweenTwoPointsWithVertical(List<Integer> routeList, List<PointF> nodes) {
+    public static List<Float> getDegreeBetweenTwoPointsWithVertical(List<Integer> routeList,
+                                                                    List<PointF> nodes) {
         List<Float> routeListDegrees = new ArrayList<>();
         for (int i = 0; i < routeList.size() - 1; i++) {
-            routeListDegrees.add(MapMath.getDegreeBetweenTwoPointsWithVertical(nodes.get(routeList.get(i)),
+            routeListDegrees.add(MapMath.getDegreeBetweenTwoPointsWithVertical(nodes.get
+                            (routeList.get(i)),
                     nodes.get(routeList.get(i + 1))));
         }
         return routeListDegrees;
@@ -87,8 +99,9 @@ public class MapUtils {
      * @return
      */
     public static List<Integer> getShortestPathBetweenTwoPoints(int start,
-                                                                int end, List<PointF> nodes, List<PointF> nodesContact) {
-        int[][] matrix = getMatrixBetweenFloorPlanNodes(nodes, nodesContact);
+                                                                int end, List<PointF> nodes,
+                                                                List<PointF> nodesContact) {
+        float[][] matrix = getMatrixBetweenFloorPlanNodes(nodes, nodesContact);
 
         return MapMath.getShortestPathBetweenTwoPoints(start, end, matrix);
     }
@@ -102,17 +115,17 @@ public class MapUtils {
      * @return
      */
     public static List<Integer> getShortestPathBetweenPoints(int[] points,
-                                                             List<PointF> nodes, List<PointF> nodesContact) {
+                                                             List<PointF> nodes, List<PointF>
+                                                                     nodesContact) {
         // 关系矩阵
-        int[][] matrix = new int[points.length][points.length];
+        float[][] matrix = new float[points.length][points.length];
         for (int i = 0; i < matrix.length; i++) {
             for (int j = i; j < matrix[i].length; j++) {
                 if (i == j) {
                     matrix[i][j] = INF;
                 } else {
-                    matrix[i][j] = (int) getDistanceBetweenList(
-                            nodes,
-                            getShortestPathBetweenTwoPoints(points[i],
+                    matrix[i][j] = getDistanceBetweenList(
+                            nodes, getShortestPathBetweenTwoPoints(points[i],
                                     points[j], nodes, nodesContact));
                     matrix[j][i] = matrix[i][j];
                 }
@@ -121,8 +134,8 @@ public class MapUtils {
 
         // TSP 计算最优路线
         List<Integer> routeList = new ArrayList<>();
-        List<Integer> result = MapMath.getShortestPathBetweenPoints(matrix);
-        System.out.println(result);
+        List<Integer> result = MapMath.getBestPathByGeneticAlgorithm(matrix);
+//        Log.i(TAG, result.toString());
         for (int i = 0; i < result.size() - 1; i++) {
             int size = routeList.size();
             routeList.addAll(getShortestPathBetweenTwoPoints(
@@ -145,7 +158,8 @@ public class MapUtils {
      * @return
      */
     public static List<Integer> getShortestPathBetweenPoints(List<PointF> pointList,
-                                                             List<PointF> nodes, List<PointF> nodesContact) {
+                                                             List<PointF> nodes, List<PointF>
+                                                                     nodesContact) {
         if (nodesSize != nodes.size()) {
             int value = nodes.size() - nodesSize;
             for (int i = 0; i < value; i++) {
@@ -178,7 +192,8 @@ public class MapUtils {
      * @return
      */
     public static float getShortestDistanceBetweenTwoPoints(int start, int end,
-                                                            List<PointF> nodes, List<PointF> nodesContact) {
+                                                            List<PointF> nodes, List<PointF>
+                                                                    nodesContact) {
         List<Integer> list = getShortestPathBetweenTwoPoints(start, end, nodes,
                 nodesContact);
         return getDistanceBetweenList(nodes, list);
@@ -191,9 +206,10 @@ public class MapUtils {
      * @param nodesContact
      * @return
      */
-    public static int[][] getMatrixBetweenFloorPlanNodes(List<PointF> nodes, List<PointF> nodesContact) {
+    public static float[][] getMatrixBetweenFloorPlanNodes(List<PointF> nodes, List<PointF>
+            nodesContact) {
         // 设初始值为无穷大
-        int[][] matrix = new int[nodes.size()][nodes.size()];
+        float[][] matrix = new float[nodes.size()][nodes.size()];
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
                 matrix[i][j] = INF;
@@ -202,12 +218,13 @@ public class MapUtils {
 
         // 给矩阵赋路径权值
         for (int i = 0; i < nodesContact.size(); i++) {
-            matrix[(int) nodesContact.get(i).x][(int) nodesContact.get(i).y] = (int) MapMath.getDistanceBetweenTwoPoints(
-                    nodes.get((int) nodesContact.get(i).x),
-                    nodes.get((int) nodesContact.get(i).y));
+            matrix[(int) nodesContact.get(i).x][(int) nodesContact.get(i).y] = MapMath
+                    .getDistanceBetweenTwoPoints(nodes.get((int) nodesContact.get(i).x),
+                            nodes.get((int) nodesContact.get(i).y));
 
-            matrix[(int) nodesContact.get(i).y][(int) nodesContact.get(i).x] = matrix[(int) nodesContact
-                    .get(i).x][(int) nodesContact.get(i).y];
+            matrix[(int) nodesContact.get(i).y][(int) nodesContact.get(i).x] = matrix[(int)
+                    nodesContact
+                            .get(i).x][(int) nodesContact.get(i).y];
         }
 
         return matrix;
@@ -223,7 +240,8 @@ public class MapUtils {
      * @return
      */
     public static List<Integer> getShortestDistanceBetweenTwoPoints(PointF start, PointF end,
-                                                                    List<PointF> nodes, List<PointF> nodesContact) {
+                                                                    List<PointF> nodes,
+                                                                    List<PointF> nodesContact) {
         Log.i(TAG, "getShortestDistanceBetweenTwoPoints");
 
         if (nodesSize != nodes.size()) {
@@ -240,7 +258,8 @@ public class MapUtils {
         addPointToList(start, nodes, nodesContact);
         addPointToList(end, nodes, nodesContact);
 
-        return getShortestPathBetweenTwoPoints(nodes.size() - 2, nodes.size() - 1, nodes, nodesContact);
+        return getShortestPathBetweenTwoPoints(nodes.size() - 2, nodes.size() - 1, nodes,
+                nodesContact);
     }
 
     /**
@@ -253,7 +272,8 @@ public class MapUtils {
      * @return
      */
     public static List<Integer> getShortestDistanceBetweenTwoPoints(PointF position, int target,
-                                                                    List<PointF> nodes, List<PointF> nodesContact) {
+                                                                    List<PointF> nodes,
+                                                                    List<PointF> nodesContact) {
         if (nodesSize != nodes.size()) {
             int value = nodes.size() - nodesSize;
             for (int i = 0; i < value; i++) {
@@ -277,7 +297,8 @@ public class MapUtils {
      * @param nodes
      * @param nodesContact
      */
-    private static void addPointToList(PointF point, List<PointF> nodes, List<PointF> nodesContact) {
+    private static void addPointToList(PointF point, List<PointF> nodes, List<PointF>
+            nodesContact) {
         if (point != null) {
             PointF pV = null;
             int po1 = 0, po2 = 0;
@@ -301,5 +322,18 @@ public class MapUtils {
             nodesContact.add(new PointF(po1, nodes.size() - 1));
             nodesContact.add(new PointF(po2, nodes.size() - 1));
         }
+    }
+
+    public static Picture getPictureFromBitmap(Bitmap bitmap) {
+        Picture picture = new Picture();
+        Canvas canvas = picture.beginRecording(bitmap.getWidth(),
+                bitmap.getHeight());
+        canvas.drawBitmap(
+                bitmap,
+                null,
+                new RectF(0f, 0f, (float) bitmap.getWidth(), (float) bitmap
+                        .getHeight()), null);
+        picture.endRecording();
+        return picture;
     }
 }

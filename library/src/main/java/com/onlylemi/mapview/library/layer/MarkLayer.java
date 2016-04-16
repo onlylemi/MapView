@@ -59,25 +59,27 @@ public class MarkLayer extends MapBaseLayer {
 
     @Override
     public void onTouch(MotionEvent event) {
-        if (marks.size() != 0) {
-            float[] goal = mapView.convertMapXYToScreenXY(event.getX(), event.getY());
-            for (int i = 0; i < marks.size(); i++) {
-                if (MapMath.getDistanceBetweenTwoPoints(goal[0], goal[1],
-                        marks.get(i).x - bmpMark.getWidth() / 2, marks.get(i).y - bmpMark
-                                .getHeight() / 2) <= 50) {
-                    num = i;
-                    isClickMark = true;
-                    break;
+        if (marks != null) {
+            if (marks.size() != 0) {
+                float[] goal = mapView.convertMapXYToScreenXY(event.getX(), event.getY());
+                for (int i = 0; i < marks.size(); i++) {
+                    if (MapMath.getDistanceBetweenTwoPoints(goal[0], goal[1],
+                            marks.get(i).x - bmpMark.getWidth() / 2, marks.get(i).y - bmpMark
+                                    .getHeight() / 2) <= 50) {
+                        num = i;
+                        isClickMark = true;
+                        break;
+                    }
+
+                    if (i == marks.size() - 1) {
+                        isClickMark = false;
+                    }
                 }
 
-                if (i == marks.size() - 1) {
-                    isClickMark = false;
+                if (listener != null && isClickMark) {
+                    listener.markIsClick(num);
+                    mapView.refresh();
                 }
-            }
-
-            if (listener != null && isClickMark) {
-                listener.markIsClick(num);
-                mapView.refresh();
             }
         }
     }

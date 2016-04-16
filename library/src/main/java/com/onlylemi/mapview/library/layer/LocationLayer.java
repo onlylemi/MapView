@@ -19,10 +19,7 @@ import com.onlylemi.mapview.library.R;
  */
 public class LocationLayer extends MapBaseLayer {
 
-    // position mode
-    public static final int MODE_NORMAL = 0;
-    public static final int MODE_COMPASS = 1;
-    private int currentMode = MODE_NORMAL;
+    private boolean openCompass = false;
 
     // compass color
     private static final int DEFAULT_LOCATION_COLOR = 0xFF3EBFC9;
@@ -57,13 +54,13 @@ public class LocationLayer extends MapBaseLayer {
     }
 
     public LocationLayer(MapView mapView, PointF currentPosition) {
-        this(mapView, currentPosition, MODE_NORMAL);
+        this(mapView, currentPosition, false);
     }
 
-    public LocationLayer(MapView mapView, PointF currentPosition, int mode) {
+    public LocationLayer(MapView mapView, PointF currentPosition, boolean openCompass) {
         super(mapView);
         this.currentPosition = currentPosition;
-        this.currentMode = mode;
+        this.openCompass = openCompass;
 
         level = LOCATION_LEVEL;
         initLayer();
@@ -80,36 +77,34 @@ public class LocationLayer extends MapBaseLayer {
         locationPaint.setColor(DEFAULT_LOCATION_COLOR);
         locationPaint.setShadowLayer(5, 3, 3, DEFAULT_LOCATION_SHADOW_COLOR);
 
-        if (currentMode == MODE_COMPASS) {
 
-            compassRadius = setValue(38f);
-            compassLocationCircleRadius = setValue(0.5f);
-            compassLineWidth = setValue(1.3f);
-            compassLineLength = setValue(2.3f);
-            compassArcWidth = setValue(4.0f);
-            compassIndicatorCircleRadius = setValue(2.6f);
-            compassIndicatorGap = setValue(15.0f);
+        compassRadius = setValue(38f);
+        compassLocationCircleRadius = setValue(0.5f);
+        compassLineWidth = setValue(1.3f);
+        compassLineLength = setValue(2.3f);
+        compassArcWidth = setValue(4.0f);
+        compassIndicatorCircleRadius = setValue(2.6f);
+        compassIndicatorGap = setValue(15.0f);
 
-            // default compassLinePaint
-            compassLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            compassLinePaint.setAntiAlias(true);
-            compassLinePaint.setStrokeWidth(compassLineWidth);
-            // default indicatorCirclePaint
-            indicatorCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            indicatorCirclePaint.setAntiAlias(true);
-            indicatorCirclePaint.setStyle(Paint.Style.FILL);
-            indicatorCirclePaint.setShadowLayer(3, 1, 1, DEFAULT_LOCATION_SHADOW_COLOR);
-            indicatorCirclePaint.setColor(DEFAULT_INDICATOR_CIRCLE_COLOR);
-            // default indicatorArcPaint
-            indicatorArcPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            indicatorArcPaint.setStyle(Paint.Style.STROKE);
-            indicatorArcPaint.setColor(DEFAULT_INDICATOR_ARC_COLOR);
-            indicatorArcPaint.setStrokeWidth(compassArcWidth);
+        // default compassLinePaint
+        compassLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        compassLinePaint.setAntiAlias(true);
+        compassLinePaint.setStrokeWidth(compassLineWidth);
+        // default indicatorCirclePaint
+        indicatorCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        indicatorCirclePaint.setAntiAlias(true);
+        indicatorCirclePaint.setStyle(Paint.Style.FILL);
+        indicatorCirclePaint.setShadowLayer(3, 1, 1, DEFAULT_LOCATION_SHADOW_COLOR);
+        indicatorCirclePaint.setColor(DEFAULT_INDICATOR_CIRCLE_COLOR);
+        // default indicatorArcPaint
+        indicatorArcPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        indicatorArcPaint.setStyle(Paint.Style.STROKE);
+        indicatorArcPaint.setColor(DEFAULT_INDICATOR_ARC_COLOR);
+        indicatorArcPaint.setStrokeWidth(compassArcWidth);
 
-            compassIndicatorArrowBitmap = BitmapFactory.decodeResource(mapView.getResources(),
-                    R.mipmap.indicator_arrow);
-            compassBitmapLayer = new BitmapLayer(mapView, R.mipmap.indicator_arrow, null);
-        }
+        compassIndicatorArrowBitmap = BitmapFactory.decodeResource(mapView.getResources(),
+                R.mipmap.compass);
+        compassBitmapLayer = new BitmapLayer(mapView, compassIndicatorArrowBitmap, null);
     }
 
     @Override
@@ -131,7 +126,7 @@ public class LocationLayer extends MapBaseLayer {
             canvas.drawCircle(goal[0], goal[1], defaultLocationCircleRadius,
                     locationPaint);
 
-            if (currentMode == MODE_COMPASS) {
+            if (openCompass) {
                 for (int i = 0; i < 360 / COMPASS_DELTA_ANGLE; i++) {
                     canvas.save();
                     canvas.rotate(COMPASS_DELTA_ANGLE * i, goal[0], goal[1]);
@@ -193,12 +188,12 @@ public class LocationLayer extends MapBaseLayer {
         }
     }
 
-    public int getCurrentMode() {
-        return currentMode;
+    public boolean isOpenCompass() {
+        return openCompass;
     }
 
-    public void setCurrentMode(int currentMode) {
-        this.currentMode = currentMode;
+    public void setOpenCompass(boolean openCompass) {
+        this.openCompass = openCompass;
     }
 
     public PointF getCurrentPosition() {
