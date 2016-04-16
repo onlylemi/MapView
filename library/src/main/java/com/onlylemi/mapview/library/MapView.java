@@ -364,7 +364,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      * @param degrees
      */
     public void setCurrentRotateDegrees(float degrees) {
-        setCurrentRotateDegrees(degrees, getWidth() / 2, getHeight() / 2);
+        setCurrentRotateDegrees(degrees, getMapWidth() / 2, getMapHeight() / 2);
     }
 
     /**
@@ -451,4 +451,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     public float getMapHeight() {
         return mapLayer.getImage().getHeight();
     }
+
+
 }
