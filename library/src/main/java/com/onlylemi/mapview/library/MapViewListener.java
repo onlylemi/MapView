@@ -1,7 +1,5 @@
 package com.onlylemi.mapview.library;
 
-import android.graphics.Bitmap;
-
 /**
  * MapViewListener
  *
@@ -18,9 +16,4 @@ public interface MapViewListener {
      * when mapview load error to callback
      */
     void onMapLoadFail();
-
-    /**
-     * @param bitmap
-     */
-    void onGetCurrentMap(Bitmap bitmap);
 }

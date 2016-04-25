@@ -19,7 +19,7 @@ import java.util.List;
 public final class MapMath {
 
     /**
-     * 得到两点之间的距离
+     * the distance between two points
      *
      * @param x1
      * @param y1
@@ -33,7 +33,7 @@ public final class MapMath {
     }
 
     /**
-     * 得到两点之间的距离
+     * the distance between two points
      *
      * @param start
      * @param end
@@ -46,40 +46,35 @@ public final class MapMath {
 
 
     /**
-     * 得到地图中两点间的最短路径点集list (FloydAlgorithm)
+     * the shortest path between two points (FloydAlgorithm)
      *
-     * @param begin  起点
-     * @param end    终点
-     * @param matrix 点集之间的关系矩阵
+     * @param begin
+     * @param end
+     * @param matrix adjacency matrix
      * @return
      */
     public static List<Integer> getShortestPathBetweenTwoPoints(int begin,
                                                                 int end, float[][] matrix) {
-
         return FloydAlgorithm.getInstance().findCheapestPath(begin, end, matrix);
     }
 
     /**
-     * 任意点间最优路径 (邻近点)
+     * the best path between some points (NearestNeighbour tsp)
      *
-     * @param matrix
+     * @param matrix adjacency matrix
      * @return
      */
-    public static List<Integer> getShortestPathBetweenPoints(float[][] matrix) {
-        // TSP 计算最优路线
-        List<Integer> result = new TSPNearestNeighbour().tsp(matrix);
-        Log.i("MApMath:", result.toString());
-        return result;
+    public static List<Integer> getBestPathBetweenPointsByNearestNeighbour(float[][] matrix) {
+        return TSPNearestNeighbour.getInstance().tsp(matrix);
     }
 
     /**
-     * 任意点间最优路径 (遗传算法)
+     * the best path between some points (GeneticAlgorithm tsp)
      *
      * @param matrix
      * @return
      */
-    public static List<Integer> getBestPathByGeneticAlgorithm(float[][] matrix) {
-        // 遗传算法 tsp
+    public static List<Integer> getBestPathBetweenPointsByGeneticAlgorithm(float[][] matrix) {
         GeneticAlgorithm ga = GeneticAlgorithm.getInstance();
         ga.setAutoNextGeneration(true);
         ga.setMaxGeneration(200);
@@ -94,7 +89,7 @@ public final class MapMath {
 
 
     /**
-     * 得到两点连线与水平面所成夹角
+     * get the angle between two points and the horizontal plane
      *
      * @param start
      * @param end
@@ -121,7 +116,7 @@ public final class MapMath {
     }
 
     /**
-     * 得到两点连线与垂直面所成夹角
+     * get the angle between two points and the vertical plane
      *
      * @param start
      * @param end
@@ -148,7 +143,7 @@ public final class MapMath {
     }
 
     /**
-     * 获取角度
+     * get degree between two points
      *
      * @param x1
      * @param y1
@@ -162,19 +157,18 @@ public final class MapMath {
     }
 
     /**
-     * 获取角度
+     * get degree between two points
      *
      * @param start
      * @param end
      * @return
      */
     public static float getDegreeBetweenTwoPoints(PointF start, PointF end) {
-        double radians = Math.atan2(start.x - end.x, start.y - end.y);
-        return (float) Math.toDegrees(radians);
+        return getDegreeBetweenTwoPoints(start.x, start.y, end.x, end.y);
     }
 
     /**
-     * 得到两点间中点的坐标
+     * The coordinates of the midpoint between two points are obtained
      *
      * @param x1
      * @param y1
@@ -187,18 +181,18 @@ public final class MapMath {
     }
 
     /**
-     * 得到两点间中点的坐标
+     * The coordinates of the midpoint between two points are obtained
      *
      * @param start
      * @param end
      * @return
      */
     public static PointF getMidPointBetweenTwoPoints(PointF start, PointF end) {
-        return getEveryPointBetweenTwoPoints(start, end, 0.5f);
+        return getMidPointBetweenTwoPoints(start.x, start.y, end.x, end.y);
     }
 
     /**
-     * 得到两点间任意一点的坐标
+     * Get the coordinates of any point between two points
      *
      * @param start
      * @param end
@@ -206,9 +200,9 @@ public final class MapMath {
      * @return
      */
     public static PointF getEveryPointBetweenTwoPoints(PointF start, PointF end, float value) {
-        //坐标系 y=kx+b
+        // y=kx+b
         float x, y;
-        //有斜率
+        // with slope
         if (start.x != end.x) {
             float k = (end.y - start.y) / (end.x - start.x);
             float b = end.y - k * end.x;
@@ -219,7 +213,7 @@ public final class MapMath {
                 x = Math.max(end.x, start.x) + (end.x - start.x) * value;
             }
             y = k * x + b;
-        } else { //无斜率
+        } else { // no slope
             x = start.x;
             if (end.y > start.y) {
                 y = Math.min(end.y, start.y) + (end.y - start.y) * value;
@@ -232,44 +226,44 @@ public final class MapMath {
 
 
     /**
-     * 得到一个点到直线最短距离
+     * Get a shortest distance from point to line
      *
-     * @param point      已知点
-     * @param linePoint1 确定直线的1点
-     * @param linePoint2 确定直线的2点
+     * @param point
+     * @param linePoint1 Determine the first point of a straight line
+     * @param linePoint2 Determine the second point of a straight line
      * @return
      */
-    public static float getDistancePointToLine(PointF point, PointF linePoint1, PointF linePoint2) {
+    public static float getDistanceFromPointToLine(PointF point, PointF linePoint1, PointF
+            linePoint2) {
         // y = kx + b;
         // d = |kx-y+b| / √(k^2+1)
         float d;
-        if (linePoint1.x != linePoint2.x) { //有斜率
+        if (linePoint1.x != linePoint2.x) { // with slope
             float k = (linePoint2.y - linePoint1.y) / (linePoint2.x - linePoint1.x);
             float b = linePoint2.y - k * linePoint2.x;
             d = Math.abs(k * point.x - point.y + b) / (float) Math.sqrt(k * k + 1);
-        } else { //无斜率
+        } else { // no slope
             d = Math.abs(point.x - linePoint1.x);
         }
         return d;
     }
 
     /**
-     * 得到一个点到直线最短距离的交点坐标
+     * get intersection coordinates from a point to a line
      *
      * @param point
      * @param linePoint1
      * @param linePoint2
      * @return
      */
-    public static PointF getIntersectionPointToLine(PointF point, PointF linePoint1, PointF
+    public static PointF getIntersectionCoordinatesFromPointToLine(PointF point, PointF linePoint1, PointF
             linePoint2) {
-
         // y = kx + b;
         float x, y;
-        if (linePoint1.x != linePoint2.x) { //有斜率
+        if (linePoint1.x != linePoint2.x) { // with slope
             float k = (linePoint2.y - linePoint1.y) / (linePoint2.x - linePoint1.x);
             float b = linePoint2.y - k * linePoint2.x;
-            //过point的垂线方程
+            // The equation of point
             if (k != 0) {
                 float kV = -1 / k;
                 float bV = point.y - kV * point.x;
@@ -279,7 +273,7 @@ public final class MapMath {
                 x = point.x;
                 y = linePoint1.y;
             }
-        } else { //无斜率
+        } else { // no slope
             x = linePoint1.x;
             y = point.y;
         }
@@ -287,14 +281,14 @@ public final class MapMath {
     }
 
     /**
-     * 判断一个点与一条线段顶点连线的夹角
+     * is/not obtuse angle between a point and a line
      *
      * @param point
      * @param linePoint1
      * @param linePoint2
      * @return
      */
-    public static boolean isObtuseAngleBetweenPointToLine(PointF point, PointF linePoint1, PointF
+    public static boolean isObtuseAnglePointAndLine(PointF point, PointF linePoint1, PointF
             linePoint2) {
         // A*A + B*B < C*C
         float p_l1, p_l2, l1_l2;

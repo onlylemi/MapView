@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Picture;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -350,8 +351,19 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         currentMatrix.postTranslate(x, y);
     }
 
-    public PointF mapCenter() {
-        return new PointF(mapLayer.getImage().getWidth() / 2, mapLayer.getImage().getHeight() / 2);
+    /**
+     * set point to map center
+     *
+     * @param x
+     * @param y
+     */
+    public void mapCenterWithPoint(float x, float y) {
+        float[] goal = {x, y};
+        currentMatrix.mapPoints(goal);
+
+        float deltaX = getWidth() / 2 - goal[0];
+        float deltaY = getHeight() / 2 - goal[1];
+        currentMatrix.postTranslate(deltaX, deltaY);
     }
 
     public float getCurrentRotateDegrees() {
@@ -364,7 +376,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      * @param degrees
      */
     public void setCurrentRotateDegrees(float degrees) {
-        setCurrentRotateDegrees(degrees, getMapWidth() / 2, getMapHeight() / 2);
+        mapCenterWithPoint(getMapWidth() / 2, getMapHeight() / 2);
+        setCurrentRotateDegrees(degrees, getWidth() / 2, getHeight() / 2);
     }
 
     /**

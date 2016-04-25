@@ -1,16 +1,12 @@
 package com.onlylemi.mapview.library.utils;
 
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Picture;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.Log;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +15,7 @@ import java.util.List;
  *
  * @author onlylemi
  */
-public class MapUtils {
+public final class MapUtils {
 
     private static final String TAG = "MapUtils: ";
 
@@ -27,17 +23,13 @@ public class MapUtils {
     private static int nodesSize;
     private static int nodesContactSize;
 
-    public static void init(List<PointF> nodes, List<PointF> nodesContact) {
-        if (nodes != null) {
-            nodesSize = nodes.size();
-        }
-        if (nodesContact != null) {
-            nodesContactSize = nodesContact.size();
-        }
+    public static void init(int nodessize, int nodescontactsize) {
+        nodesSize = nodessize;
+        nodesContactSize = nodescontactsize;
     }
 
     /**
-     * 得到list点集间的距离
+     * Get the distance between points
      *
      * @param nodes
      * @param list
@@ -54,7 +46,7 @@ public class MapUtils {
     }
 
     /**
-     * 得到list表中 两点间与水平线所成的夹角集
+     * get degrees between two points(list) with horizontal plane
      *
      * @param routeList
      * @param nodes
@@ -72,7 +64,7 @@ public class MapUtils {
     }
 
     /**
-     * 得到list表中 两点间与垂直线所成的夹角集
+     * get degrees between two points(list) with vertical plane
      *
      * @param routeList
      * @param nodes
@@ -90,12 +82,12 @@ public class MapUtils {
     }
 
     /**
-     * 得到地图中两点间的最短路径点集list
+     * get shortest path between two points
      *
-     * @param start        起点
-     * @param end          终点
-     * @param nodes        点集list
-     * @param nodesContact 点集之间的关系list
+     * @param start        start point
+     * @param end          end point
+     * @param nodes        nodes list
+     * @param nodesContact nodesContact list
      * @return
      */
     public static List<Integer> getShortestPathBetweenTwoPoints(int start,
@@ -107,17 +99,16 @@ public class MapUtils {
     }
 
     /**
-     * 得到任意多个点集间的最优路径
+     * get best path between points
      *
      * @param points
      * @param nodes
      * @param nodesContact
      * @return
      */
-    public static List<Integer> getShortestPathBetweenPoints(int[] points,
-                                                             List<PointF> nodes, List<PointF>
-                                                                     nodesContact) {
-        // 关系矩阵
+    public static List<Integer> getBestPathBetweenPoints(int[] points, List<PointF> nodes,
+                                                         List<PointF> nodesContact) {
+        // adjacency matrix
         float[][] matrix = new float[points.length][points.length];
         for (int i = 0; i < matrix.length; i++) {
             for (int j = i; j < matrix[i].length; j++) {
@@ -132,10 +123,9 @@ public class MapUtils {
             }
         }
 
-        // TSP 计算最优路线
+        // TSP to get best path
         List<Integer> routeList = new ArrayList<>();
-        List<Integer> result = MapMath.getBestPathByGeneticAlgorithm(matrix);
-//        Log.i(TAG, result.toString());
+        List<Integer> result = MapMath.getBestPathBetweenPointsByGeneticAlgorithm(matrix);
         for (int i = 0; i < result.size() - 1; i++) {
             int size = routeList.size();
             routeList.addAll(getShortestPathBetweenTwoPoints(
@@ -150,16 +140,16 @@ public class MapUtils {
 
 
     /**
-     * 得到地图上任意多个点集间的最优路径
+     * get best path between points
      *
      * @param pointList
      * @param nodes
      * @param nodesContact
      * @return
      */
-    public static List<Integer> getShortestPathBetweenPoints(List<PointF> pointList,
-                                                             List<PointF> nodes, List<PointF>
-                                                                     nodesContact) {
+    public static List<Integer> getBestPathBetweenPoints(List<PointF> pointList,
+                                                         List<PointF> nodes, List<PointF>
+                                                                 nodesContact) {
         if (nodesSize != nodes.size()) {
             int value = nodes.size() - nodesSize;
             for (int i = 0; i < value; i++) {
@@ -171,19 +161,18 @@ public class MapUtils {
             }
         }
 
-        //找到目标点 距离 最近的路线上的点
+        //find the point on the nearest route
         int[] points = new int[pointList.size()];
         for (int i = 0; i < pointList.size(); i++) {
             addPointToList(pointList.get(i), nodes, nodesContact);
             points[i] = nodes.size() - 1;
         }
 
-
-        return getShortestPathBetweenPoints(points, nodes, nodesContact);
+        return getBestPathBetweenPoints(points, nodes, nodesContact);
     }
 
     /**
-     * 得到两点间的最短距离
+     * get shortest distance between two points
      *
      * @param start
      * @param end
@@ -200,7 +189,7 @@ public class MapUtils {
     }
 
     /**
-     * 得到节点集之间的关系矩阵
+     * adjacency matrix with points
      *
      * @param nodes
      * @param nodesContact
@@ -208,7 +197,7 @@ public class MapUtils {
      */
     public static float[][] getMatrixBetweenFloorPlanNodes(List<PointF> nodes, List<PointF>
             nodesContact) {
-        // 设初始值为无穷大
+        // set default is INF
         float[][] matrix = new float[nodes.size()][nodes.size()];
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
@@ -216,7 +205,7 @@ public class MapUtils {
             }
         }
 
-        // 给矩阵赋路径权值
+        // set value for matrix
         for (int i = 0; i < nodesContact.size(); i++) {
             matrix[(int) nodesContact.get(i).x][(int) nodesContact.get(i).y] = MapMath
                     .getDistanceBetweenTwoPoints(nodes.get((int) nodesContact.get(i).x),
@@ -231,7 +220,7 @@ public class MapUtils {
     }
 
     /**
-     * 得到地图中任意两点间的最短路径
+     * get shortest distance between two points
      *
      * @param start
      * @param end
@@ -242,8 +231,6 @@ public class MapUtils {
     public static List<Integer> getShortestDistanceBetweenTwoPoints(PointF start, PointF end,
                                                                     List<PointF> nodes,
                                                                     List<PointF> nodesContact) {
-        Log.i(TAG, "getShortestDistanceBetweenTwoPoints");
-
         if (nodesSize != nodes.size()) {
             int value = nodes.size() - nodesSize;
             for (int i = 0; i < value; i++) {
@@ -263,7 +250,7 @@ public class MapUtils {
     }
 
     /**
-     * 得到地图中目标点到定位点的最短路径
+     * get the shortest path from the position point to the target point in the map
      *
      * @param position
      * @param target
@@ -291,7 +278,7 @@ public class MapUtils {
     }
 
     /**
-     * 添加点到list中去
+     * add point to list
      *
      * @param point
      * @param nodes
@@ -306,24 +293,30 @@ public class MapUtils {
             for (int i = 0; i < nodesContact.size() - 1; i++) {
                 PointF p1 = nodes.get((int) nodesContact.get(i).x);
                 PointF p2 = nodes.get((int) nodesContact.get(i).y);
-                if (!MapMath.isObtuseAngleBetweenPointToLine(point, p1, p2)) {
-                    float minDis = MapMath.getDistancePointToLine(point, p1, p2);
+                if (!MapMath.isObtuseAnglePointAndLine(point, p1, p2)) {
+                    float minDis = MapMath.getDistanceFromPointToLine(point, p1, p2);
                     if (min1 > minDis) {
-                        pV = MapMath.getIntersectionPointToLine(point, p1, p2);
+                        pV = MapMath.getIntersectionCoordinatesFromPointToLine(point, p1, p2);
                         min1 = minDis;
                         po1 = (int) nodesContact.get(i).x;
                         po2 = (int) nodesContact.get(i).y;
                     }
                 }
             }
-            //得到交点
+            // get intersection
             nodes.add(pV);
-            Log.i(TAG, "node=" + (nodes.size() - 1) + ", po1=" + po1 + ", po2=" + po2);
+            //Log.i(TAG, "node=" + (nodes.size() - 1) + ", po1=" + po1 + ", po2=" + po2);
             nodesContact.add(new PointF(po1, nodes.size() - 1));
             nodesContact.add(new PointF(po2, nodes.size() - 1));
         }
     }
 
+    /**
+     * bitmap to picture
+     *
+     * @param bitmap
+     * @return
+     */
     public static Picture getPictureFromBitmap(Bitmap bitmap) {
         Picture picture = new Picture();
         Canvas canvas = picture.beginRecording(bitmap.getWidth(),

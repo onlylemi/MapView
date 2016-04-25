@@ -1,16 +1,25 @@
 package com.onlylemi.mapview.library.utils.math;
 
+import java.net.FileNameMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
 public class TSPNearestNeighbour {
 
-    private static final float INF = Float.MAX_VALUE; // 无边
+    private static final float INF = Float.MAX_VALUE;
 
     private int numberOfNodes;
     private Stack<Integer> stack;
     private List<Integer> list;
+
+    public static TSPNearestNeighbour getInstance() {
+        return TSPNearestNeighbourHolder.instance;
+    }
+
+    private static class TSPNearestNeighbourHolder {
+        private static TSPNearestNeighbour instance = new TSPNearestNeighbour();
+    }
 
     public TSPNearestNeighbour() {
         stack = new Stack<>();

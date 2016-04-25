@@ -10,10 +10,10 @@ import java.util.List;
  */
 public final class FloydAlgorithm {
 
-    private static final int INF = Integer.MAX_VALUE; // 无边
+    private static final int INF = Integer.MAX_VALUE;
     private float[][] dist;
 
-    // 顶点i 到 j的最短路径长度，初值是i到j的边的权重
+    // the shortest path from i to j
     private int[][] path;
     private List<Integer> result;
 
@@ -35,7 +35,7 @@ public final class FloydAlgorithm {
     }
 
     /**
-     * 求两点间的最短路径
+     * the shortest between begin to end
      *
      * @param begin
      * @param end
@@ -56,7 +56,7 @@ public final class FloydAlgorithm {
         int k = path[i][j];
         if (k == -1)
             return;
-        findPath(i, k); // 递归
+        findPath(i, k); // recursion
         result.add(k);
         findPath(k, j);
     }
