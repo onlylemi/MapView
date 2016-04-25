@@ -54,10 +54,6 @@ public class MarkLayerTestActivity extends AppCompatActivity {
 
             }
 
-            @Override
-            public void onGetCurrentMap(Bitmap bitmap) {
-
-            }
         });
     }
 }

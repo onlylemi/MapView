@@ -58,10 +58,6 @@ public class LocationLayerTestActivity extends AppCompatActivity implements Sens
 
             }
 
-            @Override
-            public void onGetCurrentMap(Bitmap bitmap) {
-
-            }
         });
 
 

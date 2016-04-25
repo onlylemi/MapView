@@ -60,11 +60,6 @@ public class BitmapLayerTestActivity extends AppCompatActivity {
             public void onMapLoadFail() {
                 Log.i(TAG, "onMapLoadFail");
             }
-
-            @Override
-            public void onGetCurrentMap(Bitmap bitmap) {
-                Log.i(TAG, "onGetCurrentMap");
-            }
         });
     }
 

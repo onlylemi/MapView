@@ -38,7 +38,7 @@ public class MapLayerTestActivity extends AppCompatActivity {
             @Override
             public void onMapLoadSuccess() {
                 Log.i(TAG, "onMapLoadSuccess");
-                mapView.setCurrentRotateDegrees(60);
+                //mapView.setCurrentRotateDegrees(60);
             }
 
             @Override
@@ -46,10 +46,6 @@ public class MapLayerTestActivity extends AppCompatActivity {
                 Log.i(TAG, "onMapLoadFail");
             }
 
-            @Override
-            public void onGetCurrentMap(Bitmap bitmap) {
-                Log.i(TAG, "onGetCurrentMap");
-            }
         });
     }
 

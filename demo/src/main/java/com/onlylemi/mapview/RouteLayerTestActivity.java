@@ -2,11 +2,9 @@ package com.onlylemi.mapview;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Point;
 import android.graphics.PointF;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -17,7 +15,9 @@ import com.onlylemi.mapview.library.layer.RouteLayer;
 import com.onlylemi.mapview.library.utils.MapUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class RouteLayerTestActivity extends AppCompatActivity {
 
@@ -40,7 +40,7 @@ public class RouteLayerTestActivity extends AppCompatActivity {
         nodesContract = TestData.getNodesContactList();
         marks = TestData.getMarks();
         marksName = TestData.getMarksName();
-        MapUtils.init(nodes, nodesContract);
+        MapUtils.init(nodes.size(), nodesContract.size());
 
         mapView = (MapView) findViewById(R.id.mapview);
         Bitmap bitmap = null;
@@ -76,9 +76,6 @@ public class RouteLayerTestActivity extends AppCompatActivity {
             public void onMapLoadFail() {
             }
 
-            @Override
-            public void onGetCurrentMap(Bitmap bitmap) {
-            }
         });
     }
 
@@ -93,8 +90,17 @@ public class RouteLayerTestActivity extends AppCompatActivity {
         if (mapView.isMapLoadFinish()) {
             switch (item.getItemId()) {
                 case R.id.route_layer_tsp:
-
-
+                    List<PointF> list = new ArrayList<>();
+                    list.add(marks.get(39));
+                    list.add(marks.get(new Random().nextInt(10)));
+                    list.add(marks.get(new Random().nextInt(10) + 10));
+                    list.add(marks.get(new Random().nextInt(10) + 20));
+                    list.add(marks.get(new Random().nextInt(10) + 9));
+                    List<Integer> routeList = MapUtils.getBestPathBetweenPoints(list, nodes,
+                            nodesContract);
+                    routeLayer.setNodeList(nodes);
+                    routeLayer.setRouteList(routeList);
+                    mapView.refresh();
                     break;
                 default:
                     break;
