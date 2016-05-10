@@ -59,27 +59,25 @@ public class MarkLayer extends MapBaseLayer {
 
     @Override
     public void onTouch(MotionEvent event) {
-        if (marks != null) {
-            if (marks.size() != 0) {
-                float[] goal = mapView.convertMapXYToScreenXY(event.getX(), event.getY());
-                for (int i = 0; i < marks.size(); i++) {
-                    if (MapMath.getDistanceBetweenTwoPoints(goal[0], goal[1],
-                            marks.get(i).x - bmpMark.getWidth() / 2, marks.get(i).y - bmpMark
-                                    .getHeight() / 2) <= 50) {
-                        num = i;
-                        isClickMark = true;
-                        break;
-                    }
-
-                    if (i == marks.size() - 1) {
-                        isClickMark = false;
-                    }
+        if (marks != null && marks.size() != 0) {
+            float[] goal = mapView.convertMapXYToScreenXY(event.getX(), event.getY());
+            for (int i = 0; i < marks.size(); i++) {
+                if (MapMath.getDistanceBetweenTwoPoints(goal[0], goal[1],
+                        marks.get(i).x - bmpMark.getWidth() / 2, marks.get(i).y - bmpMark
+                                .getHeight() / 2) <= 50) {
+                    num = i;
+                    isClickMark = true;
+                    break;
                 }
 
-                if (listener != null && isClickMark) {
-                    listener.markIsClick(num);
-                    mapView.refresh();
+                if (i == marks.size() - 1) {
+                    isClickMark = false;
                 }
+            }
+
+            if (listener != null && isClickMark) {
+                listener.markIsClick(num);
+                mapView.refresh();
             }
         }
     }
@@ -98,11 +96,10 @@ public class MarkLayer extends MapBaseLayer {
                     paint.setColor(Color.BLACK);
                     paint.setTextSize(radiusMark);
                     //mark name
-                    if (mapView.getCurrentZoom() > 1.0 && marksName != null) {
-                        if (marksName.size() == marks.size()) {
-                            canvas.drawText(marksName.get(i), goal[0] - radiusMark, goal[1] -
-                                    radiusMark / 2, paint);
-                        }
+                    if (mapView.getCurrentZoom() > 1.0 && marksName != null
+                            && marksName.size() == marks.size()) {
+                        canvas.drawText(marksName.get(i), goal[0] - radiusMark, goal[1] -
+                                radiusMark / 2, paint);
                     }
                     //mark ico
                     canvas.drawBitmap(bmpMark, goal[0] - bmpMark.getWidth() / 2,

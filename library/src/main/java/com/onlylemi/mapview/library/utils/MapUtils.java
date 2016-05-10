@@ -23,6 +23,8 @@ public final class MapUtils {
     private static int nodesSize;
     private static int nodesContactSize;
 
+    private MapUtils() {}
+
     public static void init(int nodessize, int nodescontactsize) {
         nodesSize = nodessize;
         nodesContactSize = nodescontactsize;

@@ -1,7 +1,9 @@
 package com.onlylemi.mapview.library.utils.math;
 
 import java.net.FileNameMap;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Stack;
 
@@ -10,20 +12,20 @@ public class TSPNearestNeighbour {
     private static final float INF = Float.MAX_VALUE;
 
     private int numberOfNodes;
-    private Stack<Integer> stack;
+    private Deque<Integer> stack;
     private List<Integer> list;
+
+    public TSPNearestNeighbour() {
+        stack = new ArrayDeque<>();
+        list = new ArrayList<>();
+    }
 
     public static TSPNearestNeighbour getInstance() {
         return TSPNearestNeighbourHolder.instance;
     }
-
     private static class TSPNearestNeighbourHolder {
         private static TSPNearestNeighbour instance = new TSPNearestNeighbour();
-    }
 
-    public TSPNearestNeighbour() {
-        stack = new Stack<>();
-        list = new ArrayList<>();
     }
 
     public List<Integer> tsp(float matrix[][]) {
@@ -42,12 +44,10 @@ public class TSPNearestNeighbour {
             i = 0;
             min = INF;
             while (i < numberOfNodes) {
-                if (matrix[element][i] < INF && visited[i] == 0) {
-                    if (min > matrix[element][i]) {
-                        min = matrix[element][i];
-                        dst = i;
-                        minFlag = true;
-                    }
+                if (matrix[element][i] < INF && visited[i] == 0 && min > matrix[element][i]) {
+                    min = matrix[element][i];
+                    dst = i;
+                    minFlag = true;
                 }
                 i++;
             }

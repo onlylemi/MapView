@@ -13,29 +13,34 @@ public class GeneticAlgorithm {
     private static final float DEFAULT_CROSSOVER_PROBABILITY = 0.9f; // 默认交叉概率
     private static final float DEFAULT_MUTATION_PROBABILITY = 0.01f; // 默认突变概率
     private static final int DEFAULT_POPULATION_SIZE = 30; // 默认种群数量
+    private static final int PREVIOUS = 0;
+    private static final int NEXT = 1;
 
     private float crossoverProbability = DEFAULT_CROSSOVER_PROBABILITY; // 交叉概率
     private float mutationProbability = DEFAULT_MUTATION_PROBABILITY; // 突变概率
-    private int populationSize = DEFAULT_POPULATION_SIZE; // 种群数量
 
+    private int populationSize = DEFAULT_POPULATION_SIZE; // 种群数量
     private int mutationTimes = 0; // 变异次数
     private int currentGeneration = 0; // 当前的一代
-    private int maxGeneration = 1000; // 最大代数
 
+    private int maxGeneration = 1000; // 最大代数
     private int pointNum;
     private int[][] population; // 种群集
-    private float[][] dist; // 点集间的邻接矩阵
 
+    private float[][] dist; // 点集间的邻接矩阵
     private int[] bestIndivial; // 最短的结果集
     private float bestDist; // 最短的距离
     private int currentBestPosition; // 当前最好个体的位置
-    private float currentBestDist; // 当前最好个体的距离
 
+    private float currentBestDist; // 当前最好个体的距离
     private float[] values; // 种群中每个个体的dist
     private float[] fitnessValues; // 适应度集
+
     private float[] roulette;
 
     private boolean isAutoNextGeneration = false;
+
+    private static Random rd;
 
     public static GeneticAlgorithm getInstance() {
         return GeneticAlgorithmHolder.instance;
@@ -234,9 +239,6 @@ public class GeneticAlgorithm {
         }
     }
 
-    private static final int PREVIOUS = 0;
-    private static final int NEXT = 1;
-
     private void doCrossover(int x, int y) {
         population[x] = getChild(x, y, PREVIOUS);
         population[y] = getChild(x, y, NEXT);
@@ -374,8 +376,6 @@ public class GeneticAlgorithm {
         }
         return a;
     }
-
-    private static Random rd;
 
     private int random(int n) {
         Random ran = rd;
