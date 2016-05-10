@@ -26,7 +26,7 @@ public class TSPNearestNeighbour {
         list = new ArrayList<>();
     }
 
-    public List<Integer> tsp(float matrix[][]) {
+    public List<Integer> tsp(float[][] matrix) {
         numberOfNodes = matrix[0].length;
         int[] visited = new int[numberOfNodes];
         visited[0] = 1;
@@ -36,11 +36,10 @@ public class TSPNearestNeighbour {
 
         // System.out.print(0 + "\t");
         list.add(0);
-        float min = INF;
         while (!stack.isEmpty()) {
             element = stack.peek();
             i = 0;
-            min = INF;
+            float min = INF;
             while (i < numberOfNodes) {
                 if (matrix[element][i] < INF && visited[i] == 0) {
                     if (min > matrix[element][i]) {

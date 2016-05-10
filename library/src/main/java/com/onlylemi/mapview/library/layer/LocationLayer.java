@@ -117,7 +117,7 @@ public class LocationLayer extends MapBaseLayer {
             currentRotateDegrees) {
         if (isVisible && currentPosition != null) {
             canvas.save();
-            float goal[] = {currentPosition.x, currentPosition.y};
+            float[] goal = {currentPosition.x, currentPosition.y};
             currentMatrix.mapPoints(goal);
 
             canvas.drawCircle(goal[0], goal[1], defaultLocationCircleRadius,

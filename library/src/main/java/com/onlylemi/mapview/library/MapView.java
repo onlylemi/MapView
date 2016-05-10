@@ -312,7 +312,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      */
     public float[] convertMapXYToScreenXY(float x, float y) {
         Matrix invertMatrix = new Matrix();
-        float value[] = {x, y};
+        float[] value = {x, y};
         currentMatrix.invert(invertMatrix);
         invertMatrix.mapPoints(value);
         return value;
