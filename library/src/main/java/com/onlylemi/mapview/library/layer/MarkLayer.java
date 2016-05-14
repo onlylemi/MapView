@@ -59,19 +59,21 @@ public class MarkLayer extends MapBaseLayer {
 
     @Override
     public void onTouch(MotionEvent event) {
-        if (marks != null && marks.size() != 0) {
-            float[] goal = mapView.convertMapXYToScreenXY(event.getX(), event.getY());
-            for (int i = 0; i < marks.size(); i++) {
-                if (MapMath.getDistanceBetweenTwoPoints(goal[0], goal[1],
-                        marks.get(i).x - bmpMark.getWidth() / 2, marks.get(i).y - bmpMark
-                                .getHeight() / 2) <= 50) {
-                    num = i;
-                    isClickMark = true;
-                    break;
-                }
+        if (marks != null) {
+            if (!marks.isEmpty()) {
+                float[] goal = mapView.convertMapXYToScreenXY(event.getX(), event.getY());
+                for (int i = 0; i < marks.size(); i++) {
+                    if (MapMath.getDistanceBetweenTwoPoints(goal[0], goal[1],
+                            marks.get(i).x - bmpMark.getWidth() / 2, marks.get(i).y - bmpMark
+                                    .getHeight() / 2) <= 50) {
+                        num = i;
+                        isClickMark = true;
+                        break;
+                    }
 
-                if (i == marks.size() - 1) {
-                    isClickMark = false;
+                    if (i == marks.size() - 1) {
+                        isClickMark = false;
+                    }
                 }
             }
 
@@ -87,10 +89,10 @@ public class MarkLayer extends MapBaseLayer {
             currentRotateDegrees) {
         if (isVisible && marks != null) {
             canvas.save();
-            if (marks.size() != 0) {
+            if (!marks.isEmpty()) {
                 for (int i = 0; i < marks.size(); i++) {
                     PointF mark = marks.get(i);
-                    float goal[] = {mark.x, mark.y};
+                    float[] goal = {mark.x, mark.y};
                     currentMatrix.mapPoints(goal);
 
                     paint.setColor(Color.BLACK);

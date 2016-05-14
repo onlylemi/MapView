@@ -67,17 +67,12 @@ public class RouteLayer extends MapBaseLayer {
             currentRotateDegrees) {
         if (isVisible && routeList != null && nodeList != null) {
             canvas.save();
-            if (routeList.size() != 0 && nodeList.size() != 0) {
+            if (!routeList.isEmpty() && !nodeList.isEmpty()) {
                 // draw route
                 for (int i = 0; i < routeList.size() - 1; i++) {
-                    // start node
-                    PointF start = nodeList.get(routeList.get(i));
-                    // end node
-                    PointF end = nodeList.get(routeList.get(i + 1));
-
-                    float goal1[] = {nodeList.get(routeList.get(i)).x,
+                    float[] goal1 = {nodeList.get(routeList.get(i)).x,
                             nodeList.get(routeList.get(i)).y};
-                    float goal2[] = {nodeList.get(routeList.get(i + 1)).x,
+                    float[] goal2 = {nodeList.get(routeList.get(i + 1)).x,
                             nodeList.get(routeList.get(i + 1)).y};
                     currentMatrix.mapPoints(goal1);
                     currentMatrix.mapPoints(goal2);
@@ -86,9 +81,9 @@ public class RouteLayer extends MapBaseLayer {
                 }
 
                 // draw bmp
-                float goal1[] = {nodeList.get(routeList.get(0)).x,
+                float[] goal1 = {nodeList.get(routeList.get(0)).x,
                         nodeList.get(routeList.get(0)).y};
-                float goal2[] = {
+                float[]  goal2 = {
                         nodeList.get(routeList.get(routeList.size() - 1)).x,
                         nodeList.get(routeList.get(routeList.size() - 1)).y};
                 currentMatrix.mapPoints(goal1);

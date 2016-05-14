@@ -59,7 +59,7 @@ public class BitmapLayer extends MapBaseLayer {
             currentRotateDegrees) {
         if (isVisible && bitmap != null) {
             canvas.save();
-            float goal[] = {location.x, location.y};
+            float[] goal = {location.x, location.y};
             if (!autoScale) {
                 currentMatrix.mapPoints(goal);
             } else {
