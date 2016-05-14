@@ -12,6 +12,8 @@ import java.util.List;
  */
 public final class TestData {
 
+    private TestData() {}
+
     public static List<PointF> getNodesList() {
         List<PointF> nodes = new ArrayList<>();
         nodes.add(new PointF(222, 34));

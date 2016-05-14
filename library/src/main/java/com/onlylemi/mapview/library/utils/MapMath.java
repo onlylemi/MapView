@@ -18,6 +18,8 @@ import java.util.List;
  */
 public final class MapMath {
 
+    private MapMath() {}
+
     /**
      * the distance between two points
      *
