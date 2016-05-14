@@ -9,8 +9,7 @@
     </style>
 
     <style name="AppTheme.Boot" parent="AppTheme">
-        <!--<item name="android:windowIsTranslucent">true</item>-->
-        <item name="android:windowBackground">@mipmap/logo</item>
+        <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowNoTitle">true</item>
     </style>
 
