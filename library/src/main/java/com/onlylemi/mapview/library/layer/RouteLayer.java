@@ -67,9 +67,17 @@ public class RouteLayer extends MapBaseLayer {
             currentRotateDegrees) {
         if (isVisible && routeList != null && nodeList != null) {
             canvas.save();
+
+            drawing:
             if (!routeList.isEmpty() && !nodeList.isEmpty()) {
                 // draw route
                 for (int i = 0; i < routeList.size() - 1; i++) {
+
+                    if (routeList.get(i) >= nodeList.size() ||
+                            routeList.get(i + 1) >= nodeList.size()) {
+                        break drawing;
+                    }
+
                     float[] goal1 = {nodeList.get(routeList.get(i)).x,
                             nodeList.get(routeList.get(i)).y};
                     float[] goal2 = {nodeList.get(routeList.get(i + 1)).x,
@@ -95,6 +103,7 @@ public class RouteLayer extends MapBaseLayer {
                         goal2[0] - routeEndBmp.getWidth() / 2, goal2[1]
                                 - routeEndBmp.getHeight(), paint);
             }
+
             canvas.restore();
         }
     }
