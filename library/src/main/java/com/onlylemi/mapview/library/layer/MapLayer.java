@@ -3,11 +3,13 @@ package com.onlylemi.mapview.library.layer;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Picture;
+import android.graphics.PointF;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewTreeObserver;
 
 import com.onlylemi.mapview.library.MapView;
+import com.onlylemi.mapview.library.utils.MapAABB;
 
 /**
  * MapLayer
@@ -20,6 +22,7 @@ public class MapLayer extends MapBaseLayer {
 
     private Picture image;
     private boolean hasMeasured;
+    private MapAABB mapBoundingBox;
 
     public MapLayer(MapView mapView) {
         super(mapView);
@@ -58,7 +61,20 @@ public class MapLayer extends MapBaseLayer {
         float width = mapView.getWidth() - zoom * image.getWidth();
         float height = mapView.getHeight() - zoom * image.getHeight();
 
+        Log.i(TAG, "MapWidth: " + mapView.getWidth());
+        Log.i(TAG, "MapHeight: " + mapView.getHeight());
+
+        //Create AABB
+        mapBoundingBox = new MapAABB( new PointF(0, 0), this.image.getWidth(), this.image.getHeight());
+
         mapView.translate(width / 2, height / 2);
+
+        Log.i(TAG, mapBoundingBox.toString());
+
+        //Update the bounding box once
+        mapBoundingBox.update(mapView.getCurrentTransform());
+
+        Log.d(TAG, "I have no ide wtf is happening");
     }
 
     /**
@@ -98,8 +114,13 @@ public class MapLayer extends MapBaseLayer {
         canvas.setMatrix(currentMatrix);
         if (image != null) {
             canvas.drawPicture(image);
+            mapBoundingBox.update(currentMatrix);
         }
         canvas.restore();
+    }
+
+    public MapAABB getMapBoundingBox() {
+        return mapBoundingBox;
     }
 
     public Picture getImage() {

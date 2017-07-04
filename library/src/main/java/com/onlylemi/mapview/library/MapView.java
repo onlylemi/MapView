@@ -15,11 +15,13 @@ import android.view.SurfaceView;
 
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
+import com.onlylemi.mapview.library.utils.MapAABB;
 import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.utils.MapUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 /**
  * MapView
@@ -50,6 +52,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     private float saveZoom = 0f;
     private float currentRotateDegrees = 0.0f;
     private float saveRotateDegrees = 0.0f;
+    private MapAABB restrictiveBoundingBox;
 
     private static final int TOUCH_STATE_NO = 0; // no touch
     private static final int TOUCH_STATE_SCROLL = 1; // scroll(one point)
@@ -60,6 +63,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
     private float oldDist = 0, oldDegree = 0;
     private boolean isScaleAndRotateTogether = false;
+    private boolean isOverflowing = false; //Indicates if the map model is bigger then the viewport
+    private boolean isRestrictedView = false;
 
     public MapView(Context context) {
         this(context, null);
@@ -100,11 +105,14 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 return true;
             }
         };
+        Log.i(TAG, "Init Width " + getWidth());
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         this.holder = holder;
+        restrictiveBoundingBox = new MapAABB(new PointF(0, 0), getWidth(), getHeight());
+        Log.d(TAG, "MapView AABB inited");
         refresh();
     }
 
@@ -122,6 +130,15 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      * reload mapview
      */
     public void refresh() {
+        //Testing
+        if(restrictiveBoundingBox != null && restrictiveBoundingBox.isFullyIntersecting(mapLayer.getMapBoundingBox())) {
+            Log.d(TAG, "INTERSECTING!");
+            isOverflowing = false;
+        } else {
+            Log.d(TAG, "Not fully intersecting, we can now move!");
+            isOverflowing = true;
+        }
+
         if (holder != null) {
             canvas = holder.lockCanvas();
             if (canvas != null) {
@@ -194,19 +211,15 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 if (event.getPointerCount() == 2) {
                     saveMatrix.set(currentMatrix);
                     saveZoom = currentZoom;
-                    saveRotateDegrees = currentRotateDegrees;
                     startTouch.set(event.getX(0), event.getY(0));
                     currentTouchState = MapView.TOUCH_STATE_TWO_POINTED;
 
                     mid = midPoint(event);
                     oldDist = distance(event, mid);
-                    oldDegree = rotation(event, mid);
                 }
                 break;
             case MotionEvent.ACTION_UP:
                 if (withFloorPlan(event.getX(), event.getY())) {
-//                    Log.i(TAG, event.getX() + " " + event.getY());
-                    // layers on touch
                     for (MapBaseLayer layer : layers) {
                         layer.onTouch(event);
                     }
@@ -219,46 +232,17 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
             case MotionEvent.ACTION_MOVE:
                 switch (currentTouchState) {
                     case MapView.TOUCH_STATE_SCROLL:
-                        currentMatrix.set(saveMatrix);
-                        currentMatrix.postTranslate(event.getX() - startTouch.x, event.getY() -
-                                startTouch.y);
-                        refresh();
-                        break;
-                    case MapView.TOUCH_STATE_TWO_POINTED:
-                        if (!isScaleAndRotateTogether) {
-                            float x = oldDist;
-                            float y = MapMath.getDistanceBetweenTwoPoints(event.getX(0),
-                                    event.getY(0), startTouch.x, startTouch.y);
-                            float z = distance(event, mid);
-                            float cos = (x * x + y * y - z * z) / (2 * x * y);
-                            float degree = (float) Math.toDegrees(Math.acos(cos));
 
-                            if (degree < 120 && degree > 45) {
-                                oldDegree = rotation(event, mid);
-                                currentTouchState = MapView.TOUCH_STATE_ROTATE;
-                            } else {
-                                oldDist = distance(event, mid);
-                                currentTouchState = MapView.TOUCH_STATE_SCALE;
-                            }
-                        } else {
+                        if(isOverflowing) {
                             currentMatrix.set(saveMatrix);
-                            newDist = distance(event, mid);
-                            newDegree = rotation(event, mid);
-
-                            float rotate = newDegree - oldDegree;
-                            float scale = newDist / oldDist;
-                            if (scale * saveZoom < minZoom) {
-                                scale = minZoom / saveZoom;
-                            } else if (scale * saveZoom > maxZoom) {
-                                scale = maxZoom / saveZoom;
-                            }
-                            currentZoom = scale * saveZoom;
-                            currentRotateDegrees = (newDegree - oldDegree + currentRotateDegrees)
-                                    % 360;
-                            currentMatrix.postScale(scale, scale, mid.x, mid.y);
-                            currentMatrix.postRotate(rotate, mid.x, mid.y);
+                            translate(event.getX() - startTouch.x, event.getY() -
+                                    startTouch.y);
                             refresh();
                         }
+                        break;
+                    case MapView.TOUCH_STATE_TWO_POINTED:
+                            oldDist = distance(event, mid);
+                            currentTouchState = MapView.TOUCH_STATE_SCALE;
                         break;
                     case MapView.TOUCH_STATE_SCALE:
                         currentMatrix.set(saveMatrix);
@@ -273,17 +257,17 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                         currentMatrix.postScale(scale, scale, mid.x, mid.y);
                         refresh();
                         break;
-                    case MapView.TOUCH_STATE_ROTATE:
-                        currentMatrix.set(saveMatrix);
-                        newDegree = rotation(event, mid);
-                        float rotate = newDegree - oldDegree;
-                        currentRotateDegrees = (rotate + saveRotateDegrees) % 360;
-                        currentRotateDegrees = currentRotateDegrees > 0 ? currentRotateDegrees :
-                                currentRotateDegrees + 360;
-                        currentMatrix.postRotate(rotate, mid.x, mid.y);
-                        refresh();
-//                        Log.i(TAG, "rotate:" + currentRotateDegrees);
-                        break;
+//                    case MapView.TOUCH_STATE_ROTATE:
+//                        currentMatrix.set(saveMatrix);
+//                        newDegree = rotation(event, mid);
+//                        float rotate = newDegree - oldDegree;
+//                        currentRotateDegrees = (rotate + saveRotateDegrees) % 360;
+//                        currentRotateDegrees = currentRotateDegrees > 0 ? currentRotateDegrees :
+//                                currentRotateDegrees + 360;
+//                        currentMatrix.postRotate(rotate, mid.x, mid.y);
+//                        refresh();
+////                        Log.i(TAG, "rotate:" + currentRotateDegrees);
+//                        break;
                     default:
                         break;
                 }
@@ -292,6 +276,10 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 break;
         }
         return true;
+    }
+
+    public void setRestrictMapToView(boolean restrict) {
+        this.isRestrictedView = restrict;
     }
 
     /**
@@ -348,7 +336,50 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void translate(float x, float y) {
+//        //We save the old to revert
+//        //TODO(Nyman): This should be transactionbased to cover all mutations
+//        if(isRestrictedView && holder != null) {
+////            Matrix tmp = new Matrix();
+////            currentMatrix.set(tmp);
+////            tmp.postTranslate(x, y);
+////            //Check if the translation will put the aabb outside
+////            mapLayer.getMapBoundingBox().translate(tmp);
+////
+////            //If we are still insde we're good, continue
+////            Log.i(TAG, mapLayer.getMapBoundingBox().toString());
+////            Log.i(TAG, restrictiveBoundingBox.toString());
+////
+////            if(restrictiveBoundingBox.isFullyIntersecting(mapLayer.getMapBoundingBox())) {
+////                currentMatrix = tmp;
+////            }
+//            //Define boundries
+////            Matrix tmp = new Matrix();
+////            currentMatrix.set(tmp);
+////            tmp.postTranslate(x, y);
+//            //Check if the translation will put the aabb outside
+//            float[] b = new float[9];
+//            currentMatrix.getValues(b);
+//
+//            Log.i(TAG, "Input x: " + x + ", y: " + y);
+//
+//            float xp = b[2] + x;
+//            float yp = b[5] + y;
+//
+//            if(xp < 0 - 800) {
+//                x = 0;
+//            }else if(xp > 1300-800) {
+//                x = 0;
+//            }
+//
+//            if(yp < 0 - 377) {
+//                y = 0;
+//            }else if(yp > 0) {
+//                y = 0;
+//            }
+//        }
+
         currentMatrix.postTranslate(x, y);
+
     }
 
     /**
@@ -465,5 +496,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         return mapLayer.getImage().getHeight();
     }
 
+    public Matrix getCurrentTransform() { return currentMatrix; }
 
 }
