@@ -337,17 +337,18 @@ public final class MapUtils {
 
     /**
      * Creates a mapping matrix that is used to transform a point from the input coordinate system to graphics coordinate system
-     * Will return the transform matrix but also set the mapview mappingmatrix if you dont wanna handle the transformation yourself
+     * topLeft 0,0 and botRight mapview.image.width, mapview.image.height is a mapping across the entire image
      * @param width of the input coordinate system (X)
      * @param height of the input cooridnate system (Y)
-     * @param offset if the input coordinate system is offset the graphics coordinate system we need to input the offset
+     * @param mapViewTopLeft topLeft corner on the mapview where the input coordinate system starts.
+     * @param mapViewBotRight botLeft corner on the mapview where the input cooridnate system starts.
      * @return the transform matrix
      */
-    public static Matrix createMappingMatrix(MapView map, float width, float height, PointF offset) {
-        //X scale
-        float scaleX = map.getMapWidth() / width;
+    public static Matrix createMappingMatrix(MapView map, float width, float height, PointF mapViewTopLeft, PointF mapViewBotRight) {
+        //X scale remove the offsets
+        float scaleX = (map.getMapWidth() - mapViewTopLeft.x - (map.getMapWidth() - mapViewBotRight.x)) / width;
         //Y scale
-        float scaleY = map.getMapHeight() / height;
+        float scaleY = (map.getMapHeight() - mapViewTopLeft.y - (map.getMapHeight() - mapViewBotRight.y)) / height;
 
         Matrix mappingMatrix = new Matrix();
 
@@ -355,7 +356,7 @@ public final class MapUtils {
         mappingMatrix.setScale(scaleX, scaleY);
 
         //Translate
-        mappingMatrix.postTranslate(offset.x, offset.y);
+        mappingMatrix.postTranslate(mapViewTopLeft.x, mapViewTopLeft.y);
 
         return mappingMatrix;
     }
