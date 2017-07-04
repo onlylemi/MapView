@@ -11,6 +11,7 @@ import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapView;
 import com.onlylemi.mapview.library.R;
+import com.onlylemi.mapview.library.utils.MapUtils;
 
 /**
  * LocationLayer
@@ -20,6 +21,9 @@ import com.onlylemi.mapview.library.R;
 public class LocationLayer extends MapBaseLayer {
 
     private boolean openCompass = false;
+
+    //Used to map from one cooridnate system to this one
+    private Matrix mappingMatrix = new Matrix();
 
     // compass color
     private static final int DEFAULT_LOCATION_COLOR = 0xFF3EBFC9;
@@ -64,6 +68,11 @@ public class LocationLayer extends MapBaseLayer {
 
         level = LOCATION_LEVEL;
         initLayer();
+    }
+
+    public LocationLayer(MapView mapView, PointF currentPosition, Matrix mappingMatrix) {
+        this(mapView, MapUtils.transformPoint(mappingMatrix, currentPosition), false);
+        this.mappingMatrix = mappingMatrix;
     }
 
     private void initLayer() {
@@ -201,7 +210,7 @@ public class LocationLayer extends MapBaseLayer {
     }
 
     public void setCurrentPosition(PointF currentPosition) {
-        this.currentPosition = currentPosition;
+        this.currentPosition = MapUtils.transformPoint(mappingMatrix, currentPosition);
     }
 
     public float getCompassIndicatorCircleRotateDegree() {
