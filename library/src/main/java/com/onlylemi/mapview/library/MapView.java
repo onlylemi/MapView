@@ -248,12 +248,20 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                         currentMatrix.set(saveMatrix);
                         newDist = distance(event, mid);
                         float scale = newDist / oldDist;
+
+                        Log.d(TAG, "Current zoom was: " + currentZoom);
+                        Log.d(TAG, "Scale is: " + scale);
+
                         if (scale * saveZoom < minZoom) {
+                            Log.d(TAG, "Was below minimum zoom");
                             scale = minZoom / saveZoom;
                         } else if (scale * saveZoom > maxZoom) {
+                            Log.d(TAG, "Was above max zoom");
                             scale = maxZoom / saveZoom;
                         }
                         currentZoom = scale * saveZoom;
+                        Log.d(TAG, "Current zoom is: " + currentZoom);
+
                         currentMatrix.postScale(scale, scale, mid.x, mid.y);
                         refresh();
                         break;
@@ -458,6 +466,23 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     public void setCurrentZoom(float zoom, float x, float y) {
         currentMatrix.postScale(zoom / this.currentZoom, zoom / this.currentZoom, x, y);
         this.currentZoom = zoom;
+    }
+
+    /**
+     * Inits the zooming
+     * TODO(Nyman): Should add a padding variable to zooming aswell
+     * @param zoom init min zoom
+     * @param x
+     * @param y
+     */
+    public void initZoom(float zoom, float x, float y) {
+        setCurrentZoom(zoom, x, y);
+
+        final float maxZoomPadding = 2.0f;
+        final float minZoomPadding = 0.0f;
+
+        minZoom = zoom + minZoomPadding;
+        maxZoom = zoom + maxZoomPadding;
     }
 
     private PointF midPoint(MotionEvent event) {

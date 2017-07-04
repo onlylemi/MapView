@@ -56,7 +56,7 @@ public class MapLayer extends MapBaseLayer {
         float zoom = getInitZoom(mapView.getWidth(), mapView.getHeight(), image.getWidth(), image
                 .getHeight());
         Log.i(TAG, Float.toString(zoom));
-        mapView.setCurrentZoom(zoom, 0, 0);
+        mapView.initZoom(zoom, 0, 0);
 
         float width = mapView.getWidth() - zoom * image.getWidth();
         float height = mapView.getHeight() - zoom * image.getHeight();
@@ -73,8 +73,6 @@ public class MapLayer extends MapBaseLayer {
 
         //Update the bounding box once
         mapBoundingBox.update(mapView.getCurrentTransform());
-
-        Log.d(TAG, "I have no ide wtf is happening");
     }
 
     /**
