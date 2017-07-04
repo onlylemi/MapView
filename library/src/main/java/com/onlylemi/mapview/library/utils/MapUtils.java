@@ -2,10 +2,13 @@ package com.onlylemi.mapview.library.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Picture;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.Log;
+
+import com.onlylemi.mapview.library.MapView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -330,5 +333,41 @@ public final class MapUtils {
                         .getHeight()), null);
         picture.endRecording();
         return picture;
+    }
+
+    /**
+     * Creates a mapping matrix that is used to transform a point from the input coordinate system to graphics coordinate system
+     * Will return the transform matrix but also set the mapview mappingmatrix if you dont wanna handle the transformation yourself
+     * @param width of the input coordinate system (X)
+     * @param height of the input cooridnate system (Y)
+     * @param offset if the input coordinate system is offset the graphics coordinate system we need to input the offset
+     * @return the transform matrix
+     */
+    public static Matrix createMappingMatrix(MapView map, float width, float height, PointF offset) {
+        //X scale
+        float scaleX = map.getMapWidth() / width;
+        //Y scale
+        float scaleY = map.getMapHeight() / height;
+
+        Matrix mappingMatrix = new Matrix();
+
+        //Set scale
+        mappingMatrix.setScale(scaleX, scaleY);
+
+        //Translate
+        mappingMatrix.postTranslate(offset.x, offset.y);
+
+        return mappingMatrix;
+    }
+
+    public static PointF transformPoint(Matrix m, PointF point) {
+        float[] p = new float[2];
+        float[] tmp = new float[2];
+        p[0] = point.x;
+        p[1] = point.y;
+
+        m.mapPoints(tmp, p);
+
+        return new PointF(tmp[0], tmp[1]);
     }
 }

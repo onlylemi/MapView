@@ -45,7 +45,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
     private PointF startTouch = new PointF();
     private PointF mid = new PointF();
-
+    
     private Matrix saveMatrix = new Matrix();
     private Matrix currentMatrix = new Matrix();
     private float currentZoom = 1.0f;
@@ -265,17 +265,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                         currentMatrix.postScale(scale, scale, mid.x, mid.y);
                         refresh();
                         break;
-//                    case MapView.TOUCH_STATE_ROTATE:
-//                        currentMatrix.set(saveMatrix);
-//                        newDegree = rotation(event, mid);
-//                        float rotate = newDegree - oldDegree;
-//                        currentRotateDegrees = (rotate + saveRotateDegrees) % 360;
-//                        currentRotateDegrees = currentRotateDegrees > 0 ? currentRotateDegrees :
-//                                currentRotateDegrees + 360;
-//                        currentMatrix.postRotate(rotate, mid.x, mid.y);
-//                        refresh();
-////                        Log.i(TAG, "rotate:" + currentRotateDegrees);
-//                        break;
                     default:
                         break;
                 }
@@ -344,50 +333,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void translate(float x, float y) {
-//        //We save the old to revert
-//        //TODO(Nyman): This should be transactionbased to cover all mutations
-//        if(isRestrictedView && holder != null) {
-////            Matrix tmp = new Matrix();
-////            currentMatrix.set(tmp);
-////            tmp.postTranslate(x, y);
-////            //Check if the translation will put the aabb outside
-////            mapLayer.getMapBoundingBox().translate(tmp);
-////
-////            //If we are still insde we're good, continue
-////            Log.i(TAG, mapLayer.getMapBoundingBox().toString());
-////            Log.i(TAG, restrictiveBoundingBox.toString());
-////
-////            if(restrictiveBoundingBox.isFullyIntersecting(mapLayer.getMapBoundingBox())) {
-////                currentMatrix = tmp;
-////            }
-//            //Define boundries
-////            Matrix tmp = new Matrix();
-////            currentMatrix.set(tmp);
-////            tmp.postTranslate(x, y);
-//            //Check if the translation will put the aabb outside
-//            float[] b = new float[9];
-//            currentMatrix.getValues(b);
-//
-//            Log.i(TAG, "Input x: " + x + ", y: " + y);
-//
-//            float xp = b[2] + x;
-//            float yp = b[5] + y;
-//
-//            if(xp < 0 - 800) {
-//                x = 0;
-//            }else if(xp > 1300-800) {
-//                x = 0;
-//            }
-//
-//            if(yp < 0 - 377) {
-//                y = 0;
-//            }else if(yp > 0) {
-//                y = 0;
-//            }
-//        }
-
         currentMatrix.postTranslate(x, y);
-
     }
 
     /**
