@@ -10,9 +10,11 @@ import android.graphics.PointF;
 import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapView;
+import com.onlylemi.mapview.library.graphics.IMark;
 import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,31 +28,29 @@ public class MarkLayer extends MapBaseLayer {
     private List<String> marksName;
     private MarkIsClickListener listener;
 
-    private Bitmap bmpMark, bmpMarkTouch;
+    private List<IMark> markObjects;
 
-    private float radiusMark;
-    private boolean isClickMark = false;
-    private int num = -1;
+    private Bitmap bmpMark, bmpMarkTouch;
 
     private Paint paint;
 
     public MarkLayer(MapView mapView) {
-        this(mapView, null, null);
-    }
+        this(mapView, new ArrayList<PointF>(), new ArrayList<String>());
+}
 
     public MarkLayer(MapView mapView, List<PointF> marks, List<String> marksName) {
         super(mapView);
         this.marks = marks;
         this.marksName = marksName;
 
+        bmpMark = BitmapFactory.decodeResource(mapView.getResources(), R.mipmap.mark);
+        bmpMarkTouch = BitmapFactory.decodeResource(mapView.getResources(), R.mipmap.mark_touch);
+
         initLayer();
     }
 
     private void initLayer() {
         radiusMark = setValue(10f);
-
-        bmpMark = BitmapFactory.decodeResource(mapView.getResources(), R.mipmap.mark);
-        bmpMarkTouch = BitmapFactory.decodeResource(mapView.getResources(), R.mipmap.mark_touch);
 
         paint = new Paint();
         paint.setAntiAlias(true);
@@ -63,6 +63,7 @@ public class MarkLayer extends MapBaseLayer {
             if (!marks.isEmpty()) {
                 float[] goal = mapView.convertMapXYToScreenXY(event.getX(), event.getY());
                 for (int i = 0; i < marks.size(); i++) {
+                    //TODO(Nyman): This is hardcoded collision detection, fix it!
                     if (MapMath.getDistanceBetweenTwoPoints(goal[0], goal[1],
                             marks.get(i).x - bmpMark.getWidth() / 2, marks.get(i).y - bmpMark
                                     .getHeight() / 2) <= 50) {
@@ -87,53 +88,25 @@ public class MarkLayer extends MapBaseLayer {
     @Override
     public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, float
             currentRotateDegrees) {
-        if (isVisible && marks != null) {
+        if (isVisible && markObjects != null) {
             canvas.save();
-            if (!marks.isEmpty()) {
-                for (int i = 0; i < marks.size(); i++) {
-                    PointF mark = marks.get(i);
-                    float[] goal = {mark.x, mark.y};
-                    currentMatrix.mapPoints(goal);
-
-                    paint.setColor(Color.BLACK);
-                    paint.setTextSize(radiusMark);
-                    //mark name
-                    if (mapView.getCurrentZoom() > 1.0 && marksName != null
-                            && marksName.size() == marks.size()) {
-                        canvas.drawText(marksName.get(i), goal[0] - radiusMark, goal[1] -
-                                radiusMark / 2, paint);
-                    }
-                    //mark ico
-                    canvas.drawBitmap(bmpMark, goal[0] - bmpMark.getWidth() / 2,
-                            goal[1] - bmpMark.getHeight() / 2, paint);
-                    if (i == num && isClickMark) {
-                        canvas.drawBitmap(bmpMarkTouch, goal[0] - bmpMarkTouch.getWidth() / 2,
-                                goal[1] - bmpMarkTouch.getHeight(), paint);
-                    }
+            if (!markObjects.isEmpty()) {
+                for (int i = 0; i < markObjects.size(); i++) {
+                    IMark mark = markObjects.get(i);
+                    mark.update(currentMatrix);
+                    mark.draw(canvas, paint);
                 }
             }
             canvas.restore();
         }
     }
 
-    public int getNum() {
-        return num;
+    public List<IMark> getMarks() {
+        return markObjects;
     }
 
-    public void setNum(int num) {
-        this.num = num;
-    }
-
-    public List<PointF> getMarks() {
-        return marks;
-    }
-
-    public void setMarks(List<PointF> marks) {
-        this.marks = marks;
-    }
-
-    public List<String> getMarksName() {
-        return marksName;
+    public void setMarks(List<IMark> marks) {
+        this.markObjects = marks;
     }
 
     public void setMarksName(List<String> marksName) {
@@ -148,6 +121,7 @@ public class MarkLayer extends MapBaseLayer {
         this.listener = listener;
     }
 
+    //TODO(Nyman): Send mark object instead
     public interface MarkIsClickListener {
         void markIsClick(int num);
     }
