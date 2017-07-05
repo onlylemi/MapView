@@ -60,8 +60,10 @@ public class MapAABB {
     /**
      * Retrieves a 2D position from matrix and translates our position.
      * Will ignore any rotation
+     *
      * @param matrix
      */
+    @Deprecated
     public void translate(Matrix matrix) {
         float[] fMatrix = new float[9];
         matrix.getValues(fMatrix);
