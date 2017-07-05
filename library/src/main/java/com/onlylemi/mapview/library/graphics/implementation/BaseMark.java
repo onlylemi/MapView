@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.util.Log;
 
 import com.onlylemi.mapview.library.graphics.IMark;
 import com.onlylemi.mapview.library.utils.MapMath;
@@ -14,17 +15,26 @@ import com.onlylemi.mapview.library.utils.MapMath;
  */
 
 public class BaseMark implements IMark {
+    public final static String TAG = "BaseMark";
 
     //Image
-    final private Bitmap bmp;
+    protected Bitmap bmp;
 
     //Position
-    final private PointF position;
-    private PointF worldPosition;
+    protected PointF position;
+    protected PointF worldPosition;
+
+    //Hit radius
+    protected float radius;
 
     public BaseMark(Bitmap bmp, PointF position) {
         this.bmp = bmp;
         this.position = position;
+
+        //Calculate radius
+        radius = bmp.getWidth() > bmp.getHeight() ? bmp.getWidth() / 2 : bmp.getHeight() / 2;
+
+        Log.d(TAG, "Radius equals: " + radius);
     }
 
     @Override
@@ -36,5 +46,42 @@ public class BaseMark implements IMark {
     public void draw(final Canvas canvas, Paint paint) {
         canvas.drawBitmap(bmp, worldPosition.x - bmp.getWidth() / 2,
                 worldPosition.y - bmp.getHeight() / 2, paint);
+    }
+
+    @Override
+    public boolean hit(PointF position) {
+        return MapMath.getDistanceBetweenTwoPoints(this.position, position) < radius;
+    }
+
+    public Bitmap getBmp() {
+        return bmp;
+    }
+
+    public void setBmp(Bitmap bmp) {
+        this.bmp = bmp;
+    }
+
+    public PointF getPosition() {
+        return position;
+    }
+
+    public void setPosition(PointF position) {
+        this.position = position;
+    }
+
+    public PointF getWorldPosition() {
+        return worldPosition;
+    }
+
+    public void setWorldPosition(PointF worldPosition) {
+        this.worldPosition = worldPosition;
+    }
+
+    public float getRadius() {
+        return radius;
+    }
+
+    public void setRadius(float radius) {
+        this.radius = radius;
     }
 }
