@@ -51,23 +51,6 @@ public class MapAABB {
      * @return true if intersecting
      */
     public boolean isFullyIntersecting(MapAABB box) {
-//        Log.d(TAG, "Comparing input x: " + box.getOrignalTopLeft().x + " is bigger or equals to my x: " + this.getOrignalTopLeft().x + " it equals: " + (box.getOrignalTopLeft().x >= this.getOrignalTopLeft().x) );
-//        Log.d(TAG, "Comparing input y: " + box.getOrignalTopLeft().y + " is bigger or equals to my y: " + this.getOrignalTopLeft().y + " it equals: " + (box.getOrignalTopLeft().y >= this.getOrignalTopLeft().y) );
-//
-//        Log.d(TAG, "Comparing input x: " + box.getOrignalTopRight().x + " is bigger or equals to my x: " + this.getOrignalTopRight().x + " it equals: " + (box.getOrignalTopRight().x <= this.getOrignalTopRight().x) );
-//        Log.d(TAG, "Comparing input y: " + box.getOrignalTopRight().y + " is bigger or equals to my y: " + this.getOrignalTopRight().y + " it equals: " + (box.getOrignalTopRight().y >= this.getOrignalTopRight().y) );
-//
-//        Log.d(TAG, "Comparing input x: " + box.getOrignalBotLeft().x + " is bigger or equals to my x: " + this.getOrignalBotLeft().x + " it equals: " + (box.getOrignalBotLeft().x >= this.getOrignalBotLeft().x));
-//        Log.d(TAG, "Comparing input y: " + box.getOrignalBotLeft().y + " is bigger or equals to my y: " + this.getOrignalBotLeft().y + " it equals: " + (box.getOrignalBotLeft().y <= this.getOrignalBotLeft().y));
-//
-//        Log.d(TAG, "Comparing input x: " + box.getOrignalBotRight().x + " is bigger or equals to my x: " + this.getOrignalBotRight().x + " it equals: " + (box.getOrignalBotRight().x <= this.getOrignalBotRight().x) );
-//        Log.d(TAG, "Comparing input y: " + box.getOrignalBotRight().y + " is bigger or equals to my y: " + this.getOrignalBotRight().y + " it equals: " + (box.getOrignalBotRight().y <= this.getOrignalBotRight().y) );
-
-        Log.d(TAG, "In total it equals " + (((box.getOrignalTopLeft().x >= this.getOrignalTopLeft().x) && (box.getOrignalTopLeft().y >= this.getOrignalTopLeft().y)) && //TopLeft corner
-                ((box.getOrignalTopRight().x <= this.getOrignalTopRight().x) && (box.getOrignalTopRight().y >= this.getOrignalTopRight().y)) && //TopRight corner
-                ((box.getOrignalBotLeft().x >= this.getOrignalBotLeft().x) && (box.getOrignalBotLeft().y <= this.getOrignalBotLeft().y)) && //BotLeft corner
-                ((box.getOrignalBotRight().x <= this.getOrignalBotRight().x) && (box.getOrignalBotRight().y <= this.getOrignalBotRight().y))));
-
         return  ((box.getOrignalTopLeft().x >= this.getOrignalTopLeft().x) && (box.getOrignalTopLeft().y >= this.getOrignalTopLeft().y)) && //TopLeft corner
                 ((box.getOrignalTopRight().x <= this.getOrignalTopRight().x) && (box.getOrignalTopRight().y >= this.getOrignalTopRight().y)) && //TopRight corner
                 ((box.getOrignalBotLeft().x >= this.getOrignalBotLeft().x) && (box.getOrignalBotLeft().y <= this.getOrignalBotLeft().y)) && //BotLeft corner
@@ -107,13 +90,11 @@ public class MapAABB {
         position.x = mtrx[2];
         position.y = mtrx[5];
 
-        Log.d(TAG, tmp.toString());
-
         //Transform all corners
-        actualTopLeft =  transformPoint(orignalTopLeft, tmp);
-        actualTopRight = transformPoint(orignalTopRight, tmp);
-        actualBotLeft = transformPoint(orignalBotLeft, tmp);
-        actualBotRight = transformPoint(orignalBotRight, tmp);
+        actualTopLeft =  MapMath.transformPoint(tmp, orignalTopLeft);
+        actualTopRight = MapMath.transformPoint(tmp, orignalTopRight);
+        actualBotLeft = MapMath.transformPoint(tmp, orignalBotLeft);
+        actualBotRight = MapMath.transformPoint(tmp, orignalBotRight);
 
         //Recalculate the dimensions using the new world coordinates
         recalculatedDimensions(actualTopLeft, actualTopRight, actualBotLeft, actualBotRight);
@@ -138,8 +119,6 @@ public class MapAABB {
         //Caluclate width and height
         actualWidth = Math.abs(topLeft.x - topRight.x); //This is a cheat as we are only scaling and never translating
         actualHeight = Math.abs(topLeft.y - botLeft.y);
-
-        Log.d(TAG, "Hieghts and Widths calculated, actualWidth: " + actualWidth + "\n actualHeight: " + actualHeight);
     }
 
     @Override
@@ -148,7 +127,6 @@ public class MapAABB {
                 + "Position X : " + position.x + " , Y: " + position.y;
     }
 
-    /*** GETTERS AND SETTERS ***/
     public PointF getOrignalTopLeft() {
         return actualTopLeft;
     }
@@ -163,17 +141,6 @@ public class MapAABB {
 
     public PointF getOrignalBotRight() {
         return actualBotRight;
-    }
-
-    /*** HELPERS ***/
-    //// TODO: 2017-06-30 : THIS IS TEMPORARY WHILE THE CALCULATIOSN ARE DONE IN THE WRONG ORDER
-    private PointF translatePoint(PointF point) {
-        PointF rPoint = new PointF(point.x, point.y);
-        //Translate pos
-        rPoint.x += position.x;
-        rPoint.y += position.y;
-
-        return rPoint;
     }
 
 }

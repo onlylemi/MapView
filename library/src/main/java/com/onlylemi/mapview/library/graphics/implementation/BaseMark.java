@@ -29,7 +29,7 @@ public class BaseMark implements IMark {
 
     public BaseMark(Bitmap bmp, PointF position) {
         this.bmp = bmp;
-        this.position = position;
+        this.position = new PointF(position.x + (bmp.getWidth() / 2), position.y + (bmp.getHeight() / 2));
 
         //Calculate radius
         radius = bmp.getWidth() > bmp.getHeight() ? bmp.getWidth() / 2 : bmp.getHeight() / 2;
@@ -50,7 +50,8 @@ public class BaseMark implements IMark {
 
     @Override
     public boolean hit(PointF position) {
-        return MapMath.getDistanceBetweenTwoPoints(this.position, position) < radius;
+        //Must add half width and half height to position otherwise we are calculating from the topleft corner
+        return MapMath.getDistanceBetweenTwoPoints(this.position, position) <= radius;
     }
 
     public Bitmap getBmp() {

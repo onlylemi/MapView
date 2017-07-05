@@ -132,10 +132,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     public void refresh() {
         //Testing
         if(restrictiveBoundingBox != null && restrictiveBoundingBox.isFullyIntersecting(mapLayer.getMapBoundingBox())) {
-            Log.d(TAG, "INTERSECTING!");
             isOverflowing = false;
         } else {
-            Log.d(TAG, "Not fully intersecting, we can now move!");
             isOverflowing = true;
         }
 
@@ -249,18 +247,12 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                         newDist = distance(event, mid);
                         float scale = newDist / oldDist;
 
-                        Log.d(TAG, "Current zoom was: " + currentZoom);
-                        Log.d(TAG, "Scale is: " + scale);
-
                         if (scale * saveZoom < minZoom) {
-                            Log.d(TAG, "Was below minimum zoom");
                             scale = minZoom / saveZoom;
                         } else if (scale * saveZoom > maxZoom) {
-                            Log.d(TAG, "Was above max zoom");
                             scale = maxZoom / saveZoom;
                         }
                         currentZoom = scale * saveZoom;
-                        Log.d(TAG, "Current zoom is: " + currentZoom);
 
                         currentMatrix.postScale(scale, scale, mid.x, mid.y);
                         refresh();
