@@ -338,14 +338,10 @@ public final class MapMath {
      * @return transformed position
      */
     public static PointF transformPoint(Matrix m, PointF point) {
-        float[] p = new float[2];
-        float[] tmp = new float[2];
-        p[0] = point.x;
-        p[1] = point.y;
+        float[] p = { point.x, point.y };
+        m.mapPoints(p, p);
 
-        m.mapPoints(tmp, p);
-
-        return new PointF(tmp[0], tmp[1]);
+        return new PointF(p[0], p[1]);
     }
 
 }
