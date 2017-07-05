@@ -11,6 +11,7 @@ import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapView;
 import com.onlylemi.mapview.library.R;
+import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.utils.MapUtils;
 
 /**
@@ -71,7 +72,7 @@ public class LocationLayer extends MapBaseLayer {
     }
 
     public LocationLayer(MapView mapView, PointF currentPosition, Matrix mappingMatrix) {
-        this(mapView, MapUtils.transformPoint(mappingMatrix, currentPosition), false);
+        this(mapView, MapMath.transformPoint(mappingMatrix, currentPosition), false);
         this.mappingMatrix = mappingMatrix;
     }
 
@@ -210,7 +211,7 @@ public class LocationLayer extends MapBaseLayer {
     }
 
     public void setCurrentPosition(PointF currentPosition) {
-        this.currentPosition = MapUtils.transformPoint(mappingMatrix, currentPosition);
+        this.currentPosition = MapMath.transformPoint(mappingMatrix, currentPosition);
     }
 
     public float getCompassIndicatorCircleRotateDegree() {

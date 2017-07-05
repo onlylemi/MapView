@@ -1,8 +1,10 @@
 package com.onlylemi.mapview.library.utils;
 
+import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.util.Log;
 
+import com.onlylemi.mapview.library.MapView;
 import com.onlylemi.mapview.library.utils.math.FloydAlgorithm;
 import com.onlylemi.mapview.library.utils.math.GeneticAlgorithm;
 import com.onlylemi.mapview.library.utils.math.TSPNearestNeighbour;
@@ -300,6 +302,50 @@ public final class MapMath {
 
         return ((p_l1 * p_l1 + l1_l2 * l1_l2) < p_l2 * p_l2)
                 || ((p_l2 * p_l2 + l1_l2 * l1_l2) < p_l1 * p_l1);
+    }
+
+    /**
+     * Creates a mapping matrix that is used to transform a point from the input coordinate system to graphics coordinate system
+     * topLeft 0,0 and botRight mapview.image.width, mapview.image.height is a mapping across the entire image
+     * @param width of the input coordinate system (X)
+     * @param height of the input cooridnate system (Y)
+     * @param mapViewTopLeft topLeft corner on the mapview where the input coordinate system starts.
+     * @param mapViewBotRight botLeft corner on the mapview where the input cooridnate system starts.
+     * @return the transform matrix
+     */
+    public static Matrix createMappingMatrix(MapView map, float width, float height, PointF mapViewTopLeft, PointF mapViewBotRight) {
+        //X scale remove the offsets
+        float scaleX = (map.getMapWidth() - mapViewTopLeft.x - (map.getMapWidth() - mapViewBotRight.x)) / width;
+        //Y scale
+        float scaleY = (map.getMapHeight() - mapViewTopLeft.y - (map.getMapHeight() - mapViewBotRight.y)) / height;
+
+        Matrix mappingMatrix = new Matrix();
+
+        //Set scale
+        mappingMatrix.setScale(scaleX, scaleY);
+
+        //Translate
+        mappingMatrix.postTranslate(mapViewTopLeft.x, mapViewTopLeft.y);
+
+        return mappingMatrix;
+    }
+
+    /**
+     * Transforms a point using the matrix
+     * This is needed bacause Andorid graphics lib is stupid
+     * @param m transform
+     * @param point position
+     * @return transformed position
+     */
+    public static PointF transformPoint(Matrix m, PointF point) {
+        float[] p = new float[2];
+        float[] tmp = new float[2];
+        p[0] = point.x;
+        p[1] = point.y;
+
+        m.mapPoints(tmp, p);
+
+        return new PointF(tmp[0], tmp[1]);
     }
 
 }
