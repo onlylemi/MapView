@@ -10,20 +10,7 @@ import android.graphics.PointF;
  * Created by patny on 2017-07-05.
  */
 
-public interface IMark {
-    /**
-     * Called each refresh before drawing
-     * @param m transform matrix
-     */
-    void update(Matrix m);
-
-    /**
-     * Called each refresh after updating
-     * @param canvas to draw on
-     * @param paint object
-     */
-    void draw(final Canvas canvas, Paint paint);
-
+public interface IMark extends IBaseGraphics {
     /**
      * Called on each touch input. Return true if position is considered hitting this mark
      * @param position touch input position
