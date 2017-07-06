@@ -7,12 +7,15 @@ import android.graphics.Matrix;
 import android.graphics.Picture;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.location.Location;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.onlylemi.mapview.library.graphics.ILocationUser;
+import com.onlylemi.mapview.library.graphics.implementation.BaseUser;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
 import com.onlylemi.mapview.library.utils.MapAABB;
@@ -37,6 +40,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     private boolean isMapLoadFinish = false;
     private List<MapBaseLayer> layers; // all layers
     private MapLayer mapLayer;
+
+    private BaseUser user;
 
     private Canvas canvas;
 
@@ -65,6 +70,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     private boolean isScaleAndRotateTogether = false;
     private boolean isOverflowing = false; //Indicates if the map model is bigger then the viewport
     private boolean isRestrictedView = false;
+    private boolean isFollowUser = false;
 
     public MapView(Context context) {
         this(context, null);
@@ -253,8 +259,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                             scale = maxZoom / saveZoom;
                         }
                         currentZoom = scale * saveZoom;
-
-                        currentMatrix.postScale(scale, scale, mid.x, mid.y);
+                        currentMatrix.postScale(scale, scale, user.getWorldPosition().x, user.getWorldPosition().y);
                         refresh();
                         break;
                     default:
@@ -460,5 +465,11 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public Matrix getCurrentTransform() { return currentMatrix; }
+
+    public void centerOnUser(BaseUser user) {
+        //Get the middle position of screen
+        mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
+        this.user = user;
+    }
 
 }

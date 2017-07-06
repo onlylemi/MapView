@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.util.Log;
 
@@ -70,6 +71,8 @@ public class BaseUser implements ILocationUser {
     public PointF getPosition() {
         return position;
     }
+
+    public PointF getWorldPosition() { return worldPosition; }
 
     public void setPosition(PointF position) {
         this.position = position;
