@@ -28,9 +28,15 @@ public class BaseUser implements ILocationUser {
     private float rotation = 0.0f;
     private PointF startDir;
 
+    private Matrix mMatrix;
+
+    private Matrix tMatrix;
+
     //Assumes the bmp looks to the right by default
     public BaseUser(Bitmap bmp, PointF position, PointF lookAt) {
         this(bmp, position, new PointF(1, 0), lookAt);
+        mMatrix = new Matrix();
+        tMatrix = new Matrix();
     }
 
     /**
@@ -50,14 +56,23 @@ public class BaseUser implements ILocationUser {
     @Override
     public void update(Matrix m) {
         worldPosition = MapMath.transformPoint(m, position);
+        //Rotera mig själv
+        tMatrix.set(mMatrix);
+        tMatrix.preRotate(rotation, bmp.getWidth() / 2, bmp.getHeight() / 2);
+        tMatrix.postTranslate(position.x - bmp.getWidth() / 2, position.y - bmp.getHeight() / 2);
+
+        float[] A = new float[9];
+        float[] B = new float[9];
+
+        tMatrix.getValues(A);
+        m.getValues(B);
+
+        tMatrix.setValues(matrixMultiplication(B, A));
     }
 
     @Override
     public void draw(Canvas canvas, Paint paint) {
-        Matrix m = new Matrix();
-        m.preRotate(rotation, bmp.getWidth() / 2, bmp.getHeight() / 2);
-        m.postTranslate(worldPosition.x - bmp.getWidth() / 2, worldPosition.y - bmp.getHeight() / 2);
-        canvas.drawBitmap(bmp, m, paint);
+        canvas.drawBitmap(bmp, tMatrix, paint);
     }
 
     public Bitmap getBmp() {
@@ -86,6 +101,20 @@ public class BaseUser implements ILocationUser {
         //Correction as sign can be 0 at 180 degrees turn
         sign = sign == 0 ? 1 : sign;
         this.rotation = (float) Math.toDegrees(Math.acos((lookAt.x * startDir.x) + (lookAt.y * startDir.y))) * sign ;
+    }
+
+    private float[] matrixMultiplication(float[] A, float[] B) {
+        float[] result = new float[9];
+        result[0] = A[0] * B[0] + A[1] * B[3] + A[2] * B[6];
+        result[1] = A[0] * B[1] + A[1] * B[4] + A[2] * B[7];
+        result[2] = A[0] * B[2] + A[1] * B[5] + A[2] * B[8];
+        result[3] = A[3] * B[0] + A[4] * B[3] + A[5] * B[6];
+        result[4] = A[3] * B[1] + A[4] * B[4] + A[5] * B[7];
+        result[5] = A[3] * B[2] + A[4] * B[5] + A[5] * B[8];
+        result[6] = A[6] * B[0] + A[7] * B[3] + A[8] * B[6];
+        result[7] = A[6] * B[1] + A[7] * B[4] + A[8] * B[7];
+        result[8] = A[6] * B[2] + A[7] * B[5] + A[8] * B[8];
+        return result;
     }
 
 }
