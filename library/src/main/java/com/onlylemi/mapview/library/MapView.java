@@ -136,14 +136,11 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      * reload mapview
      */
     public void refresh() {
-        //Testing
-        if(restrictiveBoundingBox != null && restrictiveBoundingBox.isFullyIntersecting(mapLayer.getMapBoundingBox())) {
-            isOverflowing = false;
-        } else {
-            isOverflowing = true;
-        }
-
         if (holder != null) {
+
+            if(isFollowUser)
+                mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
+
             canvas = holder.lockCanvas();
             if (canvas != null) {
                 canvas.drawColor(-1);
@@ -468,9 +465,13 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     public Matrix getCurrentTransform() { return currentMatrix; }
 
     public void centerOnUser(BaseUser user) {
-        //Get the middle position of screen
         mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
         this.user = user;
+        this.isFollowUser = true;
+    }
+
+    public void disableCenterOnUser() {
+        this.isFollowUser = false;
     }
 
 }
