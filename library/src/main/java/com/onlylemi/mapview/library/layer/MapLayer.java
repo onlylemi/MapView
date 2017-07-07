@@ -22,10 +22,10 @@ public class MapLayer extends MapBaseLayer {
 
     private static final String TAG = "MapLayer";
 
-    private Picture image;
     private Bitmap bmp;
     private boolean hasMeasured;
     private MapAABB mapBoundingBox;
+    private Paint paint;
 
     public MapLayer(MapView mapView) {
         super(mapView);
@@ -34,10 +34,6 @@ public class MapLayer extends MapBaseLayer {
 
     public void setBmp(Bitmap bmp) {
         this.bmp = bmp;
-    }
-
-    public void setImage(Picture image) {
-        this.image = image;
 
         if (mapView.getWidth() == 0) {
             ViewTreeObserver vto = mapView.getViewTreeObserver();
@@ -55,28 +51,25 @@ public class MapLayer extends MapBaseLayer {
         }
     }
 
-
     /**
      * init map image layer
      */
     private void initMapLayer() {
-        float zoom = getInitZoom(mapView.getWidth(), mapView.getHeight(), image.getWidth(), image
+        float zoom = getInitZoom(mapView.getWidth(), mapView.getHeight(), bmp.getWidth(), bmp
                 .getHeight());
         Log.i(TAG, Float.toString(zoom));
         mapView.initZoom(zoom, 0, 0);
 
-        float width = mapView.getWidth() - zoom * image.getWidth();
-        float height = mapView.getHeight() - zoom * image.getHeight();
+        float width = mapView.getWidth() - zoom * bmp.getWidth();
+        float height = mapView.getHeight() - zoom * bmp.getHeight();
 
-        Log.i(TAG, "MapWidth: " + mapView.getWidth());
-        Log.i(TAG, "MapHeight: " + mapView.getHeight());
+        paint = new Paint();
+        paint.setAntiAlias(true);
 
         //Create AABB
-        mapBoundingBox = new MapAABB( new PointF(0, 0), this.image.getWidth(), this.image.getHeight());
+        mapBoundingBox = new MapAABB( new PointF(0, 0), this.bmp.getWidth(), this.bmp.getHeight());
 
         mapView.translate(width / 2, height / 2);
-
-        Log.i(TAG, mapBoundingBox.toString());
 
         //Update the bounding box once
         mapBoundingBox.update(mapView.getCurrentTransform());
@@ -116,12 +109,8 @@ public class MapLayer extends MapBaseLayer {
     public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, float
             currentRotateDegrees) {
         canvas.save();
-        Paint paint = new Paint();
-        paint.setAntiAlias(true);
-        //canvas.setMatrix(currentMatrix);
-        if (image != null) {
+        if (bmp != null) {
             canvas.drawBitmap(bmp, currentMatrix, paint);
-            //canvas.drawPicture(image);
             mapBoundingBox.update(currentMatrix);
         }
         canvas.restore();
@@ -131,7 +120,7 @@ public class MapLayer extends MapBaseLayer {
         return mapBoundingBox;
     }
 
-    public Picture getImage() {
-        return image;
+    public Bitmap getImage() {
+        return bmp;
     }
 }

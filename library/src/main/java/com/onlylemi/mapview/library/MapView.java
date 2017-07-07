@@ -156,29 +156,24 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    public void loadMap(Bitmap bitmap) {
-        loadMap(MapUtils.getPictureFromBitmap(bitmap), bitmap);
-    }
-
     /**
-     * load map image
+     * load map bitmap
      *
-     * @param picture
+     * @param bmp
      */
-    public void loadMap(final Picture picture, final Bitmap bmp) {
+    public void loadMap(final Bitmap bmp) {
         isMapLoadFinish = false;
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if (picture != null) {
+                if (bmp != null) {
                     if (mapLayer == null) {
                         mapLayer = new MapLayer(MapView.this);
                         // add map image layer
                         layers.add(mapLayer);
                     }
                     mapLayer.setBmp(bmp);
-                    mapLayer.setImage(picture);
                     if (mapViewListener != null) {
                         // load map success, and callback
                         mapViewListener.onMapLoadSuccess();
