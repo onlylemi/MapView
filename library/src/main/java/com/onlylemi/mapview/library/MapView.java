@@ -160,7 +160,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void loadMap(Bitmap bitmap) {
-        loadMap(MapUtils.getPictureFromBitmap(bitmap));
+        loadMap(MapUtils.getPictureFromBitmap(bitmap), bitmap);
     }
 
     /**
@@ -168,7 +168,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      *
      * @param picture
      */
-    public void loadMap(final Picture picture) {
+    public void loadMap(final Picture picture, final Bitmap bmp) {
         isMapLoadFinish = false;
 
         new Thread(new Runnable() {
@@ -180,6 +180,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                         // add map image layer
                         layers.add(mapLayer);
                     }
+                    mapLayer.setBmp(bmp);
                     mapLayer.setImage(picture);
                     if (mapViewListener != null) {
                         // load map success, and callback

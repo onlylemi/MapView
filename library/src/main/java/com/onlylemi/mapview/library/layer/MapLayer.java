@@ -1,7 +1,9 @@
 package com.onlylemi.mapview.library.layer;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Picture;
 import android.graphics.PointF;
 import android.util.Log;
@@ -21,12 +23,17 @@ public class MapLayer extends MapBaseLayer {
     private static final String TAG = "MapLayer";
 
     private Picture image;
+    private Bitmap bmp;
     private boolean hasMeasured;
     private MapAABB mapBoundingBox;
 
     public MapLayer(MapView mapView) {
         super(mapView);
         level = MAP_LEVEL;
+    }
+
+    public void setBmp(Bitmap bmp) {
+        this.bmp = bmp;
     }
 
     public void setImage(Picture image) {
@@ -109,9 +116,12 @@ public class MapLayer extends MapBaseLayer {
     public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, float
             currentRotateDegrees) {
         canvas.save();
-        canvas.setMatrix(currentMatrix);
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        //canvas.setMatrix(currentMatrix);
         if (image != null) {
-            canvas.drawPicture(image);
+            canvas.drawBitmap(bmp, currentMatrix, paint);
+            //canvas.drawPicture(image);
             mapBoundingBox.update(currentMatrix);
         }
         canvas.restore();

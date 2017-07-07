@@ -76,11 +76,11 @@ public class LocationLayer extends MapBaseLayer {
 
     private void initLayer() {
         // default locationPaint
-        locationPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        locationPaint = new Paint();
         locationPaint.setAntiAlias(true);
-        locationPaint.setStyle(Paint.Style.FILL);
-        locationPaint.setColor(DEFAULT_LOCATION_COLOR);
-        locationPaint.setShadowLayer(5, 3, 3, DEFAULT_LOCATION_SHADOW_COLOR);
+  //      locationPaint.setStyle(Paint.Style.FILL);
+ //       locationPaint.setColor(DEFAULT_LOCATION_COLOR);
+ //       locationPaint.setShadowLayer(5, 3, 3, DEFAULT_LOCATION_SHADOW_COLOR);
     }
 
     @Override

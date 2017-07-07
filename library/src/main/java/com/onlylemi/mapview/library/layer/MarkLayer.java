@@ -39,7 +39,7 @@ public class MarkLayer extends MapBaseLayer {
     private void initLayer() {
         paint = new Paint();
         paint.setAntiAlias(true);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        //paint.setStyle(Paint.Style.FILL_AND_STROKE);
     }
 
     @Override

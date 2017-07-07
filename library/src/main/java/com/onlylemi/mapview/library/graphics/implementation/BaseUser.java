@@ -10,6 +10,7 @@ import android.util.Log;
 
 import com.onlylemi.mapview.library.graphics.ILocationUser;
 import com.onlylemi.mapview.library.utils.MapMath;
+import com.onlylemi.mapview.library.utils.MapUtils;
 
 /**
  * Created by patny on 2017-07-05.
@@ -56,7 +57,9 @@ public class BaseUser implements ILocationUser {
     @Override
     public void update(Matrix m) {
         worldPosition = MapMath.transformPoint(m, position);
-        //Rotera mig själv
+
+        Log.d("User", "World position: " + worldPosition.toString());
+
         tMatrix.set(mMatrix);
         tMatrix.preRotate(rotation, bmp.getWidth() / 2, bmp.getHeight() / 2);
         tMatrix.postTranslate(position.x - bmp.getWidth() / 2, position.y - bmp.getHeight() / 2);
@@ -87,7 +90,7 @@ public class BaseUser implements ILocationUser {
         return position;
     }
 
-    public PointF getWorldPosition() { return worldPosition; }
+    public PointF getWorldPosition() { return  MapUtils.getPositionFromMatrix(tMatrix); }
 
     public void setPosition(PointF position) {
         this.position = position;

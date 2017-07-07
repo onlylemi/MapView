@@ -335,5 +335,19 @@ public final class MapUtils {
         return picture;
     }
 
+    /**
+     * retrieves the position from input matrix, assumes a openGL stylish matrix where the postions are on the right side
+     * @param m matrix
+     * @return Point representing the position of the matrix
+     */
+    public static PointF getPositionFromMatrix(Matrix m) {
+        float[] mElements = new float[9];
+        m.getValues(mElements);
+
+        Log.d("User", "Returning position: " + m.toString());
+
+        return new PointF(mElements[2], mElements[5]);
+    }
+
 
 }
