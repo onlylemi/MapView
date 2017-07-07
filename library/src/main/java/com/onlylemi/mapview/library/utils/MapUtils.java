@@ -344,7 +344,7 @@ public final class MapUtils {
         float[] mElements = new float[9];
         m.getValues(mElements);
 
-        Log.d("User", "Returning position: " + m.toString());
+        //Log.d("User", "Returning position: " + m.toString());
 
         return new PointF(mElements[2], mElements[5]);
     }

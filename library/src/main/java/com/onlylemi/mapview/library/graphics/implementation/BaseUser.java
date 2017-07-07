@@ -58,7 +58,7 @@ public class BaseUser implements ILocationUser {
     public void update(Matrix m) {
         worldPosition = MapMath.transformPoint(m, position);
 
-        Log.d("User", "World position: " + worldPosition.toString());
+        //Log.d("User", "World position: " + worldPosition.toString());
 
         tMatrix.set(mMatrix);
         tMatrix.preRotate(rotation, bmp.getWidth() / 2, bmp.getHeight() / 2);

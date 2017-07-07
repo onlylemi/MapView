@@ -34,7 +34,7 @@ public class BaseMark implements IMark {
         //Calculate radius
         radius = bmp.getWidth() > bmp.getHeight() ? bmp.getWidth() / 2 : bmp.getHeight() / 2;
 
-        Log.d(TAG, "Radius equals: " + radius);
+        //Log.d(TAG, "Radius equals: " + radius);
     }
 
     @Override
