@@ -23,7 +23,7 @@ public class BaseUser implements ILocationUser {
 
     //Position
     private PointF position;
-    private PointF worldPosition;
+    private PointF worldMidPoint;
 
     //Rotation - in degrees
     private float rotation = 0.0f;
@@ -56,7 +56,7 @@ public class BaseUser implements ILocationUser {
 
     @Override
     public void update(Matrix m) {
-        worldPosition = MapMath.transformPoint(m, position);
+        worldMidPoint = MapMath.transformPoint(m, position);
 
         //Log.d("User", "World position: " + worldPosition.toString());
 
@@ -90,7 +90,11 @@ public class BaseUser implements ILocationUser {
         return position;
     }
 
-    public PointF getWorldPosition() { return  MapUtils.getPositionFromMatrix(tMatrix); }
+    /**
+     * Returns the middle point of the bitmap in world space
+     * @return
+     */
+    public PointF getWorldPosition() { return  worldMidPoint; }
 
     public void setPosition(PointF position) {
         this.position = position;

@@ -138,7 +138,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     public void refresh() {
         if (holder != null) {
 
-            if(isFollowUser)
+            if(isFollowUser && currentTouchState == MapView.TOUCH_STATE_NO)
                 mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
 
             canvas = holder.lockCanvas();
@@ -222,20 +222,19 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                     }
                 }
                 currentTouchState = MapView.TOUCH_STATE_NO;
+                refresh();
                 break;
             case MotionEvent.ACTION_POINTER_UP:
                 currentTouchState = MapView.TOUCH_STATE_NO;
+                refresh();
                 break;
             case MotionEvent.ACTION_MOVE:
                 switch (currentTouchState) {
                     case MapView.TOUCH_STATE_SCROLL:
-
-                        if(isOverflowing) {
                             currentMatrix.set(saveMatrix);
                             translate(event.getX() - startTouch.x, event.getY() -
                                     startTouch.y);
                             refresh();
-                        }
                         break;
                     case MapView.TOUCH_STATE_TWO_POINTED:
                             oldDist = distance(event, mid);
@@ -252,7 +251,11 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                             scale = maxZoom / saveZoom;
                         }
                         currentZoom = scale * saveZoom;
-                        currentMatrix.postScale(scale, scale, user.getWorldPosition().x, user.getWorldPosition().y);
+
+                        PointF initPoint = isFollowUser ? user.getWorldPosition() : mid;
+
+                        currentMatrix.postScale(scale, scale, initPoint.x, initPoint.y);
+
                         refresh();
                         break;
                     default:
