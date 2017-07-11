@@ -6,6 +6,13 @@
 
 This a indoor map view named MapView for `Android`. It also offer some layers. If you are doing a indoor map application and try to do it.
 
+##Incoming features
+ 
+ * Proximity markers - Markers triggered by the getting in close proximity
+ * Debug painting - Draw debug lines and extra visual stuff when needed
+ * Animations and easing - Smooth animations and easing of transforms
+ * OpenGL Math - Swap to OpenGL Android implementation of OpenGL math
+ 
 ## Layers
 
 * MapLayer
