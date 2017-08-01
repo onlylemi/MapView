@@ -1,5 +1,6 @@
 package com.onlylemi.mapview.library.utils;
 
+import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.util.Log;
@@ -313,11 +314,11 @@ public final class MapMath {
      * @param mapViewBotRight botLeft corner on the mapview where the input cooridnate system starts.
      * @return the transform matrix
      */
-    public static Matrix createMappingMatrix(MapView map, float width, float height, PointF mapViewTopLeft, PointF mapViewBotRight) {
+    public static Matrix createMappingMatrix(Bitmap map, float width, float height, PointF mapViewTopLeft, PointF mapViewBotRight) {
         //X scale remove the offsets
-        float scaleX = (map.getMapWidth() - mapViewTopLeft.x - (map.getMapWidth() - mapViewBotRight.x)) / width;
+        float scaleX = (map.getWidth() - mapViewTopLeft.x - (map.getWidth() - mapViewBotRight.x)) / width;
         //Y scale
-        float scaleY = (map.getMapHeight() - mapViewTopLeft.y - (map.getMapHeight() - mapViewBotRight.y)) / height;
+        float scaleY = (map.getHeight() - mapViewTopLeft.y - (map.getHeight() - mapViewBotRight.y)) / height;
 
         Matrix mappingMatrix = new Matrix();
 

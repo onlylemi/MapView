@@ -8,6 +8,7 @@ import android.util.Log;
  * Created by patny on 2017-06-30.
  */
 
+@Deprecated
 public class MapAABB {
     public static final String TAG = "MapAABB";
 

@@ -57,7 +57,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     private float saveZoom = 0f;
     private float currentRotateDegrees = 0.0f;
     private float saveRotateDegrees = 0.0f;
-    private MapAABB restrictiveBoundingBox;
+    //private MapAABB restrictiveBoundingBox;
 
     private static final int TOUCH_STATE_NO = 0; // no touch
     private static final int TOUCH_STATE_SCROLL = 1; // scroll(one point)
@@ -117,7 +117,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         this.holder = holder;
-        restrictiveBoundingBox = new MapAABB(new PointF(0, 0), getWidth(), getHeight());
+        //Deprecated
+        //restrictiveBoundingBox = new MapAABB(new PointF(0, 0), getWidth(), getHeight());
         Log.d(TAG, "MapView AABB inited");
         refresh();
     }
