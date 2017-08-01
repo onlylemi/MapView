@@ -16,6 +16,8 @@ import android.view.SurfaceView;
 
 import com.onlylemi.mapview.library.graphics.ILocationUser;
 import com.onlylemi.mapview.library.graphics.implementation.BaseUser;
+import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
+import com.onlylemi.mapview.library.layer.LocationLayer;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
 import com.onlylemi.mapview.library.utils.MapAABB;
@@ -41,7 +43,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     private List<MapBaseLayer> layers; // all layers
     private MapLayer mapLayer;
 
-    private BaseUser user;
+    private LocationUser user;
 
     private Canvas canvas;
 
@@ -463,7 +465,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
     public Matrix getCurrentTransform() { return currentMatrix; }
 
-    public void centerOnUser(BaseUser user) {
+    public void centerOnUser(LocationUser user) {
         mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
         this.user = user;
         this.isFollowUser = true;
