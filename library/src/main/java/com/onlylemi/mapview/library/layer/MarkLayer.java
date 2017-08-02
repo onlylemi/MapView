@@ -160,7 +160,7 @@ public class MarkLayer extends MapBaseLayer {
     }
 
     public interface MarkIsTriggered {
-        void onEnter(BaseMark mark, int index);
-        void onExit(BaseMark mark, int index);
+        void onEnter(ProximityMark mark, int index);
+        void onExit(ProximityMark mark, int index);
     }
 }
