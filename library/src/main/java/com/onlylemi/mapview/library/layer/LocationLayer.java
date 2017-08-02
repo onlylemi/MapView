@@ -57,6 +57,15 @@ public class LocationLayer extends MapBaseLayer {
         }
     }
 
+    @Override
+    public void debugDraw(Canvas canvas, Matrix currentMatrix) {
+        if(isVisible) {
+            canvas.save();
+            user.debugDraw(currentMatrix, canvas);
+            canvas.restore();
+        }
+    }
+
     public PointF getCurrentPosition() {
         return currentPosition;
     }

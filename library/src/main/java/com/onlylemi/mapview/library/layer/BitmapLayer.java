@@ -71,6 +71,11 @@ public class BitmapLayer extends MapBaseLayer {
         }
     }
 
+    @Override
+    public void debugDraw(Canvas canvas, Matrix currentMatrix) {
+
+    }
+
     public PointF getLocation() {
         return location;
     }

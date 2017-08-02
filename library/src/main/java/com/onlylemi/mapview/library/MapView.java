@@ -4,10 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.graphics.Picture;
 import android.graphics.PointF;
-import android.graphics.RectF;
-import android.location.Location;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -15,16 +12,12 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
-import com.onlylemi.mapview.library.layer.LocationLayer;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
-import com.onlylemi.mapview.library.utils.MapAABB;
 import com.onlylemi.mapview.library.utils.MapMath;
-import com.onlylemi.mapview.library.utils.MapUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
  * MapView
@@ -71,6 +64,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     private boolean isOverflowing = false; //Indicates if the map model is bigger then the viewport
     private boolean isRestrictedView = false;
     private boolean isFollowUser = false;
+
+    private boolean debug = false;
 
     public MapView(Context context) {
         this(context, null);
@@ -149,6 +144,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                     for (MapBaseLayer layer : layers) {
                         if (layer.isVisible) {
                             layer.draw(canvas, currentMatrix, currentZoom, currentRotateDegrees);
+
+                            if(debug)
+                                layer.debugDraw(canvas, currentMatrix);
                         }
                     }
                 }
@@ -472,5 +470,13 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     public void disableCenterOnUser() {
         this.isFollowUser = false;
     }
+
+    //region debugging
+
+    public void setDebug(boolean db) {
+        this.debug = db;
+    }
+
+    //endregion
 
 }

@@ -48,6 +48,8 @@ public abstract class MapBaseLayer {
     public abstract void draw(Canvas canvas, Matrix currentMatrix, float currentZoom,
                               float currentRotateDegrees);
 
+    public abstract void debugDraw(Canvas canvas, Matrix currentMatrix);
+
     public void setLevel(int level) {
         this.level = level;
     }

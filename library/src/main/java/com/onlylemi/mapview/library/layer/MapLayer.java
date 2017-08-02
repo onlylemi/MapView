@@ -120,6 +120,11 @@ public class MapLayer extends MapBaseLayer {
         canvas.restore();
     }
 
+    @Override
+    public void debugDraw(Canvas canvas, Matrix currentMatrix) {
+
+    }
+
 //    Deprecated
 //    public MapAABB getMapBoundingBox() {
 //        return mapBoundingBox;

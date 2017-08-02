@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapView;
+import com.onlylemi.mapview.library.graphics.BaseGraphics;
 import com.onlylemi.mapview.library.graphics.BaseMark;
 import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.R;
@@ -71,6 +72,19 @@ public class MarkLayer extends MapBaseLayer {
                     BaseMark mark = markObjects.get(i);
                     mark.update(currentMatrix);
                     mark.draw(canvas, paint);
+                }
+            }
+            canvas.restore();
+        }
+    }
+
+    @Override
+    public void debugDraw(Canvas canvas, Matrix currentMatrix) {
+        if(isVisible && markObjects != null) {
+            canvas.save();
+            if(!markObjects.isEmpty()) {
+                for(BaseGraphics bg : markObjects) {
+                    bg.debugDraw(currentMatrix, canvas);
                 }
             }
             canvas.restore();

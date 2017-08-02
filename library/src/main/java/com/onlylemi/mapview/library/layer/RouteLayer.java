@@ -99,6 +99,11 @@ public class RouteLayer extends MapBaseLayer {
         }
     }
 
+    @Override
+    public void debugDraw(Canvas canvas, Matrix currentMatrix) {
+
+    }
+
     public void setNodeList(List<PointF> nodeList) {
         this.nodeList = nodeList;
     }
