@@ -63,7 +63,7 @@ public class StaticMark extends com.onlylemi.mapview.library.graphics.BaseMark {
         canvas.drawCircle(worldPosition.x, worldPosition.y, currentClickRadius, paint);
     }
 
-    public boolean hit(PointF position) {
+    public boolean hit(final PointF position) {
         //Must add half width and half height to position otherwise we are calculating from the topleft corner
         return MapMath.getDistanceBetweenTwoPoints(this.position, position) <= clickRadius;
     }

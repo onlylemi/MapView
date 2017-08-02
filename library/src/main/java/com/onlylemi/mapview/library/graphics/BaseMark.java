@@ -14,5 +14,5 @@ public abstract class BaseMark extends BaseGraphics {
      * Called if this graphics object get clicked
      * @return
      */
-    public abstract boolean hit(PointF position);
+    public abstract boolean hit(final PointF position);
 }
