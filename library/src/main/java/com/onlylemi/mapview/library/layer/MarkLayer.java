@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapView;
+import com.onlylemi.mapview.library.graphics.BaseMark;
 import com.onlylemi.mapview.library.graphics.IMark;
 import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.R;
@@ -27,7 +28,7 @@ public class MarkLayer extends MapBaseLayer {
 
     private MarkIsClickListener listener;
 
-    private List<IMark> markObjects;
+    private List<BaseMark> markObjects;
 
     private Paint paint;
 
@@ -66,7 +67,7 @@ public class MarkLayer extends MapBaseLayer {
             canvas.save();
             if (!markObjects.isEmpty()) {
                 for (int i = 0; i < markObjects.size(); i++) {
-                    IMark mark = markObjects.get(i);
+                    BaseMark mark = markObjects.get(i);
                     mark.update(currentMatrix);
                     mark.draw(canvas, paint);
                 }
@@ -75,11 +76,11 @@ public class MarkLayer extends MapBaseLayer {
         }
     }
 
-    public List<IMark> getMarks() {
+    public List<BaseMark> getMarks() {
         return markObjects;
     }
 
-    public void setMarks(List<IMark> marks) {
+    public void setMarks(List<BaseMark> marks) {
         this.markObjects = marks;
     }
 
@@ -88,6 +89,6 @@ public class MarkLayer extends MapBaseLayer {
     }
 
     public interface MarkIsClickListener {
-        void markIsClick(IMark num, int index);
+        void markIsClick(BaseMark num, int index);
     }
 }

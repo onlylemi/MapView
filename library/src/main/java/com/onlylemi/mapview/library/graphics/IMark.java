@@ -11,6 +11,7 @@ import android.graphics.PointF;
  */
 
 public interface IMark extends IBaseGraphics {
+
     /**
      * Called on each touch input. Return true if position is considered hitting this mark
      * @param position touch input position
