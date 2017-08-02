@@ -53,7 +53,7 @@ public class MarkLayer extends MapBaseLayer {
                 float[] goal = mapView.convertMapXYToScreenXY(event.getX(), event.getY());
                 //Log.d("MarkLayer", "Goal x: " + goal[0] + ", y: " + goal[1]);
                 for(int i = 0; i < markObjects.size(); i++) {
-                    if(markObjects.get(i).hit(new PointF(goal[0], goal[1]))) {
+                    if(markObjects.get(i).getVisible() && markObjects.get(i).hit(new PointF(goal[0], goal[1]))) {
                         this.listener.markIsClick(markObjects.get(i), i);
                         break;
                     }
@@ -70,8 +70,10 @@ public class MarkLayer extends MapBaseLayer {
             if (!markObjects.isEmpty()) {
                 for (int i = 0; i < markObjects.size(); i++) {
                     BaseMark mark = markObjects.get(i);
-                    mark.update(currentMatrix);
-                    mark.draw(canvas, paint);
+                    if(mark.getVisible()) {
+                        mark.update(currentMatrix);
+                        mark.draw(canvas, paint);
+                    }
                 }
             }
             canvas.restore();

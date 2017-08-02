@@ -12,6 +12,11 @@ import android.graphics.PointF;
 public abstract class BaseGraphics {
 
     /**
+     * Respresents if this graphic is currently rendering
+     */
+    protected  boolean isVisible = true;
+
+    /**
      * Represents the position of this graphic
      */
     public PointF position;
@@ -43,5 +48,14 @@ public abstract class BaseGraphics {
      * Called if debug draw is enabled
      */
     public abstract void debugDraw(final Matrix m, final Canvas canvas);
+
+
+    public void setVisible(boolean visible) {
+        isVisible = visible;
+    }
+
+    public boolean getVisible() {
+        return isVisible;
+    }
 
 }
