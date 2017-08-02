@@ -47,7 +47,7 @@ public class LocationUser extends BaseGraphics {
         this.worldMidPosition = new PointF(bmp.getWidth() / 2, bmp.getHeight() / 2);
     }
 
-    public void update(Matrix m) {
+    public void update(final Matrix m) {
         worldMidPosition = MapMath.transformPoint(m, position);
 
         tMatrix.set(mMatrix);
@@ -57,8 +57,12 @@ public class LocationUser extends BaseGraphics {
         tMatrix.setValues(MapMath.matrixMultiplication(m, tMatrix));
     }
 
-    public void draw(Canvas canvas, Paint paint) {
+    public void draw(final Canvas canvas, final Paint paint) {
         canvas.drawBitmap(bmp, tMatrix, paint);
+    }
+
+    public void debugDraw(final Matrix m, final Canvas canvas) {
+
     }
 
     public Bitmap getBmp() {

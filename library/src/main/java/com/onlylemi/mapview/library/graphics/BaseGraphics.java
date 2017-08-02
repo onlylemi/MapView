@@ -30,13 +30,18 @@ public abstract class BaseGraphics {
      * Called each refresh before drawing
      * @param m transform matrix
      */
-    public abstract void update(Matrix m);
+    public abstract void update(final Matrix m);
 
     /**
      * Called each refresh after updating
      * @param canvas to draw on
      * @param paint object
      */
-    public abstract void draw(final Canvas canvas, Paint paint);
+    public abstract void draw(final Canvas canvas, final Paint paint);
+
+    /**
+     * Called if debug draw is enabled
+     */
+    public abstract void debugDraw(final Matrix m, final Canvas canvas);
 
 }

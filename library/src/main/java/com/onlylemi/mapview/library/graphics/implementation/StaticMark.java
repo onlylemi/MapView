@@ -5,9 +5,12 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.util.Log;
 
 import com.onlylemi.mapview.library.graphics.*;
 import com.onlylemi.mapview.library.utils.MapMath;
+
+import java.util.ArrayList;
 
 /**
  * Created by patny on 2017-08-01.
@@ -24,6 +27,9 @@ public class StaticMark extends com.onlylemi.mapview.library.graphics.BaseMark {
 
     protected PointF worldPosition;
 
+
+    protected ArrayList<PointF> pL = new ArrayList();
+
     public StaticMark(Bitmap bmp, PointF position) {
         this.bmp = bmp;
         this.position = new PointF(position.x, position.y);
@@ -32,7 +38,7 @@ public class StaticMark extends com.onlylemi.mapview.library.graphics.BaseMark {
         clickRadius = bmp.getWidth() > bmp.getHeight() ? bmp.getWidth() / 2 : bmp.getHeight() / 2;
     }
 
-    public void update(Matrix m) {
+    public void update(final Matrix m) {
         worldPosition = MapMath.transformPoint(m, position);
 
         tMatrix = new Matrix();
@@ -42,10 +48,19 @@ public class StaticMark extends com.onlylemi.mapview.library.graphics.BaseMark {
         tMatrix.setValues(MapMath.matrixMultiplication(m, tMatrix));
     }
 
-    public void draw(final Canvas canvas, Paint paint) {
+    public void draw(final Canvas canvas,final Paint paint) {
         canvas.drawBitmap(bmp, tMatrix, paint);
+    }
 
-        canvas.drawCircle(worldPosition.x, worldPosition.y, clickRadius, paint);
+    public void debugDraw(final Matrix m, final Canvas canvas) {
+        //Need to scale the radius aswell
+        float currentClickRadius = m.mapRadius(clickRadius);
+
+        Paint paint = new Paint();
+        paint.setStrokeWidth(0.5f);
+        paint.setStyle(Paint.Style.STROKE);
+
+        canvas.drawCircle(worldPosition.x, worldPosition.y, currentClickRadius, paint);
     }
 
     public boolean hit(PointF position) {
