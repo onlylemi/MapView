@@ -11,7 +11,6 @@ import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapView;
 import com.onlylemi.mapview.library.R;
-import com.onlylemi.mapview.library.graphics.ILocationUser;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.utils.MapUtils;

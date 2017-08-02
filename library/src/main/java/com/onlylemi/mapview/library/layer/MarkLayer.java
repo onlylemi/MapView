@@ -12,7 +12,6 @@ import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapView;
 import com.onlylemi.mapview.library.graphics.BaseMark;
-import com.onlylemi.mapview.library.graphics.IMark;
 import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.R;
 
@@ -40,6 +39,8 @@ public class MarkLayer extends MapBaseLayer {
     private void initLayer() {
         paint = new Paint();
         paint.setAntiAlias(true);
+        paint.setStrokeWidth(0.2f);
+        paint.setStyle(Paint.Style.STROKE);
         //paint.setStyle(Paint.Style.FILL_AND_STROKE);
     }
 

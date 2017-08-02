@@ -26,7 +26,7 @@ public class StaticMark extends com.onlylemi.mapview.library.graphics.BaseMark {
 
     public StaticMark(Bitmap bmp, PointF position) {
         this.bmp = bmp;
-        this.position = new PointF(position.x - (bmp.getWidth() / 2), position.y - (bmp.getHeight() / 2));
+        this.position = new PointF(position.x, position.y);
 
         //Calculate radius
         clickRadius = bmp.getWidth() > bmp.getHeight() ? bmp.getWidth() / 2 : bmp.getHeight() / 2;
@@ -36,7 +36,7 @@ public class StaticMark extends com.onlylemi.mapview.library.graphics.BaseMark {
         worldPosition = MapMath.transformPoint(m, position);
 
         tMatrix = new Matrix();
-        tMatrix.postTranslate(position.x, position.y);
+        tMatrix.postTranslate(position.x - bmp.getWidth() / 2, position.y - bmp.getHeight() / 2);
 
         //Dont use a model matrix atm so, fix this later
         tMatrix.setValues(MapMath.matrixMultiplication(m, tMatrix));
@@ -44,6 +44,8 @@ public class StaticMark extends com.onlylemi.mapview.library.graphics.BaseMark {
 
     public void draw(final Canvas canvas, Paint paint) {
         canvas.drawBitmap(bmp, tMatrix, paint);
+
+        canvas.drawCircle(worldPosition.x, worldPosition.y, clickRadius, paint);
     }
 
     public boolean hit(PointF position) {

@@ -14,8 +14,6 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.onlylemi.mapview.library.graphics.ILocationUser;
-import com.onlylemi.mapview.library.graphics.implementation.BaseUser;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.layer.LocationLayer;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;

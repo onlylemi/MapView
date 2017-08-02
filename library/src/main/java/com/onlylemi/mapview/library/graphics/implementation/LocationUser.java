@@ -7,7 +7,6 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 
 import com.onlylemi.mapview.library.graphics.BaseGraphics;
-import com.onlylemi.mapview.library.graphics.ILocationUser;
 import com.onlylemi.mapview.library.utils.MapMath;
 
 /**
