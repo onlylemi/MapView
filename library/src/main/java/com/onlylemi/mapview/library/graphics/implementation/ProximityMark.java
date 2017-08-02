@@ -15,9 +15,25 @@ import com.onlylemi.mapview.library.utils.MapMath;
 public class ProximityMark extends StaticMark {
 
     /**
+     * If this is flagged this mark can only get triggered once and then removed
+     */
+    private boolean isOneTime = false;
+
+    /**
+     * Flagged when this mark is triggered, gets unflagged once we exit
+     */
+    private boolean triggered = false;
+
+    /**
      * When the proximity alert shall trigger, recommended to use the bmp to calculate this size
      */
     private float triggerRadius;
+
+    public ProximityMark(Bitmap bmp, PointF position, float triggerRadius, boolean isVisible, boolean oneTime) {
+        this(bmp, position, triggerRadius, isVisible);
+
+        this.isOneTime = oneTime;
+    }
 
     public ProximityMark(Bitmap bmp, PointF position, float triggerRadius, boolean isVisible) {
         super(bmp, position);
@@ -46,6 +62,18 @@ public class ProximityMark extends StaticMark {
      */
     public boolean triggerProximity(final PointF position) {
         return MapMath.getDistanceBetweenTwoPoints(this.position, position) < triggerRadius;
+    }
+
+    public void setTriggered(boolean triggered) {
+        this.triggered = triggered;
+    }
+
+    public boolean isTriggered() {
+        return  this.triggered;
+    }
+
+    public boolean isOneTime() {
+        return this.isOneTime;
     }
 
 }

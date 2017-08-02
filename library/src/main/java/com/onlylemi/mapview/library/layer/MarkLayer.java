@@ -109,9 +109,21 @@ public class MarkLayer extends MapBaseLayer {
 
     private void checkTriggers() {
         for(int i = 0; i < proxMarks.size(); i++) {
-            if(proxMarks.get(i).triggerProximity(user.getPosition())) {
-                if(markTriggeredListener != null)
+            boolean inProx = proxMarks.get(i).triggerProximity(user.getPosition());
+            if(inProx && !proxMarks.get(i).isTriggered()) {
+                if(markTriggeredListener != null) {
+                    proxMarks.get(i).setTriggered(true);
                     markTriggeredListener.onEnter(proxMarks.get(i), i);
+                }
+            } else if(!inProx && proxMarks.get(i).isTriggered()) { //This means we just exited
+                    markTriggeredListener.onExit(proxMarks.get(i), i);
+
+                    if(proxMarks.get(i).isOneTime()) {
+                        this.markObjects.remove(proxMarks.get(i));
+                        proxMarks.remove(i);
+                    } else {
+                        proxMarks.get(i).setTriggered(false);
+                    }
             }
         }
     }
@@ -149,5 +161,6 @@ public class MarkLayer extends MapBaseLayer {
 
     public interface MarkIsTriggered {
         void onEnter(BaseMark mark, int index);
+        void onExit(BaseMark mark, int index);
     }
 }
