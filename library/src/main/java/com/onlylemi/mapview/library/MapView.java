@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.PointF;
-import android.location.Location;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -28,6 +27,9 @@ import java.util.List;
 public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
     private static final String TAG = "MapView";
+
+    //Background color of the canvas
+    private int canvasBackgroundColor = -1; //Transparent
 
     private SurfaceHolder holder;
     private MapViewListener mapViewListener = null;
@@ -111,8 +113,16 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     @Override
+    protected void onDraw(Canvas canvas) {
+        Log.d(TAG, "I am drawing");
+
+        invalidate();
+    }
+
+    @Override
     public void surfaceCreated(SurfaceHolder holder) {
         this.holder = holder;
+
         //Deprecated
         //restrictiveBoundingBox = new MapAABB(new PointF(0, 0), getWidth(), getHeight());
         Log.d(TAG, "MapView AABB inited");
@@ -140,7 +150,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
             canvas = holder.lockCanvas();
             if (canvas != null) {
-                canvas.drawColor(-1);
+
+                canvas.drawColor(canvasBackgroundColor);
                 if (isMapLoadFinish) {
                     for (MapBaseLayer layer : layers) {
                         if (layer.isVisible) {
@@ -153,6 +164,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 }
                 holder.unlockCanvasAndPost(canvas);
             }
+
+            invalidate();
         }
     }
 
@@ -504,6 +517,15 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public Matrix getCurrentTransform() { return currentMatrix; }
+
+    public int getCanvasBackgroundColor() {
+        return canvasBackgroundColor;
+    }
+
+    public void setCanvasBackgroundColor(int canvasBackgroundColor) {
+        this.canvasBackgroundColor = canvasBackgroundColor;
+    }
+
 
     public void centerOnUser(LocationUser user) {
         mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
