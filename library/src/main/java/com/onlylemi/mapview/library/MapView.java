@@ -424,6 +424,49 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         maxZoom = zoom + maxZoomPadding;
     }
 
+    /**
+     * Takes a set of positions and zoom to the max value that will show all positions.
+     * Also moves the camera to the middle position of all positions
+     * @param pointList
+     */
+    public void zoomWithinPoints(List<PointF> pointList) {
+        PointF initPoint = pointList.get(0);
+
+        //Find max point height and max point width
+        float maxX = initPoint.x;
+        float minX = initPoint.x;
+
+        float maxY = initPoint.y;
+        float minY = initPoint.y;
+
+        for(PointF p : pointList) {
+            //MAX
+            maxX = p.x > maxX ? p.x : maxX;
+            maxY = p.y > maxY ? p.y : maxY;
+
+            //MIN
+            minX = p.x < minX ? p.x : minX;
+            minY = p.y < minY ? p.y : minY;
+        }
+
+        float imageWidth = maxX - minX;
+        float imageHeight = maxY - minY;
+
+        float widthRatio = getWidth() / imageWidth;
+        float heightRatio = getHeight() / imageHeight;
+        float ratio = 0.0f;
+
+        if (widthRatio * imageHeight <= getHeight()) {
+            ratio = widthRatio;
+        } else if (heightRatio * imageWidth <= getWidth()) {
+            ratio = heightRatio;
+        }
+
+        setCurrentZoom(ratio, 0,0);
+        PointF midPoint = MapMath.getMidPointBetweenTwoPoints(maxX, maxY, minX, minY);
+        mapCenterWithPoint(midPoint.x, midPoint.y);
+    }
+
     private PointF midPoint(MotionEvent event) {
         return MapMath.getMidPointBetweenTwoPoints(event.getX(0), event.getY(0)
                 , event.getX(1), event.getY(1));
