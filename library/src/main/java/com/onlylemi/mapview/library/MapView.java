@@ -7,6 +7,7 @@ import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Choreographer;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -24,7 +25,7 @@ import java.util.List;
  *
  * @author: onlylemi
  */
-public class MapView extends SurfaceView implements SurfaceHolder.Callback {
+public class MapView extends SurfaceView implements SurfaceHolder.Callback, Choreographer.FrameCallback {
 
     private static final String TAG = "MapView";
 
@@ -88,6 +89,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      */
     private void initMapView() {
         getHolder().addCallback(this);
+        Choreographer.getInstance().postFrameCallback(this);
+
+        setWillNotDraw(false);
 
         layers = new ArrayList<MapBaseLayer>() {
             @Override
@@ -112,11 +116,30 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         Log.i(TAG, "Init Width " + getWidth());
     }
 
+
+    private final int FPS = 30;
+
+    private long nanoFPS = (long) 1000000000 / FPS;
+
+    private long deltaFPS = nanoFPS;
+
+    private long lastFrame = 0;
+
+    @Override
+    public void doFrame(long l) {
+        deltaFPS -= l - lastFrame;
+        lastFrame = l;
+        if(deltaFPS <= 0) {
+            deltaFPS = nanoFPS;
+            invalidate();
+        }
+
+        Choreographer.getInstance().postFrameCallback(this);
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
-        Log.d(TAG, "I am drawing");
-
-        invalidate();
+        refresh(canvas);
     }
 
     @Override
@@ -126,7 +149,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         //Deprecated
         //restrictiveBoundingBox = new MapAABB(new PointF(0, 0), getWidth(), getHeight());
         Log.d(TAG, "MapView AABB inited");
-        refresh();
     }
 
     @Override
@@ -142,14 +164,14 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     /**
      * reload mapview
      */
-    public void refresh() {
-        if (holder != null) {
+    private void refresh(Canvas canvas) {
+        //if (holder != null) {
 
             if(isFollowUser && currentTouchState == MapView.TOUCH_STATE_NO)
                 mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
 
-            canvas = holder.lockCanvas();
-            if (canvas != null) {
+            //canvas = holder.lockCanvas();
+            //if (canvas != null) {
 
                 canvas.drawColor(canvasBackgroundColor);
                 if (isMapLoadFinish) {
@@ -161,12 +183,10 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                                 layer.debugDraw(canvas, currentMatrix);
                         }
                     }
-                }
-                holder.unlockCanvasAndPost(canvas);
+                //}
+                //holder.unlockCanvasAndPost(canvas);
             }
-
-            invalidate();
-        }
+        //}
     }
 
     /**
@@ -192,7 +212,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                         mapViewListener.onMapLoadSuccess();
                     }
                     isMapLoadFinish = true;
-                    refresh();
+                    //refresh();
                 } else {
                     if (mapViewListener != null) {
                         mapViewListener.onMapLoadFail();
@@ -235,11 +255,11 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                     }
                 }
                 currentTouchState = MapView.TOUCH_STATE_NO;
-                refresh();
+                //refresh();
                 break;
             case MotionEvent.ACTION_POINTER_UP:
                 currentTouchState = MapView.TOUCH_STATE_NO;
-                refresh();
+                //refresh();
                 break;
             case MotionEvent.ACTION_MOVE:
                 switch (currentTouchState) {
@@ -247,7 +267,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                             currentMatrix.set(saveMatrix);
                             translate(event.getX() - startTouch.x, event.getY() -
                                     startTouch.y);
-                            refresh();
+                            //refresh();
                         break;
                     case MapView.TOUCH_STATE_TWO_POINTED:
                             oldDist = distance(event, mid);
@@ -269,7 +289,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
                         currentMatrix.postScale(scale, scale, initPoint.x, initPoint.y);
 
-                        refresh();
+//                        refresh();
                         break;
                     default:
                         break;
