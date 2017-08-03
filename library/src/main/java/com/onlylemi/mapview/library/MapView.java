@@ -12,6 +12,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.onlylemi.mapview.library.graphics.BaseGraphics;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
@@ -25,7 +26,7 @@ import java.util.List;
  *
  * @author: onlylemi
  */
-public class MapView extends SurfaceView implements SurfaceHolder.Callback, Choreographer.FrameCallback {
+public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
     private static final String TAG = "MapView";
 
@@ -71,6 +72,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
 
     private boolean debug = false;
 
+    //Main rendering thread
+    private RenderThread thread;
+
     public MapView(Context context) {
         this(context, null);
     }
@@ -89,9 +93,10 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
      */
     private void initMapView() {
         getHolder().addCallback(this);
-        Choreographer.getInstance().postFrameCallback(this);
+        //Choreographer.getInstance().postFrameCallback(this);
 
-        setWillNotDraw(false);
+        //This is only used if we dont use a seperate rendering thread
+        //setWillNotDraw(false);
 
         layers = new ArrayList<MapBaseLayer>() {
             @Override
@@ -117,30 +122,102 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
     }
 
 
-    private final int FPS = 30;
+    //region TESTING
 
-    private long nanoFPS = (long) 1000000000 / FPS;
+    private class RenderThread extends Thread {
 
-    private long deltaFPS = nanoFPS;
+        private final int FPS = 30;
 
-    private long lastFrame = 0;
+        private final long nanoFPS = (long) 1000000000 / FPS;
 
-    @Override
-    public void doFrame(long l) {
-        deltaFPS -= l - lastFrame;
-        lastFrame = l;
-        if(deltaFPS <= 0) {
-            deltaFPS = nanoFPS;
-            invalidate();
+        private long deltaFPS = nanoFPS;
+
+        private long timer = 0;
+
+        private SurfaceHolder root;
+
+        private MapView mapView;
+
+        private boolean running = false;
+
+        private boolean debug = false;
+
+        private List<MapBaseLayer> l;
+
+        //Must include a reference to the canvas to paint on
+        //A reference to the mapview?
+        //A reference or maybe even hold all graphics objects?
+        public RenderThread(SurfaceHolder root, MapView mapView) {
+            this.root = root;
+            this.mapView = mapView;
+
+            l = mapView.getLayers();
         }
 
-        Choreographer.getInstance().postFrameCallback(this);
+        @Override
+        public void run() {
+
+            //Init timer
+            timer = System.nanoTime();
+
+
+            while(running) {
+
+                //Atm we just update as fast as we can
+
+
+                //Lock for painting
+                Canvas canvas = root.lockCanvas();
+
+                //If the program exits while we are running break
+                //Means somthing managed to remove the canvas before we locked it
+                if(canvas == null)
+                    break;
+
+                //Background color
+                canvas.drawColor(canvasBackgroundColor);
+
+                for (MapBaseLayer layer : l) {
+                    if (layer.isVisible) {
+                        layer.draw(canvas, currentMatrix, currentZoom, currentRotateDegrees);
+
+                        if (debug)
+                            layer.debugDraw(canvas, currentMatrix);
+                    }
+                }
+
+                root.unlockCanvasAndPost(canvas);
+            }
+        }
+
+        public boolean isRunning() {
+            return running;
+        }
+
+        public void setRunning(boolean running) {
+            this.running = running;
+        }
+
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        refresh(canvas);
-    }
+    //endregion
+
+//    @Override
+//    public void doFrame(long l) {
+//        deltaFPS -= l - lastFrame;
+//        lastFrame = l;
+//        if(deltaFPS <= 0) {
+//            deltaFPS = nanoFPS;
+//            invalidate();
+//        }
+//
+//        Choreographer.getInstance().postFrameCallback(this);
+//    }
+
+//    @Override
+//    protected void onDraw(Canvas canvas) {
+//        refresh(canvas);
+//    }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -149,6 +226,18 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         //Deprecated
         //restrictiveBoundingBox = new MapAABB(new PointF(0, 0), getWidth(), getHeight());
         Log.d(TAG, "MapView AABB inited");
+
+        //after a pause it starts the thread again
+        if (thread == null || thread.getState() == Thread.State.TERMINATED){
+            thread = new RenderThread(holder, this);
+            thread.setRunning(true);
+            thread.start();  // Start a new thread
+        }
+        //if it is the first time the thread starts
+        else if(thread.getState() == Thread.State.NEW){
+            thread.setRunning(true);
+            thread.start();//riga originale
+        }
     }
 
     @Override
@@ -158,13 +247,21 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-
+        if(thread != null) {
+            thread.setRunning(false); //Let thread finish and exit
+            try {
+                thread.join();
+            }catch (InterruptedException ie) {
+                ie.printStackTrace();
+            }
+            Log.d(TAG, "Rendering thread terminated");
+        }
     }
 
     /**
      * reload mapview
      */
-    private void refresh(Canvas canvas) {
+    public synchronized void refresh(Canvas canvas) {
         //if (holder != null) {
 
             if(isFollowUser && currentTouchState == MapView.TOUCH_STATE_NO)
@@ -183,9 +280,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
                                 layer.debugDraw(canvas, currentMatrix);
                         }
                     }
-                //}
-                //holder.unlockCanvasAndPost(canvas);
-            }
+                }
         //}
     }
 
