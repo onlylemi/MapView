@@ -22,9 +22,6 @@ public class StaticMark extends com.onlylemi.mapview.library.graphics.BaseMark {
     //Image
     protected Bitmap bmp;
 
-    //Position
-    protected PointF position;
-
     protected PointF worldPosition;
 
 
