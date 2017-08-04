@@ -132,7 +132,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
         private long deltaFPS = nanoFPS;
 
-        private long timer = 0;
+        private long deltaTime = 0;
 
         private SurfaceHolder root;
 
@@ -158,13 +158,14 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         public void run() {
 
             //Init timer
-            timer = System.nanoTime();
+            long timer = System.nanoTime();
 
 
             while(running) {
 
                 //Atm we just update as fast as we can
-
+                deltaTime = System.nanoTime() - timer;
+                timer = System.nanoTime();
 
                 //Lock for painting
                 Canvas canvas = root.lockCanvas();
@@ -179,7 +180,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
                 for (MapBaseLayer layer : l) {
                     if (layer.isVisible) {
-                        layer.draw(canvas, currentMatrix, currentZoom, currentRotateDegrees);
+                        layer.draw(canvas, currentMatrix, currentZoom, deltaTime);
 
                         if (debug)
                             layer.debugDraw(canvas, currentMatrix);
@@ -258,31 +259,31 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    /**
-     * reload mapview
-     */
-    public synchronized void refresh(Canvas canvas) {
-        //if (holder != null) {
-
-            if(isFollowUser && currentTouchState == MapView.TOUCH_STATE_NO)
-                mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
-
-            //canvas = holder.lockCanvas();
-            //if (canvas != null) {
-
-                canvas.drawColor(canvasBackgroundColor);
-                if (isMapLoadFinish) {
-                    for (MapBaseLayer layer : layers) {
-                        if (layer.isVisible) {
-                            layer.draw(canvas, currentMatrix, currentZoom, currentRotateDegrees);
-
-                            if(debug)
-                                layer.debugDraw(canvas, currentMatrix);
-                        }
-                    }
-                }
-        //}
-    }
+//    /**
+//     * reload mapview
+//     */
+//    public synchronized void refresh(Canvas canvas) {
+//        //if (holder != null) {
+//
+//            if(isFollowUser && currentTouchState == MapView.TOUCH_STATE_NO)
+//                mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
+//
+//            //canvas = holder.lockCanvas();
+//            //if (canvas != null) {
+//
+//                canvas.drawColor(canvasBackgroundColor);
+//                if (isMapLoadFinish) {
+//                    for (MapBaseLayer layer : layers) {
+//                        if (layer.isVisible) {
+//                            layer.draw(canvas, currentMatrix, currentZoom, currentRotateDegrees);
+//
+//                            if(debug)
+//                                layer.debugDraw(canvas, currentMatrix);
+//                        }
+//                    }
+//                }
+//        //}
+//    }
 
     /**
      * load map bitmap

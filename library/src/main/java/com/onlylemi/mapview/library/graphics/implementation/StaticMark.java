@@ -16,7 +16,7 @@ import java.util.ArrayList;
  * Created by patny on 2017-08-01.
  */
 
-public class StaticMark extends com.onlylemi.mapview.library.graphics.BaseMark {
+public class StaticMark extends BaseMark {
     public final static String TAG = "BaseMark";
 
     //Image
@@ -35,7 +35,7 @@ public class StaticMark extends com.onlylemi.mapview.library.graphics.BaseMark {
         clickRadius = bmp.getWidth() > bmp.getHeight() ? bmp.getWidth() / 2 : bmp.getHeight() / 2;
     }
 
-    public void update(final Matrix m) {
+    public void update(final Matrix m, long deltaTime) {
         worldPosition = MapMath.transformPoint(m, position);
 
         tMatrix = new Matrix();

@@ -109,8 +109,7 @@ public class MapLayer extends MapBaseLayer {
     }
 
     @Override
-    public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, float
-            currentRotateDegrees) {
+    public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
         canvas.save();
         if (bmp != null) {
             canvas.drawBitmap(bmp, currentMatrix, paint);

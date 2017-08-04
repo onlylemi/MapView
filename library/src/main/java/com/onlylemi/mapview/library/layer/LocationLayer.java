@@ -46,12 +46,11 @@ public class LocationLayer extends MapBaseLayer {
     }
 
     @Override
-    public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, float
-            currentRotateDegrees) {
+    public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
         //Later I wanna handle movement directions and shit in this layer
         if (isVisible) {
             canvas.save();
-            user.update(currentMatrix);
+            user.update(currentMatrix, deltaTime);
             user.draw(canvas, locationPaint);
             canvas.restore();
         }

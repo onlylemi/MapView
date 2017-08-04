@@ -63,8 +63,7 @@ public class RouteLayer extends MapBaseLayer {
     }
 
     @Override
-    public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, float
-            currentRotateDegrees) {
+    public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
         if (isVisible && routeList != null && nodeList != null) {
             canvas.save();
             if (!routeList.isEmpty() && !nodeList.isEmpty()) {

@@ -55,8 +55,7 @@ public class BitmapLayer extends MapBaseLayer {
     }
 
     @Override
-    public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, float
-            currentRotateDegrees) {
+    public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
         if (isVisible && bitmap != null) {
             canvas.save();
             float[] goal = {location.x, location.y};
