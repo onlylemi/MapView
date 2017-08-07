@@ -40,7 +40,8 @@ public class RotationAnimation implements IBaseAnimation {
      * @param position  point to rotate around
      * @param time      the time it takes to rotate the entire circumference
      */
-    public RotationAnimation(float initAngle, float endAngle, PointF position, float time) {
+    public RotationAnimation(BaseGraphics baseObj, float initAngle, float endAngle, PointF position, float time) {
+        this.baseGraphic = baseObj;
         this.currentAngle = initAngle;
         this.endAngle = endAngle;
         this.position = position;
@@ -59,17 +60,8 @@ public class RotationAnimation implements IBaseAnimation {
     }
 
     @Override
-    public void onInit(BaseGraphics obj) {
-        this.baseGraphic = obj;
-        done = false;
-    }
-
-    @Override
     public Matrix update(Matrix m, long deltaTime) {
-        //Interpolate
         float d = angularVelocity * deltaTime;
-
-        //incrementAngle(currentAngle, d);
         currentAngle += d;
         distance -= Math.abs(d);
 
@@ -80,14 +72,7 @@ public class RotationAnimation implements IBaseAnimation {
         }
 
         m.preRotate(currentAngle, position.x, position.y);
-
         baseGraphic.rotation = currentAngle;
-
         return m;
-    }
-
-    @Override
-    public void onExit() {
-        Log.d("ZUP", "Anim done");
     }
 }

@@ -135,8 +135,7 @@ public class LocationUser extends BaseGraphics {
         float newRotation = (float) Math.toDegrees(Math.atan2(lookAt.x - startDir.x, lookAt.y - startDir.y)) * 2;
 
         if(newRotation != this.rotation) {
-            rotationAnim = new RotationAnimation(this.rotation, newRotation, new PointF(bmp.getWidth() / 2, bmp.getHeight() / 2), 0.5f);
-            rotationAnim.onInit(this);
+            rotationAnim = new RotationAnimation(this, this.rotation, newRotation, new PointF(bmp.getWidth() / 2, bmp.getHeight() / 2), 0.5f);
         }
     }
 
