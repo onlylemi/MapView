@@ -386,4 +386,20 @@ public final class MapMath {
         return Math.abs((a + 180) % 360) - 180;
     }
 
+    /**
+     * Truncates a value between a min and a max. Can never be higher or lower then the input min/max
+     * @param value
+     * @param min
+     * @param max
+     * @return
+     */
+    public static float truncateNumber(float value, float min, float max) {
+        if(value > max)
+            return max;
+        else if(value < min)
+            return min;
+
+        return value;
+    }
+
 }

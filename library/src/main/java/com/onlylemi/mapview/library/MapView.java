@@ -65,6 +65,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     private int currentTouchState = MapView.TOUCH_STATE_NO; // default touch state
 
     private float oldDist = 0, oldDegree = 0;
+    private boolean modes = false;
     private boolean isScaleAndRotateTogether = false;
     private boolean isOverflowing = false; //Indicates if the map model is bigger then the viewport
     private boolean isRestrictedView = false;
@@ -178,6 +179,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 //Background color
                 canvas.drawColor(canvasBackgroundColor);
 
+                //Update the different map states
+                mapView.updateModes();
+
                 for (MapBaseLayer layer : l) {
                     if (layer.isVisible) {
                         layer.draw(canvas, currentMatrix, currentZoom, deltaTime);
@@ -202,23 +206,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     //endregion
-
-//    @Override
-//    public void doFrame(long l) {
-//        deltaFPS -= l - lastFrame;
-//        lastFrame = l;
-//        if(deltaFPS <= 0) {
-//            deltaFPS = nanoFPS;
-//            invalidate();
-//        }
-//
-//        Choreographer.getInstance().postFrameCallback(this);
-//    }
-
-//    @Override
-//    protected void onDraw(Canvas canvas) {
-//        refresh(canvas);
-//    }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -258,32 +245,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
             Log.d(TAG, "Rendering thread terminated");
         }
     }
-
-//    /**
-//     * reload mapview
-//     */
-//    public synchronized void refresh(Canvas canvas) {
-//        //if (holder != null) {
-//
-//            if(isFollowUser && currentTouchState == MapView.TOUCH_STATE_NO)
-//                mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
-//
-//            //canvas = holder.lockCanvas();
-//            //if (canvas != null) {
-//
-//                canvas.drawColor(canvasBackgroundColor);
-//                if (isMapLoadFinish) {
-//                    for (MapBaseLayer layer : layers) {
-//                        if (layer.isVisible) {
-//                            layer.draw(canvas, currentMatrix, currentZoom, currentRotateDegrees);
-//
-//                            if(debug)
-//                                layer.debugDraw(canvas, currentMatrix);
-//                        }
-//                    }
-//                }
-//        //}
-//    }
 
     /**
      * load map bitmap
@@ -332,6 +293,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 saveMatrix.set(currentMatrix);
                 startTouch.set(event.getX(), event.getY());
                 currentTouchState = MapView.TOUCH_STATE_SCROLL;
+                modes = false;
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
                 if (event.getPointerCount() == 2) {
@@ -351,11 +313,11 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                     }
                 }
                 currentTouchState = MapView.TOUCH_STATE_NO;
-                //refresh();
+                modes = true;
                 break;
             case MotionEvent.ACTION_POINTER_UP:
                 currentTouchState = MapView.TOUCH_STATE_NO;
-                //refresh();
+                modes = true;
                 break;
             case MotionEvent.ACTION_MOVE:
                 switch (currentTouchState) {
@@ -397,8 +359,17 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         return true;
     }
 
-    public void setRestrictMapToView(boolean restrict) {
-        this.isRestrictedView = restrict;
+    /**
+     * update all different modes enabled, like center on user, zoom on points etc
+     */
+    public void updateModes() {
+        if(!modes)
+            return;
+
+        if(z) {
+            zoomWithinPoints(zoomPoints);
+        }
+
     }
 
     /**
@@ -532,8 +503,10 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void setCurrentZoom(float zoom, float x, float y) {
-        currentMatrix.postScale(zoom / this.currentZoom, zoom / this.currentZoom, x, y);
-        this.currentZoom = zoom;
+        float scale = MapMath.truncateNumber(zoom, minZoom, maxZoom);
+
+        currentMatrix.postScale(scale / this.currentZoom, scale / this.currentZoom, x, y);
+        this.currentZoom = scale;
     }
 
     /**
@@ -558,7 +531,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      * Also moves the camera to the middle position of all positions
      * @param pointList
      */
-    public void zoomWithinPoints(List<PointF> pointList) {
+    public void zoomWithinPoints(final List<PointF> pointList) {
         PointF initPoint = pointList.get(0);
 
         //Find max point height and max point width
@@ -594,6 +567,18 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         setCurrentZoom(ratio, 0,0);
         PointF midPoint = MapMath.getMidPointBetweenTwoPoints(maxX, maxY, minX, minY);
         mapCenterWithPoint(midPoint.x, midPoint.y);
+    }
+
+    private boolean z = false;
+    private List<PointF> zoomPoints;
+
+    public void zoomWithinPoints(final List<PointF> pointList, boolean continuous) {
+
+        this.z = continuous;
+
+        if(z) {
+            zoomPoints = pointList;
+        }
     }
 
     private PointF midPoint(MotionEvent event) {
@@ -656,7 +641,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     //region debugging
 
     public void setDebug(boolean db) {
-        this.debug = db;
+        thread.debug = db;
     }
 
     //endregion
