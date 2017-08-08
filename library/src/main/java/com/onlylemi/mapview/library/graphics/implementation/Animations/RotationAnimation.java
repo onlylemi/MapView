@@ -51,7 +51,7 @@ public class RotationAnimation implements IBaseAnimation {
         this.distance = Math.abs(this.distance);
 
         //Calculate the velocity from time
-        angularVelocity = 360 / (time * MapMath.NANOSECOND) * sign;
+        angularVelocity = this.distance  / (time * MapMath.NANOSECOND) * sign;
     }
 
     @Override

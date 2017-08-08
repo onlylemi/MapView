@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.util.Log;
 
+import com.onlylemi.mapview.library.BuildConfig;
 import com.onlylemi.mapview.library.graphics.BaseGraphics;
 import com.onlylemi.mapview.library.graphics.IBaseAnimation;
 import com.onlylemi.mapview.library.graphics.implementation.Animations.RotationAnimation;
@@ -131,12 +132,38 @@ public class LocationUser extends BaseGraphics {
 
     public PointF getWorldPosition() { return  worldMidPosition; }
 
+    /**
+     * Points this graphic directly in the direction of the input vector
+     * @param lookAt directional vector (LENGTH == 1)
+     */
     public void setLookAt(PointF lookAt) {
-        float newRotation = (float) Math.toDegrees(Math.atan2(lookAt.x - startDir.x, lookAt.y - startDir.y)) * 2;
+        if(BuildConfig.DEBUG && lookAt.length() != 1) {
+            throw new AssertionError("lookAt vector must be a direction. (Length = 1)");
+        }
+
+        this.rotation = getLookAtAngleFromVector(lookAt);
+    }
+
+    /**
+     * Animates this graphic to point in the direction of the input vector
+     * @param lookAt direction
+     * @param duration time to animate to direction
+     */
+    public void setLookAt(PointF lookAt, float duration) {
+        if(BuildConfig.DEBUG && lookAt.length() != 1) {
+            throw new AssertionError("lookAt vector must be a direction. (Length = 1)");
+        }
+
+        float newRotation = getLookAtAngleFromVector(lookAt);
 
         if(newRotation != this.rotation) {
             rotationAnim = new RotationAnimation(this, this.rotation, newRotation, new PointF(bmp.getWidth() / 2, bmp.getHeight() / 2), 0.5f);
         }
+    }
+
+    //// TODO: 2017-08-08 Move to math? 
+    private float getLookAtAngleFromVector(PointF lookAt) {
+        return (float) Math.toDegrees(Math.atan2(lookAt.x - startDir.x, lookAt.y - startDir.y)) * 2;
     }
 
 }
