@@ -180,7 +180,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 canvas.drawColor(canvasBackgroundColor);
 
                 //Update the different map states
-                mapView.updateModes();
+                mapView.updateModes(deltaTime);
 
                 for (MapBaseLayer layer : l) {
                     if (layer.isVisible) {
@@ -269,7 +269,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                         mapViewListener.onMapLoadSuccess();
                     }
                     isMapLoadFinish = true;
-                    //refresh();
                 } else {
                     if (mapViewListener != null) {
                         mapViewListener.onMapLoadFail();
@@ -362,14 +361,30 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     /**
      * update all different modes enabled, like center on user, zoom on points etc
      */
-    public void updateModes() {
-        if(!modes)
-            return;
+    public void updateModes(float deltaTime) {
+        switch (mode) {
+            case FREE:
+                break;
+            case ZOOM_WITHIN_POINTS:
+                //This is stupid, how do I make this "move" towards a target in a good way?
+                //This could in future be state based instead. Just remember the state each time and if it does not update we use the old state
+                //// TODO: 2017-08-08 This is a refactor stage later on, this works atm and its fine until a later version
 
-        if(z) {
-            zoomWithinPoints(zoomPoints);
+                //calculate target from points
+                //List<>
+
+
+                //move towards target using velocity
+
+
+                break;
+            case FOLLOW_USER:
+                mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
+                break;
+
+            default:
+
         }
-
     }
 
     /**
@@ -532,6 +547,14 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      * @param pointList
      */
     public void zoomWithinPoints(final List<PointF> pointList) {
+        float[] minmax = getMaxMinFromPointList(pointList);
+
+        setCurrentZoom(getZoomWithinPoints(minmax[0], minmax[1], minmax[2], minmax[3]), 0, 0);
+        PointF midPoint = MapMath.getMidPointBetweenTwoPoints(minmax[0], minmax[1], minmax[2], minmax[3]);
+        mapCenterWithPoint(midPoint.x, midPoint.y);
+    }
+
+    private float[] getMaxMinFromPointList(final List<PointF> pointList) {
         PointF initPoint = pointList.get(0);
 
         //Find max point height and max point width
@@ -551,6 +574,29 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
             minY = p.y < minY ? p.y : minY;
         }
 
+        float[] r = { maxX, maxY, minX, minY };
+        return r;
+    }
+
+    private float getZoomWithinPoints(float maxX, float maxY, float minX, float minY) {
+//        PointF initPoint = pointList.get(0);
+//
+//        //Find max point height and max point width
+//        float maxX = initPoint.x;
+//        float minX = initPoint.x;
+//
+//        float maxY = initPoint.y;
+//        float minY = initPoint.y;
+//
+//        for(PointF p : pointList) {
+//            //MAX
+//            maxX = p.x > maxX ? p.x : maxX;
+//            maxY = p.y > maxY ? p.y : maxY;
+//
+//            //MIN
+//            minX = p.x < minX ? p.x : minX;
+//            minY = p.y < minY ? p.y : minY;
+//        }
         float imageWidth = maxX - minX;
         float imageHeight = maxY - minY;
 
@@ -564,21 +610,36 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
             ratio = heightRatio;
         }
 
-        setCurrentZoom(ratio, 0,0);
-        PointF midPoint = MapMath.getMidPointBetweenTwoPoints(maxX, maxY, minX, minY);
-        mapCenterWithPoint(midPoint.x, midPoint.y);
+        return ratio;
     }
 
+    private float time = 0.0f;
     private boolean z = false;
+    private float zoomVelocity = 0.2f;
     private List<PointF> zoomPoints;
 
-    public void zoomWithinPoints(final List<PointF> pointList, boolean continuous) {
+    //Default is free
+    private TRACKING_MODE mode = TRACKING_MODE.FREE;
 
-        this.z = continuous;
+    public enum TRACKING_MODE {
+        ZOOM_WITHIN_POINTS,
+        FOLLOW_USER,
+        FREE
+    }
 
-        if(z) {
-            zoomPoints = pointList;
-        }
+    /**
+     * Sets the zooming points used during Zoom tracking mode
+     */
+    public void setZoomPoints(final List<PointF> zoomPoints, float zoomSpeed) {
+        this.zoomPoints = zoomPoints;
+        //Via duration we calculate the zoom velocity
+        zoomVelocity = (maxZoom - minZoom) / (zoomSpeed * MapMath.NANOSECOND);
+        //We also need to calculate the translation velocity of returning the camera
+    }
+
+
+    public void setTrackingMode(TRACKING_MODE mode) {
+        this.mode = mode;
     }
 
     private PointF midPoint(MotionEvent event) {
@@ -627,6 +688,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         this.canvasBackgroundColor = canvasBackgroundColor;
     }
 
+    public void setUser(LocationUser user) {
+        this.user = user;
+    }
 
     public void centerOnUser(LocationUser user) {
         mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
