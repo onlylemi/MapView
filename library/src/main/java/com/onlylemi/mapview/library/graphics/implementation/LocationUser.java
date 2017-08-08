@@ -11,6 +11,7 @@ import com.onlylemi.mapview.library.BuildConfig;
 import com.onlylemi.mapview.library.graphics.BaseGraphics;
 import com.onlylemi.mapview.library.graphics.IBaseAnimation;
 import com.onlylemi.mapview.library.graphics.implementation.Animations.RotationAnimation;
+import com.onlylemi.mapview.library.graphics.implementation.Animations.TranslationAnimation;
 import com.onlylemi.mapview.library.utils.MapMath;
 
 /**
@@ -72,38 +73,18 @@ public class LocationUser extends BaseGraphics {
             rotationAnim.update(tMatrix, deltaTime);
         }
         else {
-            rotationAnim = null;
             tMatrix.preRotate(this.rotation, bmp.getWidth() / 2, bmp.getHeight() / 2);
         }
         //Translation last
-        if(translationAnim != null)
-            Log.d("TAG", "No anim exists");
+        if(translationAnim != null && !translationAnim.isDone())
+            translationAnim.update(tMatrix, deltaTime);
         else
             tMatrix.postTranslate(position.x - bmp.getWidth() / 2, position.y - bmp.getHeight() / 2);
 
         tMatrix.setValues(MapMath.matrixMultiplication(m, tMatrix));
     }
 
-    float x = 1;
-
-    boolean up = true;
-
     public void draw(final Canvas canvas, final Paint paint) {
-        Paint p = new Paint();
-        p.setStyle(Paint.Style.FILL);
-        p.setARGB(50, 0, 128, 255);
-
-        if(radius < maxRadius && up) {
-            radius+=1.5f;
-        }else if(radius > minRadius && !up){
-            radius-=1.5f;
-        }
-        else if(radius >= maxRadius && up)
-            up = !up;
-        else if(radius <= minRadius && !up)
-            up = !up;
-        canvas.drawCircle(worldMidPosition.x, worldMidPosition.y , tMatrix.mapRadius(radius), p);
-
         canvas.drawBitmap(bmp, tMatrix, paint);
     }
 
@@ -128,6 +109,15 @@ public class LocationUser extends BaseGraphics {
     }
 
     public PointF getWorldPosition() { return  worldMidPosition; }
+
+    /**
+     * Moves the graphic to destination over time
+     * @param destination
+     * @param duration time to animate to destination
+     */
+    public void move(PointF destination, float duration) {
+        translationAnim = new TranslationAnimation(this, destination, duration, bmp.getWidth() / 2, bmp.getHeight() / 2);
+    }
 
     /**
      * Points this graphic directly in the direction of the input vector
