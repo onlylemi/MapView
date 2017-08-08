@@ -55,7 +55,7 @@ public class LocationUser extends BaseGraphics {
         this.bmp = bmp;
         this.position = position;
         this.startDir = new PointF(-1.0f, 0.0f);
-        //this.setLookAt(lookAt);
+        this.setLookAt(lookAt);
         this.worldMidPosition = new PointF(bmp.getWidth() / 2, bmp.getHeight() / 2);
         this.radius = bmp.getHeight() > bmp.getWidth() ? bmp.getHeight() / 2 : bmp.getWidth() / 2;
         this.minRadius = radius / 2;
@@ -67,9 +67,7 @@ public class LocationUser extends BaseGraphics {
 
         tMatrix.set(mMatrix);
         
-        //This gets replaced by an animation now
-        //// TODO: 2017-08-04 Remove all static translations and use animations with speed 0 to move "instantly". Do overhead work yo!
-        //Rotation
+        //Handle rotation first
         if(rotationAnim != null && !rotationAnim.isDone()) {
             rotationAnim.update(tMatrix, deltaTime);
         }
@@ -77,8 +75,7 @@ public class LocationUser extends BaseGraphics {
             rotationAnim = null;
             tMatrix.preRotate(this.rotation, bmp.getWidth() / 2, bmp.getHeight() / 2);
         }
-
-        //tMatrix.preRotate(rotation, bmp.getWidth() / 2, bmp.getHeight() / 2);
+        //Translation last
         if(translationAnim != null)
             Log.d("TAG", "No anim exists");
         else
@@ -137,10 +134,6 @@ public class LocationUser extends BaseGraphics {
      * @param lookAt directional vector (LENGTH == 1)
      */
     public void setLookAt(PointF lookAt) {
-        if(BuildConfig.DEBUG && lookAt.length() != 1) {
-            throw new AssertionError("lookAt vector must be a direction. (Length = 1)");
-        }
-
         this.rotation = getLookAtAngleFromVector(lookAt);
     }
 
@@ -150,18 +143,14 @@ public class LocationUser extends BaseGraphics {
      * @param duration time to animate to direction
      */
     public void setLookAt(PointF lookAt, float duration) {
-        if(BuildConfig.DEBUG && lookAt.length() != 1) {
-            throw new AssertionError("lookAt vector must be a direction. (Length = 1)");
-        }
-
         float newRotation = getLookAtAngleFromVector(lookAt);
 
         if(newRotation != this.rotation) {
-            rotationAnim = new RotationAnimation(this, this.rotation, newRotation, new PointF(bmp.getWidth() / 2, bmp.getHeight() / 2), 0.5f);
+            rotationAnim = new RotationAnimation(this, this.rotation, newRotation, new PointF(bmp.getWidth() / 2, bmp.getHeight() / 2), duration);
         }
     }
 
-    //// TODO: 2017-08-08 Move to math? 
+    //// TODO: 2017-08-08 Move to math?
     private float getLookAtAngleFromVector(PointF lookAt) {
         return (float) Math.toDegrees(Math.atan2(lookAt.x - startDir.x, lookAt.y - startDir.y)) * 2;
     }
