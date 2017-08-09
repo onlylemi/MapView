@@ -17,6 +17,7 @@ import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
 import com.onlylemi.mapview.library.utils.MapMath;
+import com.onlylemi.mapview.library.utils.MapUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -369,13 +370,61 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 //This is stupid, how do I make this "move" towards a target in a good way?
                 //This could in future be state based instead. Just remember the state each time and if it does not update we use the old state
                 //// TODO: 2017-08-08 This is a refactor stage later on, this works atm and its fine until a later version
-
-                //calculate target from points
-                //List<>
-
+                //Handles the zooming
+                float[] minmax = getMaxMinFromPointList(zoomPoints);
+                float zoom = getZoomWithinPoints(minmax[0], minmax[1], minmax[2], minmax[3]);
+                float d = zoom - currentZoom;
+                int sign = (int) (d/Math.abs(d));
+                d = d * sign; //Absolute distance
+                float zVelocity = zoomVelocity * sign * deltaTime;
+                d -= zVelocity;
 
                 //move towards target using velocity
+                if(d <= 0.0f) {
+                    setCurrentZoom(zoom);
+                } else {
+                    setCurrentZoom(currentZoom + zVelocity);
+                }
 
+
+
+                //My point on the view coordinate system
+                PointF dst = MapMath.getMidPointBetweenTwoPoints(minmax[0], minmax[1], minmax[2], minmax[3]);
+                float[] b = {dst.x, dst.y};
+                currentMatrix.mapPoints(b);
+
+                //My point in view coords
+                dst.x = b[0];
+                dst.y = b[1];
+
+                //Mid point of the view coordinate system
+                PointF trueMid = new PointF(getWidth() / 2, getHeight() / 2);
+
+                //Direction - NOTE we are going from the mid towards our point because graphics yo
+                PointF desti = new PointF(trueMid.x - b[0], trueMid.y - b[1]);
+
+                //This is also the distance from our point to the middle
+                float distance = desti.length();
+
+                PointF dir = new PointF();
+
+                dir.x = desti.x / distance;
+                dir.y = desti.y / distance;
+
+                //Get position from currentMatrix
+                float[] m = new float[9];
+                currentMatrix.getValues(m);
+
+                //Current position
+                PointF pos = new PointF(m[2], m[5]);
+
+                distance -= moveVelocity * deltaTime;
+
+                if(distance <= 0.0f) {
+                    currentMatrix.postTranslate(desti.x, desti.y);
+                } else {
+                    currentMatrix.postTranslate(dir.x * moveVelocity * deltaTime, dir.y * moveVelocity * deltaTime);
+                }
 
                 break;
             case FOLLOW_USER:
@@ -443,6 +492,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     public void translate(float x, float y) {
         currentMatrix.postTranslate(x, y);
     }
+
+    private PointF position = new PointF(0,0);
 
     /**
      * set point to map center
@@ -579,24 +630,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private float getZoomWithinPoints(float maxX, float maxY, float minX, float minY) {
-//        PointF initPoint = pointList.get(0);
-//
-//        //Find max point height and max point width
-//        float maxX = initPoint.x;
-//        float minX = initPoint.x;
-//
-//        float maxY = initPoint.y;
-//        float minY = initPoint.y;
-//
-//        for(PointF p : pointList) {
-//            //MAX
-//            maxX = p.x > maxX ? p.x : maxX;
-//            maxY = p.y > maxY ? p.y : maxY;
-//
-//            //MIN
-//            minX = p.x < minX ? p.x : minX;
-//            minY = p.y < minY ? p.y : minY;
-//        }
         float imageWidth = maxX - minX;
         float imageHeight = maxY - minY;
 
@@ -616,6 +649,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     private float time = 0.0f;
     private boolean z = false;
     private float zoomVelocity = 0.2f;
+    private float moveVelocity = 0.3f;
     private List<PointF> zoomPoints;
 
     //Default is free
@@ -635,6 +669,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         //Via duration we calculate the zoom velocity
         zoomVelocity = (maxZoom - minZoom) / (zoomSpeed * MapMath.NANOSECOND);
         //We also need to calculate the translation velocity of returning the camera
+        moveVelocity = (float) Math.sqrt( Math.pow(getMapWidth(), 2.0) + Math.pow(getMapHeight(), 2.0) ) / (zoomSpeed * MapMath.NANOSECOND);
     }
 
 
