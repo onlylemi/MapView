@@ -279,6 +279,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         }).start();
     }
 
+    private TRACKING_MODE oldMode;
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (!isMapLoadFinish) {
@@ -293,7 +295,11 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 saveMatrix.set(currentMatrix);
                 startTouch.set(event.getX(), event.getY());
                 currentTouchState = MapView.TOUCH_STATE_SCROLL;
-                modes = false;
+
+                oldMode = mode == mode.FREE ? oldMode : mode;
+                currentFreeModeTime = returnFromFreeModeDelay;
+                mode = TRACKING_MODE.FREE;
+
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
                 if (event.getPointerCount() == 2) {
@@ -304,6 +310,10 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
                     mid = midPoint(event);
                     oldDist = distance(event, mid);
+
+                    currentFreeModeTime = returnFromFreeModeDelay;
+                    oldMode = mode == mode.FREE ? oldMode : mode;
+                    mode = TRACKING_MODE.FREE;
                 }
                 break;
             case MotionEvent.ACTION_UP:
@@ -313,11 +323,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                     }
                 }
                 currentTouchState = MapView.TOUCH_STATE_NO;
-                modes = true;
                 break;
             case MotionEvent.ACTION_POINTER_UP:
                 currentTouchState = MapView.TOUCH_STATE_NO;
-                modes = true;
                 break;
             case MotionEvent.ACTION_MOVE:
                 switch (currentTouchState) {
@@ -346,8 +354,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                         PointF initPoint = isFollowUser ? user.getWorldPosition() : mid;
 
                         currentMatrix.postScale(scale, scale, initPoint.x, initPoint.y);
-
-//                        refresh();
                         break;
                     default:
                         break;
@@ -360,13 +366,26 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     /**
+     * Delay until we return to the last known mode when in free mode
+     */
+    private float returnFromFreeModeDelay = 2.0f * MapMath.NANOSECOND;
+
+    private float currentFreeModeTime = 0.0f;
+
+    /**
      * update all different modes enabled, like center on user, zoom on points etc
      */
     public void updateModes(float deltaTime) {
         switch (mode) {
             case FREE:
+                currentFreeModeTime -= deltaTime;
+                if(currentFreeModeTime <= 0.0f) {
+                    //Reset mode
+                    mode = oldMode;
+                }
+
                 break;
-            case ZOOM_WITHIN_POINTS:
+            case ZOOM_WITHIN_POINTS: {
                 //This is stupid, how do I make this "move" towards a target in a good way?
                 //This could in future be state based instead. Just remember the state each time and if it does not update we use the old state
                 //// TODO: 2017-08-08 This is a refactor stage later on, this works atm and its fine until a later version
@@ -374,18 +393,17 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 float[] minmax = getMaxMinFromPointList(MapUtils.getPositionListFromGraphicList(zoomPoints));
                 float zoom = getZoomWithinPoints(minmax[0], minmax[1], minmax[2], minmax[3]);
                 float d = zoom - currentZoom;
-                int sign = (int) (d/Math.abs(d));
+                int sign = (int) (d / Math.abs(d));
                 d = d * sign; //Absolute distance
                 float zVelocity = zoomVelocity * sign * deltaTime;
                 d -= zVelocity;
 
                 //move towards target using velocity
-                if(d <= 0.0f) {
+                if (d <= 0.0f) {
                     setCurrentZoom(zoom);
                 } else {
                     setCurrentZoom(currentZoom + zVelocity);
                 }
-
 
 
                 //My point on the view coordinate system
@@ -420,17 +438,58 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
                 distance -= moveVelocity * deltaTime;
 
-                if(distance <= 0.0f) {
+                if (distance <= 0.0f) {
                     currentMatrix.postTranslate(desti.x, desti.y);
                 } else {
                     currentMatrix.postTranslate(dir.x * moveVelocity * deltaTime, dir.y * moveVelocity * deltaTime);
                 }
 
                 break;
-            case FOLLOW_USER:
-                mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
-                break;
+            }
+            case FOLLOW_USER: {
+                //mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
 
+                //My point on the view coordinate system
+                PointF dst = new PointF();
+                dst.set(user.getPosition());
+                float[] b = {dst.x, dst.y};
+                currentMatrix.mapPoints(b);
+
+                //My point in view coords
+                dst.x = b[0];
+                dst.y = b[1];
+
+                //Mid point of the view coordinate system
+                PointF trueMid = new PointF(getWidth() / 2, getHeight() / 2);
+
+                //Direction - NOTE we are going from the mid towards our point because graphics yo
+                PointF desti = new PointF(trueMid.x - b[0], trueMid.y - b[1]);
+
+                //This is also the distance from our point to the middle
+                float distance = desti.length();
+
+                PointF dir = new PointF();
+
+                dir.x = desti.x / distance;
+                dir.y = desti.y / distance;
+
+                //Get position from currentMatrix
+                float[] m = new float[9];
+                currentMatrix.getValues(m);
+
+                //Current position
+                PointF pos = new PointF(m[2], m[5]);
+
+                distance -= moveVelocity * deltaTime;
+
+                if (distance <= 0.0f) {
+                    currentMatrix.postTranslate(desti.x, desti.y);
+                } else {
+                    currentMatrix.postTranslate(dir.x * moveVelocity * deltaTime, dir.y * moveVelocity * deltaTime);
+                }
+
+                break;
+            }
             default:
 
         }
@@ -653,12 +712,13 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     private List<BaseGraphics> zoomPoints;
 
     //Default is free
-    private TRACKING_MODE mode = TRACKING_MODE.FREE;
+    private TRACKING_MODE mode = TRACKING_MODE.NONE;
 
     public enum TRACKING_MODE {
         ZOOM_WITHIN_POINTS,
         FOLLOW_USER,
-        FREE
+        FREE,
+        NONE
     }
 
     /**
