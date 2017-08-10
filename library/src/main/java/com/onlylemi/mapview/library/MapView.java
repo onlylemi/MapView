@@ -17,6 +17,7 @@ import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
 import com.onlylemi.mapview.library.utils.MapMath;
+import com.onlylemi.mapview.library.utils.MapModeOptions;
 import com.onlylemi.mapview.library.utils.MapUtils;
 
 import java.util.ArrayList;
@@ -41,8 +42,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     private MapLayer mapLayer;
 
     private LocationUser user;
-
-    private Canvas canvas;
 
     private float minZoom = 0.5f;
     private float maxZoom = 3.0f;
@@ -74,6 +73,12 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
     private boolean debug = false;
 
+
+    /**
+     * Options set by the user, we default the default options
+     */
+    private MapModeOptions modeOptions = new MapModeOptions();
+
     //Main rendering thread
     private RenderThread thread;
 
@@ -95,10 +100,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      */
     private void initMapView() {
         getHolder().addCallback(this);
-        //Choreographer.getInstance().postFrameCallback(this);
-
-        //This is only used if we dont use a seperate rendering thread
-        //setWillNotDraw(false);
 
         layers = new ArrayList<MapBaseLayer>() {
             @Override
@@ -120,9 +121,10 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 return true;
             }
         };
-        Log.i(TAG, "Init Width " + getWidth());
-    }
 
+
+
+    }
 
     //region TESTING
 
@@ -297,9 +299,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 currentTouchState = MapView.TOUCH_STATE_SCROLL;
 
                 oldMode = mode == mode.FREE ? oldMode : mode;
-                currentFreeModeTime = returnFromFreeModeDelay;
+                currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
                 mode = TRACKING_MODE.FREE;
-
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
                 if (event.getPointerCount() == 2) {
@@ -311,7 +312,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                     mid = midPoint(event);
                     oldDist = distance(event, mid);
 
-                    currentFreeModeTime = returnFromFreeModeDelay;
+                    currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
                     oldMode = mode == mode.FREE ? oldMode : mode;
                     mode = TRACKING_MODE.FREE;
                 }
@@ -368,8 +369,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     /**
      * Delay until we return to the last known mode when in free mode
      */
-    private float returnFromFreeModeDelay = 2.0f * MapMath.NANOSECOND;
-
     private float currentFreeModeTime = 0.0f;
 
     /**
@@ -390,13 +389,13 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 //This could in future be state based instead. Just remember the state each time and if it does not update we use the old state
                 //// TODO: 2017-08-08 This is a refactor stage later on, this works atm and its fine until a later version
                 //Handles the zooming
-                float[] minmax = getMaxMinFromPointList(MapUtils.getPositionListFromGraphicList(zoomPoints));
+                float[] minmax = getMaxMinFromPointList(MapUtils.getPositionListFromGraphicList(zoomPoints), modeOptions.zoomWithinPointsPixelPadding);
                 float zoom = getZoomWithinPoints(minmax[0], minmax[1], minmax[2], minmax[3]);
                 float d = zoom - currentZoom;
                 int sign = (int) (d / Math.abs(d));
                 d = d * sign; //Absolute distance
-                float zVelocity = zoomVelocity * sign * deltaTime;
-                d -= zVelocity;
+                float zVelocity = modeOptions.zoomPerNanoSecond * sign * deltaTime;
+                d -= Math.abs(zVelocity);
 
                 //move towards target using velocity
                 if (d <= 0.0f) {
@@ -436,19 +435,17 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 //Current position
                 PointF pos = new PointF(m[2], m[5]);
 
-                distance -= moveVelocity * deltaTime;
+                distance -= modeOptions.translationsPixelsPerNanoSecond * deltaTime;
 
                 if (distance <= 0.0f) {
                     currentMatrix.postTranslate(desti.x, desti.y);
                 } else {
-                    currentMatrix.postTranslate(dir.x * moveVelocity * deltaTime, dir.y * moveVelocity * deltaTime);
+                    currentMatrix.postTranslate(dir.x * modeOptions.translationsPixelsPerNanoSecond * deltaTime, dir.y * modeOptions.translationsPixelsPerNanoSecond * deltaTime);
                 }
 
                 break;
             }
             case FOLLOW_USER: {
-                //mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
-
                 //My point on the view coordinate system
                 PointF dst = new PointF();
                 dst.set(user.getPosition());
@@ -480,12 +477,12 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 //Current position
                 PointF pos = new PointF(m[2], m[5]);
 
-                distance -= moveVelocity * deltaTime;
+                distance -= modeOptions.translationsPixelsPerNanoSecond * deltaTime;
 
                 if (distance <= 0.0f) {
                     currentMatrix.postTranslate(desti.x, desti.y);
                 } else {
-                    currentMatrix.postTranslate(dir.x * moveVelocity * deltaTime, dir.y * moveVelocity * deltaTime);
+                    currentMatrix.postTranslate(dir.x * modeOptions.translationsPixelsPerNanoSecond * deltaTime, dir.y * modeOptions.translationsPixelsPerNanoSecond * deltaTime);
                 }
 
                 break;
@@ -643,12 +640,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      */
     public void initZoom(float zoom, float x, float y) {
         setCurrentZoom(zoom, x, y);
-
-        final float maxZoomPadding = 2.0f;
-        final float minZoomPadding = 0.0f;
-
-        minZoom = zoom + minZoomPadding;
-        maxZoom = zoom + maxZoomPadding;
+        minZoom = zoom + modeOptions.zoomMinPadding;
+        maxZoom = zoom + modeOptions.zoomMaxPadding;
     }
 
     /**
@@ -657,14 +650,14 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      * @param pointList
      */
     public void zoomWithinPoints(final List<PointF> pointList) {
-        float[] minmax = getMaxMinFromPointList(pointList);
+        float[] minmax = getMaxMinFromPointList(pointList, 0.0f);
 
         setCurrentZoom(getZoomWithinPoints(minmax[0], minmax[1], minmax[2], minmax[3]), 0, 0);
         PointF midPoint = MapMath.getMidPointBetweenTwoPoints(minmax[0], minmax[1], minmax[2], minmax[3]);
         mapCenterWithPoint(midPoint.x, midPoint.y);
     }
 
-    private float[] getMaxMinFromPointList(final List<PointF> pointList) {
+    private float[] getMaxMinFromPointList(final List<PointF> pointList, float padding) {
         PointF initPoint = pointList.get(0);
 
         //Find max point height and max point width
@@ -684,7 +677,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
             minY = p.y < minY ? p.y : minY;
         }
 
-        float[] r = { maxX, maxY, minX, minY };
+        float[] r = { maxX + padding, maxY + padding, minX - padding, minY - padding};
         return r;
     }
 
@@ -707,8 +700,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
     private float time = 0.0f;
     private boolean z = false;
-    private float zoomVelocity = 0.2f;
-    private float moveVelocity = 0.3f;
     private List<BaseGraphics> zoomPoints;
 
     //Default is free
@@ -728,8 +719,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      * @param includeUser true if the user (if it exists) should be included in the list of points
      */
     public void setZoomPoints(final List<? extends BaseGraphics> zoomPoints, float zoomSpeed, boolean includeUser) throws IllegalArgumentException {
-
-
         if(includeUser && zoomPoints.size() < 1)
             throw new IllegalArgumentException("Zoom points size < 1, must include at least 1 point when including a user");
         else if(!includeUser && zoomPoints.size() <= 1)
@@ -746,11 +735,11 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 throw new IllegalArgumentException("No user object has ben set");
         }
 
-        //Via duration we calculate the zoom velocity
-        zoomVelocity = (maxZoom - minZoom) / (zoomSpeed * MapMath.NANOSECOND);
-        //We also need to calculate the translation velocity of returning the camera
-        //// TODO: 2017-08-09 This calculation is wrong, it should be based on the zoom time and calulcated between each translation
-        moveVelocity = (float) Math.sqrt( Math.pow(getMapWidth(), 2.0) + Math.pow(getMapHeight(), 2.0) ) / (zoomSpeed * MapMath.NANOSECOND);
+//        //Via duration we calculate the zoom velocity
+//        float zoomVelocity = (maxZoom - minZoom) / (zoomSpeed * MapMath.NANOSECOND);
+//        //We also need to calculate the translation velocity of returning the camera
+//        //// TODO: 2017-08-09 This calculation is wrong, it should be based on the zoom time and calulcated between each translation
+//        float moveVelocity = (float) Math.sqrt( Math.pow(getMapWidth(), 2.0) + Math.pow(getMapHeight(), 2.0) ) / (zoomSpeed * MapMath.NANOSECOND);
     }
 
     public void setTrackingMode(TRACKING_MODE mode) {
