@@ -371,7 +371,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 //This could in future be state based instead. Just remember the state each time and if it does not update we use the old state
                 //// TODO: 2017-08-08 This is a refactor stage later on, this works atm and its fine until a later version
                 //Handles the zooming
-                float[] minmax = getMaxMinFromPointList(zoomPoints);
+                float[] minmax = getMaxMinFromPointList(MapUtils.getPositionListFromGraphicList(zoomPoints));
                 float zoom = getZoomWithinPoints(minmax[0], minmax[1], minmax[2], minmax[3]);
                 float d = zoom - currentZoom;
                 int sign = (int) (d/Math.abs(d));
@@ -650,7 +650,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     private boolean z = false;
     private float zoomVelocity = 0.2f;
     private float moveVelocity = 0.3f;
-    private List<PointF> zoomPoints;
+    private List<BaseGraphics> zoomPoints;
 
     //Default is free
     private TRACKING_MODE mode = TRACKING_MODE.FREE;
@@ -662,16 +662,36 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     /**
-     * Sets the zooming points used during Zoom tracking mode
+     * Set the zooming points used during zoom mode
+     * @param zoomPoints points to include
+     * @param zoomSpeed speed in seconds to zoom from full zoom to minimum zoom
+     * @param includeUser true if the user (if it exists) should be included in the list of points
      */
-    public void setZoomPoints(final List<PointF> zoomPoints, float zoomSpeed) {
-        this.zoomPoints = zoomPoints;
+    public void setZoomPoints(final List<? extends BaseGraphics> zoomPoints, float zoomSpeed, boolean includeUser) throws IllegalArgumentException {
+
+
+        if(includeUser && zoomPoints.size() < 1)
+            throw new IllegalArgumentException("Zoom points size < 1, must include at least 1 point when including a user");
+        else if(!includeUser && zoomPoints.size() <= 1)
+            throw new IllegalArgumentException("Zoom points size is less or equals to 1, must be > 1 if no user is included");
+
+        this.zoomPoints = new ArrayList<>();
+
+        this.zoomPoints.addAll(zoomPoints);
+
+        if(includeUser) {
+            if(user != null)
+                this.zoomPoints.add(user);
+            else
+                throw new IllegalArgumentException("No user object has ben set");
+        }
+
         //Via duration we calculate the zoom velocity
         zoomVelocity = (maxZoom - minZoom) / (zoomSpeed * MapMath.NANOSECOND);
         //We also need to calculate the translation velocity of returning the camera
+        //// TODO: 2017-08-09 This calculation is wrong, it should be based on the zoom time and calulcated between each translation
         moveVelocity = (float) Math.sqrt( Math.pow(getMapWidth(), 2.0) + Math.pow(getMapHeight(), 2.0) ) / (zoomSpeed * MapMath.NANOSECOND);
     }
-
 
     public void setTrackingMode(TRACKING_MODE mode) {
         this.mode = mode;
