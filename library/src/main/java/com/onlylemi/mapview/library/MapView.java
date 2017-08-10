@@ -7,7 +7,6 @@ import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Choreographer;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -804,6 +803,14 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
     public void disableCenterOnUser() {
         this.isFollowUser = false;
+    }
+
+    public void setMapModeOptions(MapModeOptions mapModeOptions) {
+        modeOptions = mapModeOptions;
+    }
+
+    public MapModeOptions getMapModeOptions() {
+        return modeOptions;
     }
 
     //region debugging
