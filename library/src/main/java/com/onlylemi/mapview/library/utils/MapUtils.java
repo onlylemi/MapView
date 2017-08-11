@@ -9,6 +9,7 @@ import android.graphics.RectF;
 import android.util.Log;
 
 import com.onlylemi.mapview.library.MapView;
+import com.onlylemi.mapview.library.graphics.BaseGraphics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -347,6 +348,22 @@ public final class MapUtils {
         //Log.d("User", "Returning position: " + m.toString());
 
         return new PointF(mElements[2], mElements[5]);
+    }
+
+    /**
+     * Takes a graphics list and converts to a position list
+     * @param baseGraphicsList
+     * @return
+     */
+    public static List<PointF> getPositionListFromGraphicList(List<BaseGraphics> baseGraphicsList) {
+
+        List<PointF> returnList = new ArrayList();
+
+        for(BaseGraphics bg : baseGraphicsList) {
+            returnList.add(bg.position);
+        }
+
+        return  returnList;
     }
 
 

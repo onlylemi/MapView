@@ -5,6 +5,8 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
 
+import java.util.List;
+
 /**
  * Created by patny on 2017-08-01.
  */
@@ -22,6 +24,11 @@ public abstract class BaseGraphics {
     public PointF position;
 
     /**
+     * Represents the rotation of this graphic
+     */
+    public float rotation = 0.0f;
+
+    /**
      * Represents the model matrix of this graphic
      */
     protected Matrix mMatrix;
@@ -35,7 +42,7 @@ public abstract class BaseGraphics {
      * Called each refresh before drawing
      * @param m transform matrix
      */
-    public abstract void update(final Matrix m);
+    public abstract void update(final Matrix m, long deltaTime);
 
     /**
      * Called each refresh after updating
@@ -57,5 +64,4 @@ public abstract class BaseGraphics {
     public boolean getVisible() {
         return isVisible;
     }
-
 }

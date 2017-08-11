@@ -53,6 +53,8 @@ public class ProximityMark extends StaticMark {
         paint.setStyle(Paint.Style.STROKE);
 
         canvas.drawCircle(worldPosition.x, worldPosition.y, currentClickRadius, paint);
+
+        super.debugDraw(m, canvas);
     }
 
     /**

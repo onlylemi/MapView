@@ -5,8 +5,13 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.util.Log;
 
+import com.onlylemi.mapview.library.BuildConfig;
 import com.onlylemi.mapview.library.graphics.BaseGraphics;
+import com.onlylemi.mapview.library.graphics.IBaseAnimation;
+import com.onlylemi.mapview.library.graphics.implementation.Animations.RotationAnimation;
+import com.onlylemi.mapview.library.graphics.implementation.Animations.TranslationAnimation;
 import com.onlylemi.mapview.library.utils.MapMath;
 
 /**
@@ -19,11 +24,19 @@ public class LocationUser extends BaseGraphics {
     private Bitmap bmp;
 
     //Rotation - in degrees
-    private float rotation = 0.0f;
     private PointF startDir;
 
     //Middle position of this graphic in world space
     private PointF worldMidPosition;
+
+    private float radius;
+    private float maxRadius;
+    private float minRadius;
+
+    //Animation objects
+    //We can only rotate and translate
+    private IBaseAnimation rotationAnim = null;
+    private IBaseAnimation translationAnim = null;
 
     //Assumes the bmp looks to the right by default
     public LocationUser(Bitmap bmp, PointF position, PointF lookAt) {
@@ -42,17 +55,31 @@ public class LocationUser extends BaseGraphics {
     public LocationUser(Bitmap bmp, PointF position, PointF startDir, PointF lookAt) {
         this.bmp = bmp;
         this.position = position;
-        this.startDir = startDir;
+        this.startDir = new PointF(-1.0f, 0.0f);
         this.setLookAt(lookAt);
         this.worldMidPosition = new PointF(bmp.getWidth() / 2, bmp.getHeight() / 2);
+        this.radius = bmp.getHeight() > bmp.getWidth() ? bmp.getHeight() / 2 : bmp.getWidth() / 2;
+        this.minRadius = radius / 2;
+        this.maxRadius = radius * 1.3f;
     }
 
-    public void update(final Matrix m) {
+    public void update(final Matrix m, long deltaTime) {
         worldMidPosition = MapMath.transformPoint(m, position);
 
         tMatrix.set(mMatrix);
-        tMatrix.preRotate(rotation, bmp.getWidth() / 2, bmp.getHeight() / 2);
-        tMatrix.postTranslate(position.x - bmp.getWidth() / 2, position.y - bmp.getHeight() / 2);
+        
+        //Handle rotation first
+        if(rotationAnim != null && !rotationAnim.isDone()) {
+            rotationAnim.update(tMatrix, deltaTime);
+        }
+        else {
+            tMatrix.preRotate(this.rotation, bmp.getWidth() / 2, bmp.getHeight() / 2);
+        }
+        //Translation last
+        if(translationAnim != null && !translationAnim.isDone())
+            translationAnim.update(tMatrix, deltaTime);
+        else
+            tMatrix.postTranslate(position.x - bmp.getWidth() / 2, position.y - bmp.getHeight() / 2);
 
         tMatrix.setValues(MapMath.matrixMultiplication(m, tMatrix));
     }
@@ -83,14 +110,39 @@ public class LocationUser extends BaseGraphics {
 
     public PointF getWorldPosition() { return  worldMidPosition; }
 
+    /**
+     * Moves the graphic to destination over time
+     * @param destination
+     * @param duration time to animate to destination
+     */
+    public void move(PointF destination, float duration) {
+        translationAnim = new TranslationAnimation(this, destination, duration, bmp.getWidth() / 2, bmp.getHeight() / 2);
+    }
+
+    /**
+     * Points this graphic directly in the direction of the input vector
+     * @param lookAt directional vector (LENGTH == 1)
+     */
     public void setLookAt(PointF lookAt) {
-        //Determine direction of rotation
-        float dir = (lookAt.x * startDir.y) - (lookAt.y * startDir.x);
-        //Get the sign
-        int sign = (int) (dir / (Math.abs(dir)));
-        //Correction as sign can be 0 at 180 degrees turn
-        sign = sign == 0 ? 1 : sign;
-        this.rotation = (float) Math.toDegrees(Math.acos((lookAt.x * startDir.x) + (lookAt.y * startDir.y))) * sign ;
+        this.rotation = getLookAtAngleFromVector(lookAt);
+    }
+
+    /**
+     * Animates this graphic to point in the direction of the input vector
+     * @param lookAt direction
+     * @param duration time to animate to direction
+     */
+    public void setLookAt(PointF lookAt, float duration) {
+        float newRotation = getLookAtAngleFromVector(lookAt);
+
+        if(newRotation != this.rotation) {
+            rotationAnim = new RotationAnimation(this, this.rotation, newRotation, new PointF(bmp.getWidth() / 2, bmp.getHeight() / 2), duration);
+        }
+    }
+
+    //// TODO: 2017-08-08 Move to math?
+    private float getLookAtAngleFromVector(PointF lookAt) {
+        return (float) Math.toDegrees(Math.atan2(lookAt.x - startDir.x, lookAt.y - startDir.y)) * 2;
     }
 
 }
