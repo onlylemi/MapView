@@ -65,8 +65,6 @@ public class TranslationAnimation implements IBaseAnimation {
             done = true;
         }
 
-        Log.d("TranslationAnimation", "Position is: " + this.currentPosition.toString());
-
         baseGraphics.position = this.currentPosition;
         m.postTranslate(this.currentPosition.x - offsetX, this.currentPosition.y - offsetY);
 
