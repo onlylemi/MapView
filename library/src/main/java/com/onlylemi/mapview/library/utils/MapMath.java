@@ -28,6 +28,11 @@ public final class MapMath {
      */
     public static long NANOSECOND = 1000000000;
 
+    /**
+     * Represetns 1 second in miliseconds
+     */
+    public static long MILISECOND = 1000;
+
 
     /**
      * the distance between two points

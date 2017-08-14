@@ -34,7 +34,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     //Background color of the canvas
     private int canvasBackgroundColor = -1; //Transparent
 
-    private SurfaceHolder holder;
     private MapViewListener mapViewListener = null;
     private boolean isMapLoadFinish = false;
     private List<MapBaseLayer> layers; // all layers
@@ -49,29 +48,17 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     private PointF mid = new PointF();
     
     private Matrix saveMatrix = new Matrix();
-    private Matrix currentMatrix = new Matrix();
-    private float currentZoom = 1.0f;
     private float saveZoom = 0f;
-    private float currentRotateDegrees = 0.0f;
-    private float saveRotateDegrees = 0.0f;
-    //private MapAABB restrictiveBoundingBox;
 
     private static final int TOUCH_STATE_NO = 0; // no touch
     private static final int TOUCH_STATE_SCROLL = 1; // scroll(one point)
     private static final int TOUCH_STATE_SCALE = 2; // scale(two points)
-    private static final int TOUCH_STATE_ROTATE = 3; // rotate(two points)
     private static final int TOUCH_STATE_TWO_POINTED = 4; // two points touch
     private int currentTouchState = MapView.TOUCH_STATE_NO; // default touch state
 
-    private float oldDist = 0, oldDegree = 0;
-    private boolean modes = false;
-    private boolean isScaleAndRotateTogether = false;
-    private boolean isOverflowing = false; //Indicates if the map model is bigger then the viewport
-    private boolean isRestrictedView = false;
+    private float oldDist = 0;
+    @Deprecated
     private boolean isFollowUser = false;
-
-    private boolean debug = false;
-
 
     /**
      * Options set by the user, we default the default options
@@ -79,7 +66,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     private MapModeOptions modeOptions = new MapModeOptions();
 
     //Main rendering thread
-    private RenderThread thread;
+    private MapViewRenderer thread = new MapViewRenderer();
 
     public MapView(Context context) {
         this(context, null);
@@ -125,108 +112,17 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
     }
 
-    //region TESTING
-
-    private class RenderThread extends Thread {
-
-        private final int FPS = 30;
-
-        private final long nanoFPS = (long) 1000000000 / FPS;
-
-        private long deltaFPS = nanoFPS;
-
-        private long deltaTime = 0;
-
-        private SurfaceHolder root;
-
-        private MapView mapView;
-
-        private boolean running = false;
-
-        private boolean debug = false;
-
-        private List<MapBaseLayer> l;
-
-        //Must include a reference to the canvas to paint on
-        //A reference to the mapview?
-        //A reference or maybe even hold all graphics objects?
-        public RenderThread(SurfaceHolder root, MapView mapView) {
-            this.root = root;
-            this.mapView = mapView;
-
-            l = mapView.getLayers();
-        }
-
-        @Override
-        public void run() {
-
-            //Init timer
-            long timer = System.nanoTime();
-
-
-            while(running) {
-
-                //Atm we just update as fast as we can
-                deltaTime = System.nanoTime() - timer;
-                timer = System.nanoTime();
-
-                //Lock for painting
-                Canvas canvas = root.lockCanvas();
-
-                //If the program exits while we are running break
-                //Means somthing managed to remove the canvas before we locked it
-                if(canvas == null)
-                    break;
-
-                //Background color
-                canvas.drawColor(canvasBackgroundColor);
-
-                //Update the different map states
-                mapView.updateModes(deltaTime);
-
-                for (MapBaseLayer layer : l) {
-                    if (layer.isVisible) {
-                        layer.draw(canvas, currentMatrix, currentZoom, deltaTime);
-
-                        if (debug)
-                            layer.debugDraw(canvas, currentMatrix);
-                    }
-                }
-
-                root.unlockCanvasAndPost(canvas);
-            }
-        }
-
-        public boolean isRunning() {
-            return running;
-        }
-
-        public void setRunning(boolean running) {
-            this.running = running;
-        }
-
-    }
-
-    //endregion
-
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        this.holder = holder;
-
-        //Deprecated
-        //restrictiveBoundingBox = new MapAABB(new PointF(0, 0), getWidth(), getHeight());
-        Log.d(TAG, "MapView AABB inited");
-
-        //after a pause it starts the thread again
         if (thread == null || thread.getState() == Thread.State.TERMINATED){
-            thread = new RenderThread(holder, this);
+            thread = new MapViewRenderer(holder, this);
             thread.setRunning(true);
             thread.start();  // Start a new thread
         }
-        //if it is the first time the thread starts
         else if(thread.getState() == Thread.State.NEW){
+            thread.init(holder, this);
             thread.setRunning(true);
-            thread.start();//riga originale
+            thread.start();
         }
     }
 
@@ -238,13 +134,14 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         if(thread != null) {
-            thread.setRunning(false); //Let thread finish and exit
             try {
                 thread.join();
             }catch (InterruptedException ie) {
                 ie.printStackTrace();
+            }finally {
+                thread.setRunning(false); //Let thread finish and exit
+                Log.d(TAG, "Rendering thread terminated");
             }
-            Log.d(TAG, "Rendering thread terminated");
         }
     }
 
@@ -289,7 +186,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         float newDist;
-        float newDegree;
+        float currentZoom = thread.getZoom();
+        Matrix currentMatrix = thread.getWorldMatrix();
 
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
@@ -349,11 +247,12 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                         } else if (scale * saveZoom > maxZoom) {
                             scale = maxZoom / saveZoom;
                         }
-                        currentZoom = scale * saveZoom;
+                        thread.setZoom(scale * saveZoom);
 
                         PointF initPoint = isFollowUser ? user.getWorldPosition() : mid;
 
                         currentMatrix.postScale(scale, scale, initPoint.x, initPoint.y);
+                        thread.setWorldMatrix(currentMatrix);
                         break;
                     default:
                         break;
@@ -374,6 +273,10 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      * update all different modes enabled, like center on user, zoom on points etc
      */
     public void updateModes(float deltaTime) {
+        //// TODO: 2017-08-14 this is a hack, when we move these functiosn to seperate modes we will pass the matrix and zoom
+        Matrix currentMatrix = thread.getWorldMatrix();
+        float currentZoom = thread.getZoom();
+
         switch (mode) {
             case FREE:
                 currentFreeModeTime -= deltaTime;
@@ -441,7 +344,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 } else {
                     currentMatrix.postTranslate(dir.x * modeOptions.translationsPixelsPerNanoSecond * deltaTime, dir.y * modeOptions.translationsPixelsPerNanoSecond * deltaTime);
                 }
-
+                thread.setWorldMatrix(currentMatrix);
                 break;
             }
             case FOLLOW_USER: {
@@ -484,6 +387,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                     currentMatrix.postTranslate(dir.x * modeOptions.translationsPixelsPerNanoSecond * deltaTime, dir.y * modeOptions.translationsPixelsPerNanoSecond * deltaTime);
                 }
 
+                thread.setWorldMatrix(currentMatrix);
                 break;
             }
             default:
@@ -510,7 +414,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     public float[] convertMapXYToScreenXY(float x, float y) {
         Matrix invertMatrix = new Matrix();
         float[] value = {x, y};
-        currentMatrix.invert(invertMatrix);
+        thread.getWorldMatrix().invert(invertMatrix);
         invertMatrix.mapPoints(value);
         return value;
     }
@@ -545,7 +449,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void translate(float x, float y) {
-        currentMatrix.postTranslate(x, y);
+        Matrix translateMatrix = thread.getWorldMatrix();
+        translateMatrix.postTranslate(x, y);
+        thread.setWorldMatrix(translateMatrix);
     }
 
     private PointF position = new PointF(0,0);
@@ -558,57 +464,18 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      */
     public void mapCenterWithPoint(float x, float y) {
         float[] goal = {x, y};
-        currentMatrix.mapPoints(goal);
+        Matrix worldMatrix = thread.getWorldMatrix();
+        worldMatrix.mapPoints(goal);
 
         float deltaX = getWidth() / 2 - goal[0];
         float deltaY = getHeight() / 2 - goal[1];
-        currentMatrix.postTranslate(deltaX, deltaY);
-    }
+        worldMatrix.postTranslate(deltaX, deltaY);
 
-    public float getCurrentRotateDegrees() {
-        return currentRotateDegrees;
-    }
-
-    /**
-     * set rotate degrees
-     *
-     * @param degrees
-     */
-    public void setCurrentRotateDegrees(float degrees) {
-        mapCenterWithPoint(getMapWidth() / 2, getMapHeight() / 2);
-        setCurrentRotateDegrees(degrees, getWidth() / 2, getHeight() / 2);
-    }
-
-    /**
-     * set rotate degrees
-     *
-     * @param degrees
-     * @param x
-     * @param y
-     */
-    public void setCurrentRotateDegrees(float degrees, float x, float y) {
-        currentMatrix.postRotate(degrees - currentRotateDegrees, x, y);
-
-        currentRotateDegrees = degrees % 360;
-        currentRotateDegrees = currentRotateDegrees > 0 ? currentRotateDegrees :
-                currentRotateDegrees + 360;
+        thread.setWorldMatrix(worldMatrix);
     }
 
     public float getCurrentZoom() {
-        return currentZoom;
-    }
-
-    public boolean isScaleAndRotateTogether() {
-        return isScaleAndRotateTogether;
-    }
-
-    /**
-     * setting scale&rotate is/not together on touch
-     *
-     * @param scaleAndRotateTogether
-     */
-    public void setScaleAndRotateTogether(boolean scaleAndRotateTogether) {
-        isScaleAndRotateTogether = scaleAndRotateTogether;
+        return thread.getZoom();
     }
 
     public void setMaxZoom(float maxZoom) {
@@ -626,8 +493,13 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     public void setCurrentZoom(float zoom, float x, float y) {
         float scale = MapMath.truncateNumber(zoom, minZoom, maxZoom);
 
-        currentMatrix.postScale(scale / this.currentZoom, scale / this.currentZoom, x, y);
-        this.currentZoom = scale;
+        Matrix scaleMatrix = thread.getWorldMatrix();
+        float currentZoom = thread.getZoom();
+
+        scaleMatrix.postScale(scale / currentZoom, scale / currentZoom, x, y);
+
+        thread.setWorldMatrix(scaleMatrix);
+        thread.setZoom(scale);
     }
 
     /**
@@ -781,8 +653,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         return mapLayer.getImage().getHeight();
     }
 
-    public Matrix getCurrentTransform() { return currentMatrix; }
-
     public int getCanvasBackgroundColor() {
         return canvasBackgroundColor;
     }
@@ -815,8 +685,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
     //region debugging
 
-    public void setDebug(boolean db) {
-        thread.debug = db;
+    public void setDebug(boolean enableDebug) {
+        thread.setDebug(enableDebug);
     }
 
     //endregion
