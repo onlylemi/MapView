@@ -61,7 +61,10 @@ public class MapViewRenderer extends Thread {
                 break;
 
             //Background color
-            canvas.drawColor(mapView.getCanvasBackgroundColor());
+            if(mapView.getMapModeOptions().backgroundImage != null)
+                canvas.drawBitmap(mapView.getMapModeOptions().backgroundImage, 0, 0, null);
+            else
+                canvas.drawColor(mapView.getCanvasBackgroundColor());
 
             //Update the different map states
             //// TODO: 2017-08-14 This will be a seperate controller later on

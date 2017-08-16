@@ -1,13 +1,19 @@
 package com.onlylemi.mapview.library.utils;
 
+import android.graphics.Bitmap;
+import android.graphics.Color;
+
 /**
  * Created by patny on 2017-08-10.
  */
 
 public class MapModeOptions {
 
-    //Everything with Zoom
+    //If defined we use an image
+    public Bitmap backgroundImage = null;
+    public int backgroundColor = Color.GRAY;
 
+    //Everything with Zoom
     //The map calculates the default zoom or the "middle" which will include the entire map within the view.
     //This padding represents any additional zooming above initial value (Entire map within view zoom)
     public float zoomMaxPadding = 2.0f;
