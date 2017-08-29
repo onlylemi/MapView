@@ -13,6 +13,8 @@ import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.graphics.implementation.ProximityMark;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -132,13 +134,15 @@ public class MarkLayer extends MapBaseLayer {
     }
 
     public void setStaticMarks(List<BaseMark> marks) {
-        this.markObjects = marks;
+        Collections.copy(this.markObjects, marks);
+        if(!proxMarks.isEmpty())
+            this.markObjects.addAll(proxMarks);
     }
 
-    public void setProximityMarks(List<ProximityMark> proxMarks) {
+    public void setProximityMarks(final List<ProximityMark> proxMarks) {
         this.markObjects.removeAll(this.proxMarks);
         this.markObjects.addAll(proxMarks);
-        this.proxMarks = proxMarks;
+        Collections.copy(this.proxMarks, proxMarks);
     }
 
     public void setMarkIsClickListener(MarkIsClickListener listener) {
