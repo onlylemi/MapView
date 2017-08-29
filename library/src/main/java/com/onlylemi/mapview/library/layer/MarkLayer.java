@@ -135,6 +135,7 @@ public class MarkLayer extends MapBaseLayer {
 
     public void setStaticMarks(List<BaseMark> marks) {
         if(!marks.isEmpty()) {
+            this.markObjects = new ArrayList<>(marks.size());
             Collections.copy(this.markObjects, marks);
             this.markObjects.addAll(proxMarks);
         }
@@ -143,6 +144,7 @@ public class MarkLayer extends MapBaseLayer {
     public void setProximityMarks(final List<ProximityMark> proxMarks) {
         this.markObjects.removeAll(this.proxMarks);
         if(!proxMarks.isEmpty()) {
+            this.proxMarks = new ArrayList<>(proxMarks.size());
             Collections.copy(this.proxMarks, proxMarks);
             this.markObjects.addAll(this.proxMarks);
         }
