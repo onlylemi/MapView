@@ -12,6 +12,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.onlylemi.mapview.library.graphics.BaseGraphics;
+import com.onlylemi.mapview.library.graphics.IBackground;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
@@ -118,11 +119,13 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
             thread = new MapViewRenderer(holder, this);
             thread.setRunning(true);
             thread.start();  // Start a new thread
+            onRenderingStarted();
         }
         else if(thread.getState() == Thread.State.NEW){
             thread.init(holder, this);
             thread.setRunning(true);
             thread.start();
+            onRenderingStarted();
         }
     }
 
@@ -142,6 +145,12 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 thread.setRunning(false); //Let thread finish and exit
                 Log.d(TAG, "Rendering thread terminated");
             }
+        }
+    }
+
+    private void onRenderingStarted() {
+        if(mapViewListener != null) {
+            mapViewListener.onRenderingStarted(getWidth(), getHeight());
         }
     }
 
@@ -683,6 +692,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         return modeOptions;
     }
 
+    public void setBackground(IBackground background) {
+        thread.setBackground(background);
+    }
     //region debugging
 
     public void setDebug(boolean enableDebug) {

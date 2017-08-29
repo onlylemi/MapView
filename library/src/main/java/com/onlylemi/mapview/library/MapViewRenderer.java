@@ -1,9 +1,16 @@
 package com.onlylemi.mapview.library;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.Shader;
+import android.graphics.drawable.BitmapDrawable;
 import android.view.SurfaceHolder;
 
+import com.onlylemi.mapview.library.graphics.IBackground;
+import com.onlylemi.mapview.library.graphics.implementation.Backgrounds.ColorBackground;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.utils.MapRenderTimer;
 
@@ -23,6 +30,7 @@ public class MapViewRenderer extends Thread {
     private MapView mapView;
     private boolean running = false;
     private List<MapBaseLayer> layers;
+    private IBackground background;
 
     //region debug
 
@@ -39,7 +47,8 @@ public class MapViewRenderer extends Thread {
     public void init(SurfaceHolder root, MapView mapView) {
         this.root = root;
         this.mapView = mapView;
-
+        //Default background is black
+        background = new ColorBackground(Color.BLACK);
         layers = mapView.getLayers();
     }
 
@@ -60,13 +69,8 @@ public class MapViewRenderer extends Thread {
             if(canvas == null)
                 break;
 
-            //Background color
-            if(mapView.getMapModeOptions().backgroundImage != null)
-                canvas.drawBitmap(mapView.getMapModeOptions().backgroundImage, 0, 0, null);
-            else
-                canvas.drawColor(mapView.getCanvasBackgroundColor());
+            background.draw(canvas);
 
-            //Update the different map states
             //// TODO: 2017-08-14 This will be a seperate controller later on
             mapView.updateModes(frameTimer.getFrameTimeNano());
 
@@ -112,5 +116,13 @@ public class MapViewRenderer extends Thread {
 
     public void setZoom(float zoom) {
         this.zoom = zoom;
+    }
+
+    public IBackground getBackground() {
+        return background;
+    }
+
+    public void setBackground(IBackground background) {
+        this.background = background;
     }
 }

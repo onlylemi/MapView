@@ -3,16 +3,14 @@ package com.onlylemi.mapview.library.utils;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 
+import com.onlylemi.mapview.library.graphics.IBackground;
+import com.onlylemi.mapview.library.graphics.implementation.Backgrounds.ColorBackground;
+
 /**
  * Created by patny on 2017-08-10.
  */
 
 public class MapModeOptions {
-
-    //If defined we use an image
-    public Bitmap backgroundImage = null;
-    public int backgroundColor = Color.GRAY;
-
     //RouteLayer options
     public float routeLineWidth = 4.0f;
     public int routeLineColor = Color.BLUE;
