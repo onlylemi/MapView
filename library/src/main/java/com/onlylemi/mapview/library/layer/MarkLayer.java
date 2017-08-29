@@ -136,12 +136,7 @@ public class MarkLayer extends MapBaseLayer {
     }
 
     public void setProximityMarks(List<ProximityMark> proxMarks) {
-        //Mark objects might contain old proxMarks, remove them first
-        for(ProximityMark p : proxMarks) {
-            if(markObjects.contains(p))
-                markObjects.remove(p);
-        }
-
+        this.markObjects.removeAll(this.proxMarks);
         this.markObjects.addAll(proxMarks);
         this.proxMarks = proxMarks;
     }
