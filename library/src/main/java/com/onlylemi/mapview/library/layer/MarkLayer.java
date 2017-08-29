@@ -133,21 +133,15 @@ public class MarkLayer extends MapBaseLayer {
         return markObjects;
     }
 
-    public void setStaticMarks(List<BaseMark> marks) {
-        if(!marks.isEmpty()) {
-            this.markObjects = new ArrayList<>(marks.size());
-            Collections.copy(this.markObjects, marks);
-            this.markObjects.addAll(proxMarks);
-        }
+    public void setStaticMarks(List<? extends BaseMark> marks) {
+        this.markObjects = new ArrayList<>(marks);
+        this.markObjects.addAll(proxMarks);
     }
 
     public void setProximityMarks(final List<ProximityMark> proxMarks) {
         this.markObjects.removeAll(this.proxMarks);
-        if(!proxMarks.isEmpty()) {
-            this.proxMarks = new ArrayList<>(proxMarks.size());
-            Collections.copy(this.proxMarks, proxMarks);
-            this.markObjects.addAll(this.proxMarks);
-        }
+        this.proxMarks = new ArrayList<>(proxMarks);
+        this.markObjects.addAll(this.proxMarks);
     }
 
     public void setMarkIsClickListener(MarkIsClickListener listener) {
