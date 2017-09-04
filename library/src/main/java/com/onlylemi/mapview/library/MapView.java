@@ -114,6 +114,24 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
     }
 
+    /**
+     * Suspends teh rendering thread
+     */
+    public void resumeRendering() {
+        if(thread != null && thread.getState() != Thread.State.TERMINATED) {
+            thread.resumeExecution();
+        }
+    }
+
+    /**
+     * Resumes the rendering thread
+     */
+    public void pauseRendering() {
+        if(thread != null && thread.getState() != Thread.State.TERMINATED) {
+               thread.pauseExecution();
+        }
+    }
+
 
     @Override
     public void onVisibilityChanged(View changedView, int state) {
