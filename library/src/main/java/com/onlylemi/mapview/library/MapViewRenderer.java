@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
+import android.util.Log;
 import android.view.SurfaceHolder;
 
 import com.onlylemi.mapview.library.graphics.IBackground;
@@ -15,12 +16,14 @@ import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.utils.MapRenderTimer;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by patny on 2017-08-14.
  */
 
 public class MapViewRenderer extends Thread {
+    private static final String TAG = "MapViewRenderer";
 
     private Matrix worldMatrix = new Matrix();
     private float zoom = 1.0f;
@@ -32,6 +35,8 @@ public class MapViewRenderer extends Thread {
     private List<MapBaseLayer> layers;
     private IBackground background;
 
+    private Object pauseLock = new Object();
+    private boolean paused = false;
     //region debug
 
     private boolean debug = false;
@@ -83,6 +88,33 @@ public class MapViewRenderer extends Thread {
                 }
             }
             root.unlockCanvasAndPost(canvas);
+
+            synchronized (pauseLock) {
+                while(paused) {
+                    try {
+                        pauseLock.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        Log.d(TAG, "Exiting run");
+    }
+
+    public void pauseExecution() {
+        Log.d(TAG, "Paused rendering");
+        synchronized (pauseLock) {
+            paused = true;
+        }
+    }
+
+    public void resumeExecution() {
+        Log.d(TAG, "Resumed rendering");
+        synchronized (pauseLock) {
+            paused = false;
+            pauseLock.notifyAll();
         }
     }
 

@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 
 import com.onlylemi.mapview.library.graphics.BaseGraphics;
 import com.onlylemi.mapview.library.graphics.IBackground;
@@ -113,15 +114,32 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
     }
 
+
+    @Override
+    public void onVisibilityChanged(View changedView, int state) {
+        super.onVisibilityChanged(changedView, state);
+
+        if(thread != null) {
+            //Pause rendering if invisible
+            if ((state == View.GONE || state == View.INVISIBLE) && thread.getState() != Thread.State.TERMINATED) {
+                thread.pauseExecution();
+            }else if(state == View.VISIBLE && thread.getState() != Thread.State.TERMINATED) {
+                thread.resumeExecution();
+            }
+        }
+    }
+
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         if (thread == null || thread.getState() == Thread.State.TERMINATED){
+            Log.d(TAG, "Creating a new render thread");
             thread = new MapViewRenderer(holder, this);
             thread.setRunning(true);
             thread.start();  // Start a new thread
             onRenderingStarted();
         }
         else if(thread.getState() == Thread.State.NEW){
+            Log.d(TAG, "Using an old thread");
             thread.init(holder, this);
             thread.setRunning(true);
             thread.start();
@@ -137,6 +155,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         if(thread != null) {
+            //Resume thread execution
+            thread.resumeExecution();
             try {
                 thread.join();
             }catch (InterruptedException ie) {
@@ -227,11 +247,11 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 currentTouchState = MapView.TOUCH_STATE_NO;
                 break;
             case MotionEvent.ACTION_MOVE:
-                oldMode = mode == mode.FREE ? oldMode : mode;
-                currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
-                mode = TRACKING_MODE.FREE;
                 switch (currentTouchState) {
                     case MapView.TOUCH_STATE_SCROLL:
+                            oldMode = mode == mode.FREE ? oldMode : mode;
+                            currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
+                            mode = TRACKING_MODE.FREE;
                             currentMatrix.set(saveMatrix);
                             translate(event.getX() - startTouch.x, event.getY() -
                                     startTouch.y);
@@ -242,6 +262,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                             currentTouchState = MapView.TOUCH_STATE_SCALE;
                         break;
                     case MapView.TOUCH_STATE_SCALE:
+                        oldMode = mode == mode.FREE ? oldMode : mode;
+                        currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
+                        mode = TRACKING_MODE.FREE;
                         currentMatrix.set(saveMatrix);
                         newDist = distance(event, mid);
                         float scale = newDist / oldDist;
