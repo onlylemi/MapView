@@ -203,10 +203,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 saveMatrix.set(currentMatrix);
                 startTouch.set(event.getX(), event.getY());
                 currentTouchState = MapView.TOUCH_STATE_SCROLL;
-
-                oldMode = mode == mode.FREE ? oldMode : mode;
-                currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
-                mode = TRACKING_MODE.FREE;
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
                 if (event.getPointerCount() == 2) {
@@ -217,10 +213,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
                     mid = midPoint(event);
                     oldDist = distance(event, mid);
-
-                    currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
-                    oldMode = mode == mode.FREE ? oldMode : mode;
-                    mode = TRACKING_MODE.FREE;
                 }
                 break;
             case MotionEvent.ACTION_UP:
@@ -235,6 +227,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 currentTouchState = MapView.TOUCH_STATE_NO;
                 break;
             case MotionEvent.ACTION_MOVE:
+                oldMode = mode == mode.FREE ? oldMode : mode;
+                currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
+                mode = TRACKING_MODE.FREE;
                 switch (currentTouchState) {
                     case MapView.TOUCH_STATE_SCROLL:
                             currentMatrix.set(saveMatrix);
