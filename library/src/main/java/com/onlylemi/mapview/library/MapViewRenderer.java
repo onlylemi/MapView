@@ -13,6 +13,7 @@ import android.view.SurfaceHolder;
 import com.onlylemi.mapview.library.graphics.IBackground;
 import com.onlylemi.mapview.library.graphics.implementation.Backgrounds.ColorBackground;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
+import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.utils.MapRenderTimer;
 
 import java.util.List;
@@ -40,6 +41,9 @@ public class MapViewRenderer extends Thread {
     //region debug
 
     private boolean debug = false;
+    private int frameCounter = 0;
+    private long frameTimeAccumilator = 0;
+    private int FPS = 0;
 
     //endregion
 
@@ -83,10 +87,16 @@ public class MapViewRenderer extends Thread {
                 if (layer.isVisible) {
                     layer.draw(canvas, worldMatrix, zoom, frameTimer.getFrameTimeNano());
 
-                    if (debug)
+                    if (debug) {
                         layer.debugDraw(canvas, worldMatrix);
+                    }
                 }
             }
+
+            if(debug) {
+                drawDebugValues(canvas, frameTimer.getFrameTimeNano());
+            }
+
             root.unlockCanvasAndPost(canvas);
 
             synchronized (pauseLock) {
@@ -115,6 +125,7 @@ public class MapViewRenderer extends Thread {
         synchronized (pauseLock) {
             paused = false;
             pauseLock.notifyAll();
+            frameTimer.start();
         }
     }
 
@@ -156,5 +167,24 @@ public class MapViewRenderer extends Thread {
 
     public void setBackground(IBackground background) {
         this.background = background;
+    }
+
+    private void drawDebugValues(Canvas canvas, long deltaTimeNano) {
+        frameTimeAccumilator += deltaTimeNano;
+        frameCounter++;
+
+        if(frameTimeAccumilator >= MapMath.NANOSECOND) {
+            FPS = (int) (MapMath.NANOSECOND / (frameTimeAccumilator / frameCounter));
+            frameTimeAccumilator = 0;
+            frameCounter = 0;
+        }
+
+        if(FPS > 0) {
+            Paint p = new Paint();
+            p.setTextSize(25);
+            p.setColor(Color.YELLOW);
+            canvas.drawText("FPS: " + FPS, 10, 80, p);
+            canvas.drawText("Hardware accelerated: " + mapView.isHardwareAccelerated(), 10, 120, p);
+        }
     }
 }
