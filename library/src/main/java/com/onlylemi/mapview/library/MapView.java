@@ -5,8 +5,10 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.PointF;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Choreographer;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -29,7 +31,7 @@ import java.util.List;
  *
  * @author: onlylemi
  */
-public class MapView extends SurfaceView implements SurfaceHolder.Callback {
+public class MapView extends SurfaceView implements SurfaceHolder.Callback, Choreographer.FrameCallback {
 
     private static final String TAG = "MapView";
 
@@ -110,8 +112,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
             }
         };
 
-
-
     }
 
     /**
@@ -119,7 +119,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      */
     public void resumeRendering() {
         if(thread != null && thread.getState() != Thread.State.TERMINATED) {
-            thread.resumeExecution();
+            //Choreographer.getInstance().postFrameCallback(this);
+            //thread.resumeExecution();
         }
     }
 
@@ -128,7 +129,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      */
     public void pauseRendering() {
         if(thread != null && thread.getState() != Thread.State.TERMINATED) {
-               thread.pauseExecution();
+                //Choreographer.getInstance().removeFrameCallback(this);
+               //thread.pauseExecution();
         }
     }
 
@@ -140,9 +142,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         if(thread != null) {
             //Pause rendering if invisible
             if ((state == View.GONE || state == View.INVISIBLE) && thread.getState() != Thread.State.TERMINATED) {
-                thread.pauseExecution();
+                pauseRendering();
             }else if(state == View.VISIBLE && thread.getState() != Thread.State.TERMINATED) {
-                thread.resumeExecution();
+                resumeRendering();
             }
         }
     }
@@ -152,14 +154,14 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         if (thread == null || thread.getState() == Thread.State.TERMINATED){
             Log.d(TAG, "Creating a new render thread");
             thread = new MapViewRenderer(holder, this);
-            thread.setRunning(true);
+            //thread.setRunning(true);
             thread.start();  // Start a new thread
             onRenderingStarted();
         }
         else if(thread.getState() == Thread.State.NEW){
             Log.d(TAG, "Using an old thread");
             thread.init(holder, this);
-            thread.setRunning(true);
+            //thread.setRunning(true);
             thread.start();
             onRenderingStarted();
         }
@@ -174,13 +176,14 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     public void surfaceDestroyed(SurfaceHolder holder) {
         if(thread != null) {
             //Resume thread execution
-            thread.resumeExecution();
+            Choreographer.getInstance().removeFrameCallback(this);
+            thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), 0));
             try {
                 thread.join();
             }catch (InterruptedException ie) {
                 ie.printStackTrace();
             }finally {
-                thread.setRunning(false); //Let thread finish and exit
+                //Let thread finish and exit
                 Log.d(TAG, "Rendering thread terminated");
             }
         }
@@ -190,6 +193,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         if(mapViewListener != null) {
             mapViewListener.onRenderingStarted(getWidth(), getHeight());
         }
+        thread.waitUntilReady();
+        Choreographer.getInstance().postFrameCallback(this);
     }
 
     /**
@@ -621,6 +626,12 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     //Default is free
     private TRACKING_MODE mode = TRACKING_MODE.NONE;
 
+    @Override
+    public void doFrame(long deltaTimeNano) {
+        Choreographer.getInstance().postFrameCallback(this);
+        thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), 1, (int) (deltaTimeNano >> 32), (int) deltaTimeNano));
+    }
+
     public enum TRACKING_MODE {
         ZOOM_WITHIN_POINTS,
         FOLLOW_USER,
@@ -731,6 +742,19 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     public void setBackground(IBackground background) {
         thread.setBackground(background);
     }
+
+    public void setFixedFPS(int FPS) throws InstantiationError {
+//        if(thread != null) {
+//            thread.setFixedFrameRate(FPS);
+//        }
+    }
+
+    public void disableFixedFPS() {
+//        if(thread != null) {
+//            thread.disableFixedFrameRate();
+//        }
+    }
+
     //region debugging
 
     public void setDebug(boolean enableDebug) {

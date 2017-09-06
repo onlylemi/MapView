@@ -77,7 +77,6 @@ public class MarkLayer extends MapBaseLayer {
     @Override
     public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
         if (isVisible) {
-            canvas.save();
             if (!markObjects.isEmpty()) {
                 for (int i = 0; i < markObjects.size(); i++) {
                     BaseMark mark = markObjects.get(i);
@@ -91,7 +90,6 @@ public class MarkLayer extends MapBaseLayer {
             if(user != null && !proxMarks.isEmpty())
                 checkTriggers();
 
-            canvas.restore();
         }
     }
 
