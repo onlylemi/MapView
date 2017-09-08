@@ -118,20 +118,14 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
      * Suspends teh rendering thread
      */
     public void resumeRendering() {
-        if(thread != null && thread.getState() != Thread.State.TERMINATED) {
-            //Choreographer.getInstance().postFrameCallback(this);
-            //thread.resumeExecution();
-        }
+        Choreographer.getInstance().postFrameCallback(this);
     }
 
     /**
      * Resumes the rendering thread
      */
     public void pauseRendering() {
-        if(thread != null && thread.getState() != Thread.State.TERMINATED) {
-                //Choreographer.getInstance().removeFrameCallback(this);
-               //thread.pauseExecution();
-        }
+        Choreographer.getInstance().removeFrameCallback(this);
     }
 
 
@@ -629,7 +623,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
     @Override
     public void doFrame(long deltaTimeNano) {
         Choreographer.getInstance().postFrameCallback(this);
-        thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), 1, (int) (deltaTimeNano >> 32), (int) deltaTimeNano));
+        if(thread != null && thread.getHandler() != null)
+            thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), 1, (int) (deltaTimeNano >> 32), (int) deltaTimeNano));
     }
 
     public enum TRACKING_MODE {

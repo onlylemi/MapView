@@ -120,7 +120,7 @@ public class MapViewRenderer extends Thread {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             canvas = root.lockHardwareCanvas();
         }else {
-            canvas = rootHolder.lockCanvas(null);
+            canvas = rootHolder.lockCanvas();
         }
 
         //If the program exits while we are running break
