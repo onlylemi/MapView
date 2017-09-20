@@ -184,6 +184,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
     }
 
     private void onRenderingStarted() {
+        calculateOnContainUserZoom();
         if(mapViewListener != null) {
             mapViewListener.onRenderingStarted(getWidth(), getHeight());
         }
@@ -605,13 +606,32 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         this.minZoom = minZoom;
     }
 
-    public void setCurrentZoom(float zoom) {
-        setCurrentZoom(zoom, getWidth() / 2, getHeight() / 2);
+
+
+    public void calculateOnContainUserZoom() {
+        //Calculate ratios and use the highest
+        float widthRatio = getWidth() / getMapWidth();
+        float heightRatio = getHeight() / getMapHeight();
+
+        if(widthRatio > heightRatio) {
+            defualtContainZoom = widthRatio;
+        } else {
+            defualtContainZoom = heightRatio;
+        }
     }
 
     //This can cause strange behaviours if the input is bad
     public void overrideContainUserZoom(float zoom) {
         defualtContainZoom = zoom;
+    }
+
+    //Call in onRenderStarted or after
+    public float getContainUserZoom() {
+        return defualtContainZoom;
+    }
+
+    public void setCurrentZoom(float zoom) {
+        setCurrentZoom(zoom, getWidth() / 2, getHeight() / 2);
     }
 
     public void setCurrentZoom(float zoom, float x, float y) {
