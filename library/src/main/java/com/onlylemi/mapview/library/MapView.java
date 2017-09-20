@@ -312,6 +312,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
      * Delay until we return to the last known mode when in free mode
      */
     private float currentFreeModeTime = 0.0f;
+    private float defualtContainZoom = 2.0f;
 
     /**
      * update all different modes enabled, like center on user, zoom on points etc
@@ -434,6 +435,80 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
                 thread.setWorldMatrix(currentMatrix);
                 break;
             }
+            case CONTAIN_USER: {
+                float zoom = defualtContainZoom;
+                float d = zoom - currentZoom;
+                int sign = (int) (d / Math.abs(d));
+                d = d * sign; //Absolute distance
+                float zVelocity = modeOptions.zoomPerNanoSecond * sign * deltaTime;
+                d -= Math.abs(zVelocity);
+
+                //move towards target using velocity
+                if (d <= 0.0f) {
+                    setCurrentZoom(zoom);
+                } else {
+                    setCurrentZoom(currentZoom + zVelocity);
+                }
+                //This is a copy of follow user, this fucking shit needs to get cleaned up soon!
+                //My point on the view coordinate system
+                PointF dst = new PointF();
+                dst.set(user.getPosition());
+                float[] b = {dst.x, dst.y};
+                currentMatrix.mapPoints(b);
+
+                //My point in view coords
+                dst.x = b[0];
+                dst.y = b[1];
+
+                //Mid point of the view coordinate system
+                PointF trueMid = new PointF(getWidth() / 2, getHeight() / 2);
+
+                //Direction - NOTE we are going from the mid towards our point because graphics yo
+                PointF desti = new PointF(trueMid.x - b[0], trueMid.y - b[1]);
+
+                //Now check if this would put the camera out of bounds
+                //// TODO: 2017-09-19 (Nyman): Optimize this shit, do we really need to trasnform the point to find out if its outside the bounds?
+                //We actually might since its fucking annoying when we zoom, could this perhaps be done outside world space? Dont bother fix this if it aint laggin!
+                Matrix translationMatrix = new Matrix(currentMatrix);
+                translationMatrix.postTranslate(desti.x, desti.y);
+                PointF cameraPosition = MapMath.transformPoint(translationMatrix, new PointF(0,0));
+                PointF cameraBotRight = MapMath.transformPoint(translationMatrix, new PointF(getMapWidth(), getMapHeight()));
+                //Check X axis
+                if (cameraPosition.x > 0.0f) { //Left side
+                    PointF currentCameraTopLeft = MapMath.transformPoint(currentMatrix, new PointF(0, 0));
+                    desti.x = 0 - currentCameraTopLeft.x;
+                } else if(cameraBotRight.x < getWidth()) { //Right side
+                    PointF currentCameraBotRight = MapMath.transformPoint(currentMatrix, new PointF(getMapWidth(), 0));
+                    desti.x =  getWidth() - currentCameraBotRight.x;
+                }
+                //Check Y axis
+                if (cameraPosition.y > 0.0f) {
+                    PointF currentCameraTopLeft = MapMath.transformPoint(currentMatrix, new PointF(0, 0));
+                    desti.y = 0 - currentCameraTopLeft.y;
+                } else if(cameraBotRight.y < getHeight()) {
+                    PointF currentCameraBotRight = MapMath.transformPoint(currentMatrix, new PointF(0, getMapHeight()));
+                    desti.y = getHeight() - currentCameraBotRight.y;
+                }
+
+                //This is also the distance from our point to the middle
+                float distance = desti.length();
+
+
+                PointF dir = new PointF();
+                dir.x = desti.x / distance;
+                dir.y = desti.y / distance;
+                distance -= modeOptions.translationsPixelsPerNanoSecond * deltaTime;
+
+                if (distance <= 0.0f) {
+                    currentMatrix.postTranslate(desti.x, desti.y);
+                } else {
+                    currentMatrix.postTranslate(dir.x * modeOptions.translationsPixelsPerNanoSecond * deltaTime, dir.y * modeOptions.translationsPixelsPerNanoSecond * deltaTime);
+                }
+
+                thread.setWorldMatrix(currentMatrix);
+
+                break;
+            }
             default:
 
         }
@@ -534,6 +609,11 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         setCurrentZoom(zoom, getWidth() / 2, getHeight() / 2);
     }
 
+    //This can cause strange behaviours if the input is bad
+    public void overrideContainUserZoom(float zoom) {
+        defualtContainZoom = zoom;
+    }
+
     public void setCurrentZoom(float zoom, float x, float y) {
         float scale = MapMath.truncateNumber(zoom, minZoom, maxZoom);
 
@@ -631,6 +711,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         ZOOM_WITHIN_POINTS,
         FOLLOW_USER,
         FREE,
+        CONTAIN_USER,
         NONE
     }
 
