@@ -66,6 +66,8 @@ public class MapLayer extends MapBaseLayer {
 
         paint = new Paint();
         paint.setAntiAlias(true);
+        paint.setFilterBitmap(true);
+        paint.setDither(true);
 
         //Create AABB
         //Deprecated

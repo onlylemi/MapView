@@ -38,6 +38,8 @@ public class LocationLayer extends MapBaseLayer {
     private void initLayer() {
         locationPaint = new Paint();
         locationPaint.setAntiAlias(true);
+        locationPaint.setFilterBitmap(true);
+        locationPaint.setDither(true);
     }
 
     @Override

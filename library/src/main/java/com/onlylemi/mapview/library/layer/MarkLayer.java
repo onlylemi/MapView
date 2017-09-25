@@ -52,9 +52,10 @@ public class MarkLayer extends MapBaseLayer {
     private void initLayer() {
         paint = new Paint();
         paint.setAntiAlias(true);
+        paint.setFilterBitmap(true);
+        paint.setDither(true);
         paint.setStrokeWidth(0.2f);
         paint.setStyle(Paint.Style.STROKE);
-        //paint.setStyle(Paint.Style.FILL_AND_STROKE);
     }
 
     @Override
