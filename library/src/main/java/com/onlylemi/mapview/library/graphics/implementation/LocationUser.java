@@ -14,11 +14,16 @@ import com.onlylemi.mapview.library.graphics.implementation.Animations.RotationA
 import com.onlylemi.mapview.library.graphics.implementation.Animations.TranslationAnimation;
 import com.onlylemi.mapview.library.utils.MapMath;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by patny on 2017-07-05.
  */
 
 public class LocationUser extends BaseGraphics {
+
+    private static final String TAG = "LocationUser";
 
     //Graphics
     private Bitmap bmp;
@@ -33,10 +38,12 @@ public class LocationUser extends BaseGraphics {
     private float maxRadius;
     private float minRadius;
 
+    private List<PointF> moveToDestinations;
+
     //Animation objects
     //We can only rotate and translate
     private IBaseAnimation rotationAnim = null;
-    private IBaseAnimation translationAnim = null;
+    private List<IBaseAnimation> translationAnims = null;
 
     //Assumes the bmp looks to the right by default
     public LocationUser(Bitmap bmp, PointF position, PointF lookAt) {
@@ -61,6 +68,8 @@ public class LocationUser extends BaseGraphics {
         this.radius = bmp.getHeight() > bmp.getWidth() ? bmp.getHeight() / 2 : bmp.getWidth() / 2;
         this.minRadius = radius / 2;
         this.maxRadius = radius * 1.3f;
+        this.translationAnims = new ArrayList<>();
+        this.moveToDestinations = new ArrayList<>();
     }
 
     public void update(final Matrix m, long deltaTime) {
@@ -76,10 +85,16 @@ public class LocationUser extends BaseGraphics {
             tMatrix.preRotate(this.rotation, bmp.getWidth() / 2, bmp.getHeight() / 2);
         }
         //Translation last
-        if(translationAnim != null && !translationAnim.isDone())
-            translationAnim.update(tMatrix, deltaTime);
-        else
+        if(!translationAnims.isEmpty() && !translationAnims.get(0).isDone()) {
+            translationAnims.get(0).update(tMatrix, deltaTime);
+            //If animation just finished, remove it
+            if(translationAnims.get(0).isDone()) {
+                translationAnims.remove(0);
+                moveToDestinations.remove(0);
+            }
+        } else {
             tMatrix.postTranslate(position.x - bmp.getWidth() / 2, position.y - bmp.getHeight() / 2);
+        }
 
         tMatrix.setValues(MapMath.matrixMultiplication(m, tMatrix));
     }
@@ -112,11 +127,61 @@ public class LocationUser extends BaseGraphics {
 
     /**
      * Moves the graphic to destination over time
+     * Will override any current move animation
      * @param destination
      * @param duration time to animate to destination
      */
     public void move(PointF destination, float duration) {
-        translationAnim = new TranslationAnimation(this, destination, duration, bmp.getWidth() / 2, bmp.getHeight() / 2);
+        //Removes all current animations
+        translationAnims.clear();
+        translationAnims.add(new TranslationAnimation(this, destination, duration, bmp.getWidth() / 2, bmp.getHeight() / 2));
+    }
+
+    /**
+     * Moves the graphics to the list of destinations over time
+     * @param destinationsLifo list of destinations to move through. Using Last in first out
+     * @param duration time to traverse through all destinations
+     * @param appendToOldList if an old move isnt finished. Flagged true this will append to an old list if existing
+     */
+    public void move(List<PointF> destinationsLifo, float duration, boolean appendToOldList) {
+
+        if(destinationsLifo.isEmpty()) {
+            throw new IllegalArgumentException("Destination list size = 0. Please include at least 1 element");
+        }
+
+        if(destinationsLifo.size() < 1) {
+            Log.v(TAG, "Input single element position, calling regular move");
+            move(destinationsLifo.get(0), duration);
+            return;
+        }
+
+        //Replace the list
+        translationAnims = new ArrayList<>();
+
+        if(appendToOldList) {
+            //Recalculate times for all animations
+            moveToDestinations.addAll(destinationsLifo);
+        }
+        else {
+            moveToDestinations = destinationsLifo;
+        }
+
+        float totalDistance = 0.0f;
+        float[] distances = new float[moveToDestinations.size()];
+
+        //First distance is from the user to point 1
+        distances[0] = new PointF(moveToDestinations.get(0).x - position.x, moveToDestinations.get(0).y - position.y).length();
+        totalDistance += distances[0];
+
+        //Calculate the distance between each point
+        for(int i = 1; i < moveToDestinations.size(); i++) {
+            distances[i] = new PointF(moveToDestinations.get(i).x - moveToDestinations.get(i-1).x, moveToDestinations.get(i).y - moveToDestinations.get(i-1).y).length();
+            totalDistance += distances[i];
+        }
+        translationAnims.add(new TranslationAnimation(this, moveToDestinations.get(0), distances[0] / totalDistance * duration, bmp.getWidth() / 2, bmp.getHeight() / 2));
+        for(int i = 1; i < moveToDestinations.size(); i++) {
+            translationAnims.add(new TranslationAnimation(this, moveToDestinations.get(i-1), moveToDestinations.get(i), distances[i] / totalDistance * duration, bmp.getWidth() / 2, bmp.getHeight() / 2));
+        }
     }
 
     /**

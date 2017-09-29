@@ -27,10 +27,9 @@ public class TranslationAnimation implements IBaseAnimation {
 
     private float offsetX, offsetY;
 
-
-    public TranslationAnimation(BaseGraphics baseGraphics, PointF destination, float duration, float offsetX, float offsetY) {
+    public TranslationAnimation(BaseGraphics baseGraphics, PointF startPosition, PointF destination, float duration, float offsetX, float offsetY) {
         this.baseGraphics = baseGraphics;
-        this.currentPosition = this.baseGraphics.position;
+        this.currentPosition = startPosition;
         this.destination = destination;
         this.offsetX = offsetX;
         this.offsetY = offsetY;
@@ -42,6 +41,10 @@ public class TranslationAnimation implements IBaseAnimation {
         this.vecloity = this.distance / (duration * MapMath.NANOSECOND);
         this.velocityX = (destination.x - this.currentPosition.x) / (duration * MapMath.NANOSECOND);
         this.velocityY = (destination.y - this.currentPosition.y) / (duration * MapMath.NANOSECOND);
+    }
+
+    public TranslationAnimation(BaseGraphics baseGraphics, PointF destination, float duration, float offsetX, float offsetY) {
+        this(baseGraphics, baseGraphics.position, destination, duration, offsetX, offsetY);
     }
 
     @Override
