@@ -72,6 +72,10 @@ public class MapViewRenderer extends Thread {
 
     }
 
+    public void onSurfaceChanged(SurfaceHolder holder, float width, float height) {
+
+    }
+
     @Override
     public void run() {
         Looper.prepare();

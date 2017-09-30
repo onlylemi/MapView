@@ -159,11 +159,16 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
             thread.start();
             onRenderingStarted();
         }
+        Log.d(TAG, "Surface created, size to: " + getWidth() + "x" + getHeight());
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        Log.d(TAG, "Surface resized to: " + width + "x"+height);
 
+        calculateOnContainUserZoom();
+
+        thread.onSurfaceChanged(holder, width, height);
     }
 
     @Override

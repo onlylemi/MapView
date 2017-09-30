@@ -131,7 +131,7 @@ public class LocationUser extends BaseGraphics {
      * @param destination
      * @param duration time to animate to destination
      */
-    public void move(PointF destination, float duration) {
+    public synchronized void move(PointF destination, float duration) {
         //Removes all current animations
         translationAnims.clear();
         moveToDestinations.clear();
