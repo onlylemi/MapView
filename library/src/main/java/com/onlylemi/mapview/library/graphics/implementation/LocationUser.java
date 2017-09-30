@@ -134,7 +134,9 @@ public class LocationUser extends BaseGraphics {
     public void move(PointF destination, float duration) {
         //Removes all current animations
         translationAnims.clear();
+        moveToDestinations.clear();
         translationAnims.add(new TranslationAnimation(this, destination, duration, bmp.getWidth() / 2, bmp.getHeight() / 2));
+        moveToDestinations.add(destination);
     }
 
     /**
