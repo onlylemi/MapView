@@ -38,6 +38,8 @@ public class LocationLayer extends MapBaseLayer {
     private void initLayer() {
         locationPaint = new Paint();
         locationPaint.setAntiAlias(true);
+        locationPaint.setFilterBitmap(true);
+        locationPaint.setDither(true);
     }
 
     @Override
@@ -49,19 +51,15 @@ public class LocationLayer extends MapBaseLayer {
     public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
         //Later I wanna handle movement directions and shit in this layer
         if (isVisible) {
-            canvas.save();
             user.update(currentMatrix, deltaTime);
             user.draw(canvas, locationPaint);
-            canvas.restore();
         }
     }
 
     @Override
     public void debugDraw(Canvas canvas, Matrix currentMatrix) {
         if(isVisible) {
-            canvas.save();
             user.debugDraw(currentMatrix, canvas);
-            canvas.restore();
         }
     }
 

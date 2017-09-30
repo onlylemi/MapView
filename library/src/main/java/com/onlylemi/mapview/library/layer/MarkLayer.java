@@ -13,6 +13,8 @@ import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.graphics.implementation.ProximityMark;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -50,9 +52,10 @@ public class MarkLayer extends MapBaseLayer {
     private void initLayer() {
         paint = new Paint();
         paint.setAntiAlias(true);
+        paint.setFilterBitmap(true);
+        paint.setDither(true);
         paint.setStrokeWidth(0.2f);
         paint.setStyle(Paint.Style.STROKE);
-        //paint.setStyle(Paint.Style.FILL_AND_STROKE);
     }
 
     @Override
@@ -75,7 +78,6 @@ public class MarkLayer extends MapBaseLayer {
     @Override
     public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
         if (isVisible) {
-            canvas.save();
             if (!markObjects.isEmpty()) {
                 for (int i = 0; i < markObjects.size(); i++) {
                     BaseMark mark = markObjects.get(i);
@@ -89,7 +91,6 @@ public class MarkLayer extends MapBaseLayer {
             if(user != null && !proxMarks.isEmpty())
                 checkTriggers();
 
-            canvas.restore();
         }
     }
 
@@ -131,19 +132,15 @@ public class MarkLayer extends MapBaseLayer {
         return markObjects;
     }
 
-    public void setStaticMarks(List<BaseMark> marks) {
-        this.markObjects = marks;
+    public void setStaticMarks(List<? extends BaseMark> marks) {
+        this.markObjects = new ArrayList<>(marks);
+        this.markObjects.addAll(proxMarks);
     }
 
-    public void setProximityMarks(List<ProximityMark> proxMarks) {
-        //Mark objects might contain old proxMarks, remove them first
-        for(ProximityMark p : proxMarks) {
-            if(markObjects.contains(p))
-                markObjects.remove(p);
-        }
-
-        this.markObjects.addAll(proxMarks);
-        this.proxMarks = proxMarks;
+    public void setProximityMarks(final List<ProximityMark> proxMarks) {
+        this.markObjects.removeAll(this.proxMarks);
+        this.proxMarks = new ArrayList<>(proxMarks);
+        this.markObjects.addAll(this.proxMarks);
     }
 
     public void setMarkIsClickListener(MarkIsClickListener listener) {

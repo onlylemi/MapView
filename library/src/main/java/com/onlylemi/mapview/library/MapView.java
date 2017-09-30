@@ -5,13 +5,17 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.PointF;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Choreographer;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 
 import com.onlylemi.mapview.library.graphics.BaseGraphics;
+import com.onlylemi.mapview.library.graphics.IBackground;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
@@ -27,7 +31,7 @@ import java.util.List;
  *
  * @author: onlylemi
  */
-public class MapView extends SurfaceView implements SurfaceHolder.Callback {
+public class MapView extends SurfaceView implements SurfaceHolder.Callback, Choreographer.FrameCallback {
 
     private static final String TAG = "MapView";
 
@@ -108,41 +112,89 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
             }
         };
 
+    }
+
+    /**
+     * Suspends teh rendering thread
+     */
+    public void resumeRendering() {
+        Choreographer.getInstance().postFrameCallback(this);
+    }
+
+    /**
+     * Resumes the rendering thread
+     */
+    public void pauseRendering() {
+        Choreographer.getInstance().removeFrameCallback(this);
+    }
 
 
+    @Override
+    public void onVisibilityChanged(View changedView, int state) {
+        super.onVisibilityChanged(changedView, state);
+
+        if(thread != null) {
+            //Pause rendering if invisible
+            if ((state == View.GONE || state == View.INVISIBLE) && thread.getState() != Thread.State.TERMINATED) {
+                pauseRendering();
+            }else if(state == View.VISIBLE && thread.getState() != Thread.State.TERMINATED) {
+                resumeRendering();
+            }
+        }
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         if (thread == null || thread.getState() == Thread.State.TERMINATED){
+            Log.d(TAG, "Creating a new render thread");
             thread = new MapViewRenderer(holder, this);
-            thread.setRunning(true);
+            //thread.setRunning(true);
             thread.start();  // Start a new thread
+            onRenderingStarted();
         }
         else if(thread.getState() == Thread.State.NEW){
+            Log.d(TAG, "Using an old thread");
             thread.init(holder, this);
-            thread.setRunning(true);
+            //thread.setRunning(true);
             thread.start();
+            onRenderingStarted();
         }
+        Log.d(TAG, "Surface created, size to: " + getWidth() + "x" + getHeight());
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        Log.d(TAG, "Surface resized to: " + width + "x"+height);
 
+        calculateOnContainUserZoom();
+
+        thread.onSurfaceChanged(holder, width, height);
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         if(thread != null) {
+            //Resume thread execution
+            Choreographer.getInstance().removeFrameCallback(this);
+            thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), 0));
             try {
                 thread.join();
             }catch (InterruptedException ie) {
                 ie.printStackTrace();
             }finally {
-                thread.setRunning(false); //Let thread finish and exit
+                //Let thread finish and exit
                 Log.d(TAG, "Rendering thread terminated");
             }
         }
+    }
+
+    private void onRenderingStarted() {
+        calculateOnContainUserZoom();
+        if(mapViewListener != null) {
+            mapViewListener.onRenderingStarted(getWidth(), getHeight());
+        }
+        thread.waitUntilReady();
+        Choreographer.getInstance().postFrameCallback(this);
     }
 
     /**
@@ -194,10 +246,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 saveMatrix.set(currentMatrix);
                 startTouch.set(event.getX(), event.getY());
                 currentTouchState = MapView.TOUCH_STATE_SCROLL;
-
-                oldMode = mode == mode.FREE ? oldMode : mode;
-                currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
-                mode = TRACKING_MODE.FREE;
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
                 if (event.getPointerCount() == 2) {
@@ -208,10 +256,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
                     mid = midPoint(event);
                     oldDist = distance(event, mid);
-
-                    currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
-                    oldMode = mode == mode.FREE ? oldMode : mode;
-                    mode = TRACKING_MODE.FREE;
                 }
                 break;
             case MotionEvent.ACTION_UP:
@@ -228,6 +272,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
             case MotionEvent.ACTION_MOVE:
                 switch (currentTouchState) {
                     case MapView.TOUCH_STATE_SCROLL:
+                            oldMode = mode == mode.FREE ? oldMode : mode;
+                            currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
+                            mode = TRACKING_MODE.FREE;
                             currentMatrix.set(saveMatrix);
                             translate(event.getX() - startTouch.x, event.getY() -
                                     startTouch.y);
@@ -238,6 +285,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                             currentTouchState = MapView.TOUCH_STATE_SCALE;
                         break;
                     case MapView.TOUCH_STATE_SCALE:
+                        oldMode = mode == mode.FREE ? oldMode : mode;
+                        currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
+                        mode = TRACKING_MODE.FREE;
                         currentMatrix.set(saveMatrix);
                         newDist = distance(event, mid);
                         float scale = newDist / oldDist;
@@ -268,6 +318,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
      * Delay until we return to the last known mode when in free mode
      */
     private float currentFreeModeTime = 0.0f;
+    private float defualtContainZoom = 2.0f;
 
     /**
      * update all different modes enabled, like center on user, zoom on points etc
@@ -390,6 +441,80 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
                 thread.setWorldMatrix(currentMatrix);
                 break;
             }
+            case CONTAIN_USER: {
+                float zoom = defualtContainZoom;
+                float d = zoom - currentZoom;
+                int sign = (int) (d / Math.abs(d));
+                d = d * sign; //Absolute distance
+                float zVelocity = modeOptions.zoomPerNanoSecond * sign * deltaTime;
+                d -= Math.abs(zVelocity);
+
+                //move towards target using velocity
+                if (d <= 0.0f) {
+                    setCurrentZoom(zoom);
+                } else {
+                    setCurrentZoom(currentZoom + zVelocity);
+                }
+                //This is a copy of follow user, this fucking shit needs to get cleaned up soon!
+                //My point on the view coordinate system
+                PointF dst = new PointF();
+                dst.set(user.getPosition());
+                float[] b = {dst.x, dst.y};
+                currentMatrix.mapPoints(b);
+
+                //My point in view coords
+                dst.x = b[0];
+                dst.y = b[1];
+
+                //Mid point of the view coordinate system
+                PointF trueMid = new PointF(getWidth() / 2, getHeight() / 2);
+
+                //Direction - NOTE we are going from the mid towards our point because graphics yo
+                PointF desti = new PointF(trueMid.x - b[0], trueMid.y - b[1]);
+
+                //Now check if this would put the camera out of bounds
+                //// TODO: 2017-09-19 (Nyman): Optimize this shit, do we really need to trasnform the point to find out if its outside the bounds?
+                //We actually might since its fucking annoying when we zoom, could this perhaps be done outside world space? Dont bother fix this if it aint laggin!
+                Matrix translationMatrix = new Matrix(currentMatrix);
+                translationMatrix.postTranslate(desti.x, desti.y);
+                PointF cameraPosition = MapMath.transformPoint(translationMatrix, new PointF(0,0));
+                PointF cameraBotRight = MapMath.transformPoint(translationMatrix, new PointF(getMapWidth(), getMapHeight()));
+                //Check X axis
+                if (cameraPosition.x > 0.0f) { //Left side
+                    PointF currentCameraTopLeft = MapMath.transformPoint(currentMatrix, new PointF(0, 0));
+                    desti.x = 0 - currentCameraTopLeft.x;
+                } else if(cameraBotRight.x < getWidth()) { //Right side
+                    PointF currentCameraBotRight = MapMath.transformPoint(currentMatrix, new PointF(getMapWidth(), 0));
+                    desti.x =  getWidth() - currentCameraBotRight.x;
+                }
+                //Check Y axis
+                if (cameraPosition.y > 0.0f) {
+                    PointF currentCameraTopLeft = MapMath.transformPoint(currentMatrix, new PointF(0, 0));
+                    desti.y = 0 - currentCameraTopLeft.y;
+                } else if(cameraBotRight.y < getHeight()) {
+                    PointF currentCameraBotRight = MapMath.transformPoint(currentMatrix, new PointF(0, getMapHeight()));
+                    desti.y = getHeight() - currentCameraBotRight.y;
+                }
+
+                //This is also the distance from our point to the middle
+                float distance = desti.length();
+
+
+                PointF dir = new PointF();
+                dir.x = desti.x / distance;
+                dir.y = desti.y / distance;
+                distance -= modeOptions.translationsPixelsPerNanoSecond * deltaTime;
+
+                if (distance <= 0.0f) {
+                    currentMatrix.postTranslate(desti.x, desti.y);
+                } else {
+                    currentMatrix.postTranslate(dir.x * modeOptions.translationsPixelsPerNanoSecond * deltaTime, dir.y * modeOptions.translationsPixelsPerNanoSecond * deltaTime);
+                }
+
+                thread.setWorldMatrix(currentMatrix);
+
+                break;
+            }
             default:
 
         }
@@ -486,6 +611,30 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
         this.minZoom = minZoom;
     }
 
+
+
+    public void calculateOnContainUserZoom() {
+        //Calculate ratios and use the highest
+        float widthRatio = getWidth() / getMapWidth();
+        float heightRatio = getHeight() / getMapHeight();
+
+        if(widthRatio > heightRatio) {
+            defualtContainZoom = widthRatio;
+        } else {
+            defualtContainZoom = heightRatio;
+        }
+    }
+
+    //This can cause strange behaviours if the input is bad
+    public void overrideContainUserZoom(float zoom) {
+        defualtContainZoom = zoom;
+    }
+
+    //Call in onRenderStarted or after
+    public float getContainUserZoom() {
+        return defualtContainZoom;
+    }
+
     public void setCurrentZoom(float zoom) {
         setCurrentZoom(zoom, getWidth() / 2, getHeight() / 2);
     }
@@ -576,10 +725,18 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
     //Default is free
     private TRACKING_MODE mode = TRACKING_MODE.NONE;
 
+    @Override
+    public void doFrame(long deltaTimeNano) {
+        Choreographer.getInstance().postFrameCallback(this);
+        if(thread != null && thread.getHandler() != null)
+            thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), 1, (int) (deltaTimeNano >> 32), (int) deltaTimeNano));
+    }
+
     public enum TRACKING_MODE {
         ZOOM_WITHIN_POINTS,
         FOLLOW_USER,
         FREE,
+        CONTAIN_USER,
         NONE
     }
 
@@ -681,6 +838,22 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback {
 
     public MapModeOptions getMapModeOptions() {
         return modeOptions;
+    }
+
+    public void setBackground(IBackground background) {
+        thread.setBackground(background);
+    }
+
+    public void setFixedFPS(int FPS) throws InstantiationError {
+//        if(thread != null) {
+//            thread.setFixedFrameRate(FPS);
+//        }
+    }
+
+    public void disableFixedFPS() {
+//        if(thread != null) {
+//            thread.disableFixedFrameRate();
+//        }
     }
 
     //region debugging

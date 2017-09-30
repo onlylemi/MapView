@@ -24,36 +24,36 @@ public class MarkLayerTestActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mark_layer_test);
 
-        mapView = (MapView) findViewById(R.id.mapview);
-        Bitmap bitmap = null;
-        try {
-            bitmap = BitmapFactory.decodeStream(getAssets().open("map.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        mapView.loadMap(bitmap);
-        mapView.setMapViewListener(new MapViewListener() {
-            @Override
-            public void onMapLoadSuccess() {
-                List<PointF> marks = TestData.getMarks();
-                final List<String> marksName = TestData.getMarksName();
-                markLayer = new MarkLayer(mapView, marks, marksName);
-                markLayer.setMarkIsClickListener(new MarkLayer.MarkIsClickListener() {
-                    @Override
-                    public void markIsClick(int num) {
-                        Toast.makeText(getApplicationContext(), marksName.get(num) + " is " +
-                                "selected", Toast.LENGTH_SHORT).show();
-                    }
-                });
-                mapView.addLayer(markLayer);
-                mapView.refresh();
-            }
-
-            @Override
-            public void onMapLoadFail() {
-
-            }
-
-        });
+//        mapView = (MapView) findViewById(R.id.mapview);
+//        Bitmap bitmap = null;
+//        try {
+//            bitmap = BitmapFactory.decodeStream(getAssets().open("map.png"));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        mapView.loadMap(bitmap);
+//        mapView.setMapViewListener(new MapViewListener() {
+//            @Override
+//            public void onMapLoadSuccess() {
+//                List<PointF> marks = TestData.getMarks();
+//                final List<String> marksName = TestData.getMarksName();
+//                markLayer = new MarkLayer(mapView, marks, marksName);
+//                markLayer.setMarkIsClickListener(new MarkLayer.MarkIsClickListener() {
+//                    @Override
+//                    public void markIsClick(int num) {
+//                        Toast.makeText(getApplicationContext(), marksName.get(num) + " is " +
+//                                "selected", Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+//                mapView.addLayer(markLayer);
+//                mapView.refresh();
+//            }
+//
+//            @Override
+//            public void onMapLoadFail() {
+//
+//            }
+//
+//        });
     }
 }
