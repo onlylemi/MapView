@@ -7,5 +7,6 @@ import android.graphics.Canvas;
  */
 
 public interface IBackground {
-    public void draw(Canvas canvas);
+    void draw(Canvas canvas);
+    void onSurfaceChanged(int width, int height);
 }

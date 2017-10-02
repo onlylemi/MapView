@@ -69,11 +69,10 @@ public class MapViewRenderer extends Thread {
         //Default background is black
         background = new ColorBackground(Color.BLACK);
         layers = mapView.getLayers();
-
     }
 
-    public void onSurfaceChanged(SurfaceHolder holder, float width, float height) {
-
+    public void onSurfaceChanged(SurfaceHolder holder, int width, int height) {
+        this.background.onSurfaceChanged(width, height);
     }
 
     @Override

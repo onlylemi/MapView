@@ -31,4 +31,9 @@ public class TiledBitmapBackground implements IBackground {
     public void draw(Canvas canvas) {
         background.draw(canvas);
     }
+
+    @Override
+    public void onSurfaceChanged(int width, int height) {
+        background.setBounds(0, 0, width, height);
+    }
 }

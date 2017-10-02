@@ -21,6 +21,11 @@ public class ColorBackground implements IBackground {
         canvas.drawColor(color);
     }
 
+    @Override
+    public void onSurfaceChanged(int width, int height) {
+        //do nothing
+    }
+
     public int getColor() {
         return color;
     }

@@ -170,7 +170,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         calculateOnContainUserZoom();
 
         mapLayer.initMapLayer();
-        //thread.onSurfaceChanged(holder, width, height);
+        thread.onSurfaceChanged(holder, width, height);
     }
 
     @Override
