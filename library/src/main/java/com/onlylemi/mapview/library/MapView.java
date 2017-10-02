@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.PointF;
 import android.os.Message;
 import android.util.AttributeSet;
@@ -168,7 +169,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
 
         calculateOnContainUserZoom();
 
-        thread.onSurfaceChanged(holder, width, height);
+        mapLayer.initMapLayer();
+        //thread.onSurfaceChanged(holder, width, height);
     }
 
     @Override
@@ -503,12 +505,12 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
                 PointF dir = new PointF();
                 dir.x = desti.x / distance;
                 dir.y = desti.y / distance;
-                distance -= modeOptions.translationsPixelsPerNanoSecond * deltaTime;
+                distance -= modeOptions.getTranslationsPixelsPerSecond() * deltaTime;
 
                 if (distance <= 0.0f) {
                     currentMatrix.postTranslate(desti.x, desti.y);
                 } else {
-                    currentMatrix.postTranslate(dir.x * modeOptions.translationsPixelsPerNanoSecond * deltaTime, dir.y * modeOptions.translationsPixelsPerNanoSecond * deltaTime);
+                    currentMatrix.postTranslate(dir.x * modeOptions.getTranslationsPixelsPerSecond() * deltaTime, dir.y * modeOptions.getTranslationsPixelsPerSecond() * deltaTime);
                 }
 
                 thread.setWorldMatrix(currentMatrix);

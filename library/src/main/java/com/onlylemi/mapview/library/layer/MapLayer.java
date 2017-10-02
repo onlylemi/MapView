@@ -55,7 +55,7 @@ public class MapLayer extends MapBaseLayer {
     /**
      * init map image layer
      */
-    private void initMapLayer() {
+    public void initMapLayer() {
         float zoom = getInitZoom(mapView.getWidth(), mapView.getHeight(), bmp.getWidth(), bmp
                 .getHeight());
         Log.i(TAG, Float.toString(zoom));
