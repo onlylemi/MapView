@@ -19,14 +19,13 @@ import com.onlylemi.mapview.library.R;
  */
 public class LocationLayer extends MapBaseLayer {
 
-    private boolean openCompass = false;
-
     // compass color
     private static final int DEFAULT_LOCATION_COLOR = 0xFF3EBFC9;
     private static final int DEFAULT_LOCATION_SHADOW_COLOR = 0xFF909090;
     private static final int DEFAULT_INDICATOR_ARC_COLOR = 0xFFFA4A8D;
     private static final int DEFAULT_INDICATOR_CIRCLE_COLOR = 0xFF00F0FF;
     private static final float COMPASS_DELTA_ANGLE = 5.0f;
+    private boolean openCompass = false;
     private float defaultLocationCircleRadius;
 
     private float compassLineLength;

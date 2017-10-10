@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapView;
@@ -20,6 +21,8 @@ import java.util.List;
  * @author: onlylemi
  */
 public class RouteLayer extends MapBaseLayer {
+
+    private String TAG = "B.RouteLayer";
 
     private List<Integer> routeList; // routes list
     private List<PointF> nodeList; // nodes list
@@ -77,13 +80,13 @@ public class RouteLayer extends MapBaseLayer {
                     currentMatrix.mapPoints(goal1);
                     currentMatrix.mapPoints(goal2);
                     paint.setStrokeWidth(routeWidth);
+                    Log.d(TAG, "draw: 4");
                     canvas.drawLine(goal1[0], goal1[1], goal2[0], goal2[1], paint);
                 }
-
                 // draw bmp
                 float[] goal1 = {nodeList.get(routeList.get(0)).x,
                         nodeList.get(routeList.get(0)).y};
-                float[]  goal2 = {
+                float[] goal2 = {
                         nodeList.get(routeList.get(routeList.size() - 1)).x,
                         nodeList.get(routeList.get(routeList.size() - 1)).y};
                 currentMatrix.mapPoints(goal1);

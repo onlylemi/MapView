@@ -1,13 +1,11 @@
 package com.onlylemi.mapview.library.utils;
 
 import android.graphics.PointF;
-import android.util.Log;
 
 import com.onlylemi.mapview.library.utils.math.FloydAlgorithm;
 import com.onlylemi.mapview.library.utils.math.GeneticAlgorithm;
 import com.onlylemi.mapview.library.utils.math.TSPNearestNeighbour;
 
-import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +16,8 @@ import java.util.List;
  */
 public final class MapMath {
 
-    private MapMath() {}
+    private MapMath() {
+    }
 
     /**
      * the distance between two points

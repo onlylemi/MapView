@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Picture;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +22,8 @@ public final class MapUtils {
     private static int nodesSize;
     private static int nodesContactSize;
 
-    private MapUtils() {}
+    private MapUtils() {
+    }
 
     public static void init(int nodessize, int nodescontactsize) {
         nodesSize = nodessize;
@@ -244,6 +244,7 @@ public final class MapUtils {
             }
         }
 
+        //AbdAllah's fix
         addPointToList(start, nodes, nodesContact);
         addPointToList(end, nodes, nodesContact);
 
@@ -290,7 +291,9 @@ public final class MapUtils {
             nodesContact) {
         if (point != null) {
             PointF pV = null;
+            //AbdAllah's comment: po1, po2 is indexes
             int po1 = 0, po2 = 0;
+
             float min1 = INF;
             for (int i = 0; i < nodesContact.size() - 1; i++) {
                 PointF p1 = nodes.get((int) nodesContact.get(i).x);
@@ -306,7 +309,10 @@ public final class MapUtils {
                 }
             }
             // get intersection
-            nodes.add(pV);
+            if (pV != null) { //fix by AbdAllah
+                nodes.add(pV);
+            }
+
             //Log.i(TAG, "node=" + (nodes.size() - 1) + ", po1=" + po1 + ", po2=" + po2);
             nodesContact.add(new PointF(po1, nodes.size() - 1));
             nodesContact.add(new PointF(po2, nodes.size() - 1));

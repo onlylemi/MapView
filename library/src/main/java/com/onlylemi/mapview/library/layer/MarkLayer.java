@@ -10,8 +10,8 @@ import android.graphics.PointF;
 import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapView;
-import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.R;
+import com.onlylemi.mapview.library.utils.MapMath;
 
 import java.util.List;
 
