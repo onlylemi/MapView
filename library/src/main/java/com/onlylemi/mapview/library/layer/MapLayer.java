@@ -26,26 +26,6 @@ public class MapLayer extends MapBaseLayer {
         level = MAP_LEVEL;
     }
 
-    public void setImage(Picture image) {
-        this.image = image;
-
-        if (mapView.getWidth() == 0) {
-            ViewTreeObserver vto = mapView.getViewTreeObserver();
-            vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                public boolean onPreDraw() {
-                    if (!hasMeasured) {
-                        initMapLayer();
-                        hasMeasured = true;
-                    }
-                    return true;
-                }
-            });
-        } else {
-            initMapLayer();
-        }
-    }
-
-
     /**
      * init map image layer
      */
@@ -104,5 +84,24 @@ public class MapLayer extends MapBaseLayer {
 
     public Picture getImage() {
         return image;
+    }
+
+    public void setImage(Picture image) {
+        this.image = image;
+
+        if (mapView.getWidth() == 0) {
+            ViewTreeObserver vto = mapView.getViewTreeObserver();
+            vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                public boolean onPreDraw() {
+                    if (!hasMeasured) {
+                        initMapLayer();
+                        hasMeasured = true;
+                    }
+                    return true;
+                }
+            });
+        } else {
+            initMapLayer();
+        }
     }
 }

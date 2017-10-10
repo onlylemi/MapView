@@ -21,10 +21,6 @@ public class TSPNearestNeighbour {
     public static TSPNearestNeighbour getInstance() {
         return TSPNearestNeighbourHolder.instance;
     }
-    private static class TSPNearestNeighbourHolder {
-        private static TSPNearestNeighbour instance = new TSPNearestNeighbour();
-
-    }
 
     public List<Integer> tsp(float[][] matrix) {
         numberOfNodes = matrix[0].length;
@@ -59,5 +55,10 @@ public class TSPNearestNeighbour {
             stack.pop();
         }
         return list;
+    }
+
+    private static class TSPNearestNeighbourHolder {
+        private static TSPNearestNeighbour instance = new TSPNearestNeighbour();
+
     }
 }

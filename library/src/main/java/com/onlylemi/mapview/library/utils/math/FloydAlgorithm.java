@@ -21,10 +21,6 @@ public final class FloydAlgorithm {
         return FloydAlgorithmHolder.instance;
     }
 
-    private static class FloydAlgorithmHolder {
-        private static FloydAlgorithm instance = new FloydAlgorithm();
-    }
-
     private void init(float[][] matrix) {
         dist = null;
         path = null;
@@ -82,6 +78,10 @@ public final class FloydAlgorithm {
             }
         }
 
+    }
+
+    private static class FloydAlgorithmHolder {
+        private static FloydAlgorithm instance = new FloydAlgorithm();
     }
 
 }

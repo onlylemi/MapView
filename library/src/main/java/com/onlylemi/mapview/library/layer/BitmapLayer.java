@@ -1,7 +1,6 @@
 package com.onlylemi.mapview.library.layer;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
@@ -10,8 +9,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapView;
-
-import java.util.Arrays;
 
 /**
  * BitmapLayer
@@ -87,12 +84,12 @@ public class BitmapLayer extends MapBaseLayer {
         this.bitmap = bitmap;
     }
 
-    public void setAutoScale(boolean autoScale) {
-        this.autoScale = autoScale;
-    }
-
     public boolean isAutoScale() {
         return autoScale;
+    }
+
+    public void setAutoScale(boolean autoScale) {
+        this.autoScale = autoScale;
     }
 
     public void setOnBitmapClickListener(OnBitmapClickListener onBitmapClickListener) {
