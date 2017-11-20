@@ -6,6 +6,8 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Picture;
 import android.graphics.PointF;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewTreeObserver;
@@ -23,19 +25,19 @@ public class MapLayer extends MapBaseLayer {
     private static final String TAG = "MapLayer";
 
     private Bitmap bmp;
-    private boolean hasMeasured;
+    protected RectF dimensions;
+    protected boolean hasMeasured;
     //Deprecated
     //private MapAABB mapBoundingBox;
-    private Paint paint;
+    protected Paint paint;
 
     public MapLayer(MapView mapView) {
         super(mapView);
-        level = MAP_LEVEL;
     }
 
     public void setBmp(Bitmap bmp) {
         this.bmp = bmp;
-
+        dimensions = new RectF(0, 0, bmp.getWidth(), bmp.getHeight());
         if (mapView.getWidth() == 0) {
             ViewTreeObserver vto = mapView.getViewTreeObserver();
             vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
@@ -56,28 +58,19 @@ public class MapLayer extends MapBaseLayer {
      * init map image layer
      */
     public void initMapLayer() {
-        float zoom = getInitZoom(mapView.getWidth(), mapView.getHeight(), bmp.getWidth(), bmp
-                .getHeight());
+        float zoom = getInitZoom(mapView.getWidth(), mapView.getHeight(), dimensions.width(), dimensions.height());
         Log.i(TAG, Float.toString(zoom));
         mapView.initZoom(zoom, 0, 0);
 
-        float width = mapView.getWidth() - zoom * bmp.getWidth();
-        float height = mapView.getHeight() - zoom * bmp.getHeight();
+        float width = mapView.getWidth() - zoom * dimensions.width();
+        float height = mapView.getHeight() - zoom * dimensions.height();
 
         paint = new Paint();
         paint.setAntiAlias(true);
         paint.setFilterBitmap(true);
         paint.setDither(true);
 
-        //Create AABB
-        //Deprecated
-        //mapBoundingBox = new MapAABB( new PointF(0, 0), this.bmp.getWidth(), this.bmp.getHeight());
-
         mapView.translate(width / 2, height / 2);
-
-        //Update the bounding box once
-        //Deprecated
-        //mapBoundingBox.update(mapView.getCurrentTransform());
     }
 
     /**
@@ -114,8 +107,6 @@ public class MapLayer extends MapBaseLayer {
     public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
         if (bmp != null) {
             canvas.drawBitmap(bmp, currentMatrix, paint);
-            //Deprecated
-            //mapBoundingBox.update(currentMatrix);
         }
     }
 
@@ -124,10 +115,9 @@ public class MapLayer extends MapBaseLayer {
 
     }
 
-//    Deprecated
-//    public MapAABB getMapBoundingBox() {
-//        return mapBoundingBox;
-//    }
+    public RectF getDimensions() {
+        return dimensions;
+    }
 
     public Bitmap getImage() {
         return bmp;

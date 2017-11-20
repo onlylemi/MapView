@@ -18,6 +18,7 @@ import android.view.View;
 import com.onlylemi.mapview.library.graphics.BaseGraphics;
 import com.onlylemi.mapview.library.graphics.IBackground;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
+import com.onlylemi.mapview.library.layer.EmptyMapLayer;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
 import com.onlylemi.mapview.library.utils.MapMath;
@@ -229,6 +230,24 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
                 }
             }
         }).start();
+    }
+
+    /**
+     * This creates an empty canavas to draw your own map on
+     * Will not trigger the failed maploading listener as we are not loading anything
+     * Triggers the loadSuccess to for consistency
+     * @param width
+     * @param height
+     */
+    public void createMap(int width, int height) {
+        if(mapLayer == null) {
+            mapLayer = new EmptyMapLayer(this, width, height);
+            layers.add(mapLayer);
+        }
+        if(mapViewListener != null) {
+            mapViewListener.onMapLoadSuccess();
+        }
+        isMapLoadFinish = true;
     }
 
     private TRACKING_MODE oldMode;
@@ -800,16 +819,16 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
      */
     public boolean withFloorPlan(float x, float y) {
         float[] goal = convertMapXYToScreenXY(x, y);
-        return goal[0] > 0 && goal[0] < mapLayer.getImage().getWidth() && goal[1] > 0
-                && goal[1] < mapLayer.getImage().getHeight();
+        return goal[0] > 0 && goal[0] < mapLayer.getDimensions().width() && goal[1] > 0
+                && goal[1] < mapLayer.getDimensions().height();
     }
 
     public float getMapWidth() {
-        return mapLayer.getImage().getWidth();
+        return mapLayer.getDimensions().width();
     }
 
     public float getMapHeight() {
-        return mapLayer.getImage().getHeight();
+        return mapLayer.getDimensions().height();
     }
 
     public int getCanvasBackgroundColor() {
