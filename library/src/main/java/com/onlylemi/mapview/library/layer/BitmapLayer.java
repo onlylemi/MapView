@@ -18,6 +18,7 @@ import java.util.Arrays;
  *
  * @author: onlylemi
  */
+@Deprecated
 public class BitmapLayer extends MapBaseLayer {
 
     private PointF location;

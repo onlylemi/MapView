@@ -119,6 +119,7 @@ public class LocationUser extends BaseGraphics {
         return position;
     }
 
+    @Deprecated
     public void setPosition(PointF position) {
         this.position = position;
     }

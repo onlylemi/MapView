@@ -4,13 +4,17 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.os.Handler;
 import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapView;
+import com.onlylemi.mapview.library.MapViewRenderer;
 import com.onlylemi.mapview.library.graphics.BaseGraphics;
 import com.onlylemi.mapview.library.graphics.BaseMark;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.graphics.implementation.ProximityMark;
+import com.onlylemi.mapview.library.messages.ICommand;
+import com.onlylemi.mapview.library.messages.MessageDefenitions;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,6 +27,8 @@ import java.util.List;
  * @author: onlylemi
  */
 public class MarkLayer extends MapBaseLayer {
+
+    private MarkHandler handler;
 
     private MarkIsClickListener markClickListener;
     private MarkIsTriggered markTriggeredListener;
@@ -151,6 +157,15 @@ public class MarkLayer extends MapBaseLayer {
         this.markTriggeredListener = listener;
     }
 
+    @Override
+    public void createHandler(MapViewRenderer renderThread) {
+        this.handler = new MarkHandler(renderThread.getHandler(), this);
+    }
+
+    public MarkHandler getMarkHandler() {
+        return handler;
+    }
+
     public interface MarkIsClickListener {
         void markIsClick(BaseMark num, int index);
     }
@@ -158,5 +173,33 @@ public class MarkLayer extends MapBaseLayer {
     public interface MarkIsTriggered {
         void onEnter(ProximityMark mark, int index);
         void onExit(ProximityMark mark, int index);
+    }
+
+    public class MarkHandler {
+        private Handler renderHandler;
+        private MarkLayer markLayer;
+
+        public MarkHandler(Handler renderHandler, MarkLayer markLayer) {
+            this.renderHandler = renderHandler;
+            this.markLayer = markLayer;
+        }
+
+        public void setStaticMarks(final List<? extends BaseMark> marks) {
+            MessageDefenitions.sendExecuteMessage(this.renderHandler, MessageDefenitions.MESSAGE_EXECUTE, new ICommand() {
+                @Override
+                public void execute() {
+                    markLayer.setStaticMarks(marks);
+                }
+            });
+        }
+
+        public void setProximityMarks(final List<ProximityMark> proxMarks) {
+            MessageDefenitions.sendExecuteMessage(this.renderHandler, MessageDefenitions.MESSAGE_EXECUTE, new ICommand() {
+                @Override
+                public void execute() {
+                    markLayer.setProximityMarks(proxMarks);
+                }
+            });
+        }
     }
 }
