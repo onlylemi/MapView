@@ -192,11 +192,17 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
     }
 
     private void onRenderingStarted() {
+        thread.waitUntilReady();
+
+        //If any layer has been added before this we create their handlers
+        for (MapBaseLayer layer : layers) {
+            layer.createHandler(thread);
+        }
+
         calculateOnContainUserZoom();
         if(mapViewListener != null) {
             mapViewListener.onRenderingStarted(getWidth(), getHeight());
         }
-        thread.waitUntilReady();
         Choreographer.getInstance().postFrameCallback(this);
     }
 
@@ -581,6 +587,11 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
      */
     public void addLayer(MapBaseLayer layer) {
         if (layer != null) {
+
+            if(thread != null && thread.getHandler() != null) {
+                layer.createHandler(thread);
+            }
+
             layers.add(layer);
         }
     }

@@ -145,7 +145,7 @@ public class LocationUser extends BaseGraphics {
      * @param duration time to traverse through all destinations
      * @param appendToOldList if an old move isnt finished. Flagged true this will append to an old list if existing
      */
-    public synchronized void move(List<PointF> destinationsLifo, float duration, boolean appendToOldList) {
+    public void move(List<PointF> destinationsLifo, float duration, boolean appendToOldList) {
 
         if(destinationsLifo.isEmpty()) {
             throw new IllegalArgumentException("Destination list size = 0. Please include at least 1 element");

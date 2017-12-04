@@ -17,6 +17,8 @@ import android.view.SurfaceHolder;
 import com.onlylemi.mapview.library.graphics.IBackground;
 import com.onlylemi.mapview.library.graphics.implementation.Backgrounds.ColorBackground;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
+import com.onlylemi.mapview.library.messages.ICommand;
+import com.onlylemi.mapview.library.messages.MessageDefenitions;
 import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.utils.MapRenderTimer;
 
@@ -42,7 +44,7 @@ public class MapViewRenderer extends Thread {
     private IBackground background;
 
     private Object pauseLock = new Object();
-    private boolean paused = false;
+    private boolean paused = true;
 
     private Handler messageHandler;
 
@@ -83,13 +85,16 @@ public class MapViewRenderer extends Thread {
             @Override
             public void handleMessage(Message msg) {
 
-
-                if(msg.what == 0) {
-                    setRunning(false);
-                } else if(msg.what == 1) {
+                if(msg.what == MessageDefenitions.MESSAGE_DRAW) {
                     doFrame((((long) msg.arg1) << 32) |
                             (((long) msg.arg2) & 0xffffffffL));
+                } else if(msg.what == MessageDefenitions.MESSAGE_EXECUTE) {
+                    ((ICommand) msg.obj).execute();
+                } else if(msg.what == 0) {
+                    setRunning(false);
                 }
+
+                //msg.recycle();
             }
         };
 

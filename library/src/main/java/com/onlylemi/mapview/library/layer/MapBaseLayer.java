@@ -6,6 +6,7 @@ import android.util.TypedValue;
 import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapView;
+import com.onlylemi.mapview.library.MapViewRenderer;
 
 /**
  * MapBaseLayer
@@ -48,6 +49,11 @@ public abstract class MapBaseLayer {
     public abstract void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime);
 
     public abstract void debugDraw(Canvas canvas, Matrix currentMatrix);
+
+    //todo: This should be abstract later, but not now during development
+    public void createHandler(MapViewRenderer renderThread) {
+
+    }
 
     public void setLevel(int level) {
         this.level = level;
