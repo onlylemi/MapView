@@ -34,13 +34,22 @@ public class TranslationAnimation implements IBaseAnimation {
         this.offsetX = offsetX;
         this.offsetY = offsetY;
 
-        //Calculate distance
-        this.distance = MapMath.getDistanceBetweenTwoPoints(this.currentPosition, destination);
+        //This special case is needed if we try to move to the same location we're on.
+        if(duration != 0) {
+            //Calculate distance
+            this.distance = MapMath.getDistanceBetweenTwoPoints(this.currentPosition, destination);
 
-        //Calculate speed
-        this.vecloity = this.distance / (duration * MapMath.NANOSECOND);
-        this.velocityX = (destination.x - this.currentPosition.x) / (duration * MapMath.NANOSECOND);
-        this.velocityY = (destination.y - this.currentPosition.y) / (duration * MapMath.NANOSECOND);
+            //Calculate speed
+            this.vecloity = this.distance / (duration * MapMath.NANOSECOND);
+            this.velocityX = (destination.x - this.currentPosition.x) / (duration * MapMath.NANOSECOND);
+            this.velocityY = (destination.y - this.currentPosition.y) / (duration * MapMath.NANOSECOND);
+        } else {
+            //Everything defaults to 0
+            this.distance = 0.0f;
+            this.vecloity = 0.0f;
+            this.velocityX = 0.0f;
+            this.velocityY = 0.0f;
+        }
     }
 
     public TranslationAnimation(BaseGraphics baseGraphics, PointF destination, float duration, float offsetX, float offsetY) {
@@ -70,6 +79,8 @@ public class TranslationAnimation implements IBaseAnimation {
 
         baseGraphics.position = this.currentPosition;
         m.postTranslate(this.currentPosition.x - offsetX, this.currentPosition.y - offsetY);
+
+
 
         return m;
     }

@@ -96,6 +96,8 @@ public class LocationUser extends BaseGraphics {
             tMatrix.postTranslate(position.x - bmp.getWidth() / 2, position.y - bmp.getHeight() / 2);
         }
 
+
+
         tMatrix.setValues(MapMath.matrixMultiplication(m, tMatrix));
     }
 
@@ -132,7 +134,7 @@ public class LocationUser extends BaseGraphics {
      * @param destination
      * @param duration time to animate to destination
      */
-    public synchronized void move(PointF destination, float duration) {
+    public void move(PointF destination, float duration) {
         //Removes all current animations
         translationAnims.clear();
         moveToDestinations.clear();
