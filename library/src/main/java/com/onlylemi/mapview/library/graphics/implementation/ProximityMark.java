@@ -3,10 +3,11 @@ package com.onlylemi.mapview.library.graphics.implementation;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.graphics.PointF;
 
-import com.onlylemi.mapview.library.utils.MapMath;
+import com.onlylemi.mapview.library.utils.collision.BaseCollision;
+import com.onlylemi.mapview.library.utils.collision.MapAxisBox;
+import com.onlylemi.mapview.library.utils.collision.MapAxisCircle;
 
 /**
  * Created by patny on 2017-08-02.
@@ -24,36 +25,33 @@ public class ProximityMark extends StaticMark {
      */
     private boolean triggered = false;
 
-    /**
-     * When the proximity alert shall trigger, recommended to use the bmp to calculate this size
-     */
-    private float triggerRadius;
+    private BaseCollision collisionMesh;
 
     public ProximityMark(Bitmap bmp, PointF position, float triggerRadius, boolean isVisible, boolean oneTime) {
         this(bmp, position, triggerRadius, isVisible);
-
         this.isOneTime = oneTime;
     }
 
     public ProximityMark(Bitmap bmp, PointF position, float triggerRadius, boolean isVisible) {
         super(bmp, position);
-
-        this.triggerRadius = triggerRadius;
-
         this.isVisible = isVisible;
+        this.collisionMesh = new MapAxisCircle(position, triggerRadius);
+    }
+
+    public ProximityMark(Bitmap bmp, PointF position, float colWidth, float colHeight, boolean isVisible, boolean oneTime) {
+        this(bmp, position, colWidth, colHeight, isVisible);
+        this.isOneTime = oneTime;
+    }
+
+    public ProximityMark(Bitmap bmp, PointF position, float colWidth, float colHeight, boolean isVisible) {
+        super(bmp, position);
+        this.isVisible = isVisible;
+        this.collisionMesh = new MapAxisBox(position, colWidth, colHeight);
     }
 
     @Override
     public void debugDraw(final Matrix m, final Canvas canvas) {
-        //Need to scale the radius aswell
-        float currentClickRadius = m.mapRadius(triggerRadius);
-
-        Paint paint = new Paint();
-        paint.setStrokeWidth(0.5f);
-        paint.setStyle(Paint.Style.STROKE);
-
-        canvas.drawCircle(worldPosition.x, worldPosition.y, currentClickRadius, paint);
-
+        collisionMesh.debugDraw(m, canvas);
         super.debugDraw(m, canvas);
     }
 
@@ -63,7 +61,7 @@ public class ProximityMark extends StaticMark {
      * @return
      */
     public boolean triggerProximity(final PointF position) {
-        return MapMath.getDistanceBetweenTwoPoints(this.position, position) < triggerRadius;
+        return collisionMesh.isPointInside(position);
     }
 
     public void setTriggered(boolean triggered) {
