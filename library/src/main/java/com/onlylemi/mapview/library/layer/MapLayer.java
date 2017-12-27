@@ -25,6 +25,11 @@ public class MapLayer extends MapBaseLayer {
     private static final String TAG = "MapLayer";
 
     private Bitmap bmp;
+
+    private int width;
+    private int height;
+
+    @Deprecated
     protected RectF dimensions;
     protected boolean hasMeasured;
     //Deprecated
@@ -38,20 +43,22 @@ public class MapLayer extends MapBaseLayer {
     public void setBmp(Bitmap bmp) {
         this.bmp = bmp;
         dimensions = new RectF(0, 0, bmp.getWidth(), bmp.getHeight());
-        if (mapView.getWidth() == 0) {
-            ViewTreeObserver vto = mapView.getViewTreeObserver();
-            vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                public boolean onPreDraw() {
-                    if (!hasMeasured) {
-                        initMapLayer();
-                        hasMeasured = true;
-                    }
-                    return true;
-                }
-            });
-        } else {
-            initMapLayer();
-        }
+        this.width = bmp.getWidth();
+        this.height = bmp.getHeight();
+//        if (mapView.getWidth() == 0) {
+//            ViewTreeObserver vto = mapView.getViewTreeObserver();
+//            vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+//                public boolean onPreDraw() {
+//                    if (!hasMeasured) {
+//                        initMapLayer();
+//                        hasMeasured = true;
+//                    }
+//                    return true;
+//                }
+//            });
+//        } else {
+//            initMapLayer();
+//        }
     }
 
     /**
@@ -121,5 +128,13 @@ public class MapLayer extends MapBaseLayer {
 
     public Bitmap getImage() {
         return bmp;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 }

@@ -4,9 +4,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.Shader;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -17,13 +14,14 @@ import android.view.SurfaceHolder;
 import com.onlylemi.mapview.library.graphics.IBackground;
 import com.onlylemi.mapview.library.graphics.implementation.Backgrounds.ColorBackground;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
+import com.onlylemi.mapview.library.layer.MapLayer;
 import com.onlylemi.mapview.library.messages.ICommand;
 import com.onlylemi.mapview.library.messages.MessageDefenitions;
 import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.utils.MapRenderTimer;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Created by patny on 2017-08-14.
@@ -40,8 +38,15 @@ public class MapViewRenderer extends Thread {
     private SurfaceHolder rootHolder;
     private MapView mapView;
     private boolean running = false;
+    private MapLayer rootLayer;
     private List<MapBaseLayer> layers;
     private IBackground background;
+
+    private MapViewCamera camera;
+
+    //We call this once we start running to allow the user to setup the map
+    private MapViewSetupCallback setupCallback;
+    private Object setupLock = new Object();
 
     private Object pauseLock = new Object();
     private boolean paused = true;
@@ -69,8 +74,9 @@ public class MapViewRenderer extends Thread {
         this.rootHolder = root;
         this.mapView = mapView;
         //Default background is black
-        background = new ColorBackground(Color.BLACK);
-        layers = mapView.getLayers();
+        background = new ColorBackground(Color.RED);
+        //layers = mapView.getLayers();
+        layers = new ArrayList<>();
     }
 
     public void onSurfaceChanged(SurfaceHolder holder, int width, int height) {
@@ -79,7 +85,23 @@ public class MapViewRenderer extends Thread {
 
     @Override
     public void run() {
+
+        //Setup the map
+        synchronized (setupLock) {
+            while(setupCallback == null) {
+                try {
+                    setupLock.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        Log.d(TAG, "Setup callback now set");
+
         Looper.prepare();
+
+        Log.d(TAG, "Preparing message handler");
 
         messageHandler = new Handler() {
             @Override
@@ -98,10 +120,17 @@ public class MapViewRenderer extends Thread {
             }
         };
 
-        synchronized (pauseLock) {
-            paused = false;
-            pauseLock.notifyAll();
-        }
+        setupCallback.onSetup(new MapViewHandler(this.mapView, this));
+        finishSetup();
+
+        Log.d(TAG, "Setup callback finished");
+
+//        synchronized (pauseLock) {
+//            paused = false;
+//            pauseLock.notifyAll();
+//        }
+
+        Log.d(TAG, "Everything setup, starting rendering");
 
         Looper.loop();
 
@@ -139,14 +168,15 @@ public class MapViewRenderer extends Thread {
         background.draw(canvas);
 
         //// TODO: 2017-08-14 This will be a seperate controller later on
-        mapView.updateModes(deltaTimeNano);
+        //mapView.updateModes(deltaTimeNano);
+        Matrix m = camera.update(deltaTimeNano);
 
         for (MapBaseLayer layer : layers) {
             if (layer.isVisible) {
-                layer.draw(canvas, worldMatrix, zoom, deltaTimeNano);
+                layer.draw(canvas, m, camera.getCurrentZoom(), deltaTimeNano);
 
                 if (debug) {
-                    layer.debugDraw(canvas, worldMatrix);
+                    layer.debugDraw(canvas, m);
                 }
             }
         }
@@ -165,6 +195,19 @@ public class MapViewRenderer extends Thread {
         canvas = null;
     }
 
+    /**
+     * Called once the user has done all their map setups. This just inits all the zooming, camera and links everything together
+     */
+    private void finishSetup() {
+        if(rootLayer != null) {
+            //rootLayer.initMapLayer();
+            camera = new MapViewCamera(mapView.getWidth(), mapView.getHeight(), rootLayer.getWidth(), rootLayer.getHeight());
+        } else {
+            //// TODO: 26/12/2017 Create my own exception for this!
+            throw new RuntimeException("You need to create at least one maplayer");
+        }
+    }
+
     public boolean isRunning() {
         return running;
     }
@@ -176,6 +219,7 @@ public class MapViewRenderer extends Thread {
         }
     }
 
+    @Deprecated
     public void waitUntilReady() {
         synchronized (pauseLock) {
             while(paused) {
@@ -186,6 +230,21 @@ public class MapViewRenderer extends Thread {
                 }
             }
         }
+    }
+
+    public void setSetupCallback(MapViewSetupCallback callback) {
+        synchronized (setupLock) {
+            setupCallback = callback;
+            setupLock.notifyAll();
+        }
+    }
+
+    public void addLayer(MapBaseLayer layer) {
+        layers.add(layer);
+    }
+
+    public void setMapLayer(MapLayer layer) {
+        rootLayer = layer;
     }
 
     public void setDebug(boolean enableDebug) {

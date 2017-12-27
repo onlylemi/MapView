@@ -22,3 +22,4 @@ public interface MapViewListener {
      */
     void onRenderingStarted(int viewWidth, int viewHeight);
 }
+

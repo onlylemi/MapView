@@ -41,6 +41,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
     private int canvasBackgroundColor = -1; //Transparent
 
     private MapViewListener mapViewListener = null;
+    private MapViewSetupCallback setupCallback = null;
     private boolean isMapLoadFinish = false;
     private List<MapBaseLayer> layers; // all layers
     private MapLayer mapLayer;
@@ -150,16 +151,18 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         if (thread == null || thread.getState() == Thread.State.TERMINATED){
             Log.d(TAG, "Creating a new render thread");
             thread = new MapViewRenderer(holder, this);
+            thread.setSetupCallback(setupCallback);
             //thread.setRunning(true);
             thread.start();  // Start a new thread
-            onRenderingStarted();
+            //onRenderingStarted();
         }
         else if(thread.getState() == Thread.State.NEW){
             Log.d(TAG, "Using an old thread");
             thread.init(holder, this);
+            thread.setSetupCallback(setupCallback);
             //thread.setRunning(true);
             thread.start();
-            onRenderingStarted();
+            //onRenderingStarted();
         }
         Log.d(TAG, "Surface created, size to: " + getWidth() + "x" + getHeight());
     }
@@ -191,6 +194,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         }
     }
 
+    @Deprecated
     private void onRenderingStarted() {
         thread.waitUntilReady();
 
@@ -206,36 +210,27 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         Choreographer.getInstance().postFrameCallback(this);
     }
 
+    public void onSetupCallback(MapViewSetupCallback callback) {
+        this.setupCallback = callback;
+        this.thread.setSetupCallback(callback);
+    }
+
     /**
      * load map bitmap
      *
      * @param bmp
      */
+    @Deprecated
     public void loadMap(final Bitmap bmp) {
         isMapLoadFinish = false;
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (bmp != null) {
-                    if (mapLayer == null) {
-                        mapLayer = new MapLayer(MapView.this);
-                        // add map image layer
-                        layers.add(mapLayer);
-                    }
-                    mapLayer.setBmp(bmp);
-                    if (mapViewListener != null) {
-                        // load map success, and callback
-                        mapViewListener.onMapLoadSuccess();
-                    }
-                    isMapLoadFinish = true;
-                } else {
-                    if (mapViewListener != null) {
-                        mapViewListener.onMapLoadFail();
-                    }
-                }
-            }
-        }).start();
+        mapLayer = new MapLayer(MapView.this);
+        layers.add(mapLayer);
+        mapLayer.setBmp(bmp);
+        if (mapViewListener != null) {
+            // load map success, and callback
+            mapViewListener.onMapLoadSuccess();
+        }
+        isMapLoadFinish = true;
     }
 
     /**
