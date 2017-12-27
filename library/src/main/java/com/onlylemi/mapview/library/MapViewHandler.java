@@ -2,6 +2,7 @@ package com.onlylemi.mapview.library;
 
 import android.graphics.Bitmap;
 
+import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
 
@@ -14,7 +15,7 @@ public class MapViewHandler {
     private MapView view;
     private MapViewRenderer renderer;
 
-    private boolean isMapCreated = false;
+    private LocationUser currentUser;
 
     public MapViewHandler(MapView view, MapViewRenderer renderer) {
         this.view = view;
@@ -41,8 +42,16 @@ public class MapViewHandler {
 
     }
 
+    public void setTrackedUser(LocationUser user) {
+        currentUser = user;
+    }
+
     public void addLayer(MapBaseLayer layer) {
         layer.createHandler(renderer);
         renderer.addLayer(layer);
+    }
+
+    public LocationUser getUser() {
+        return currentUser;
     }
 }

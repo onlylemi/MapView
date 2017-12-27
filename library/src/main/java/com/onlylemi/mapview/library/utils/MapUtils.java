@@ -355,7 +355,7 @@ public final class MapUtils {
      * @param baseGraphicsList
      * @return
      */
-    public static List<PointF> getPositionListFromGraphicList(List<BaseGraphics> baseGraphicsList) {
+    public static List<PointF> getPositionListFromGraphicList(List<? extends BaseGraphics> baseGraphicsList) {
 
         List<PointF> returnList = new ArrayList();
 

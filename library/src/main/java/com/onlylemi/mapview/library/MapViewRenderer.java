@@ -7,14 +7,17 @@ import android.graphics.Paint;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.onlylemi.mapview.library.graphics.IBackground;
 import com.onlylemi.mapview.library.graphics.implementation.Backgrounds.ColorBackground;
+import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
+import com.onlylemi.mapview.library.messages.ICameraModeCommand;
 import com.onlylemi.mapview.library.messages.ICommand;
 import com.onlylemi.mapview.library.messages.MessageDefenitions;
 import com.onlylemi.mapview.library.utils.MapMath;
@@ -112,6 +115,8 @@ public class MapViewRenderer extends Thread {
                             (((long) msg.arg2) & 0xffffffffL));
                 } else if(msg.what == MessageDefenitions.MESSAGE_EXECUTE) {
                     ((ICommand) msg.obj).execute();
+                } else if(msg.what == MessageDefenitions.MESSAGE_CAMERA_MODE_EXECUTE) {
+                    ((ICameraModeCommand) msg.obj).execute(camera);
                 } else if(msg.what == 0) {
                     setRunning(false);
                 }
@@ -120,15 +125,13 @@ public class MapViewRenderer extends Thread {
             }
         };
 
-        setupCallback.onSetup(new MapViewHandler(this.mapView, this));
-        finishSetup();
+        //// TODO: 27/12/2017 Maybe rename to setup handler?
+        MapViewHandler setupHandler = new MapViewHandler(this.mapView, this);
+        setupCallback.onSetup(setupHandler);
+        finishSetup(setupHandler.getUser());
+        setupCallback.onPostSetup();
 
         Log.d(TAG, "Setup callback finished");
-
-//        synchronized (pauseLock) {
-//            paused = false;
-//            pauseLock.notifyAll();
-//        }
 
         Log.d(TAG, "Everything setup, starting rendering");
 
@@ -198,10 +201,10 @@ public class MapViewRenderer extends Thread {
     /**
      * Called once the user has done all their map setups. This just inits all the zooming, camera and links everything together
      */
-    private void finishSetup() {
+    private void finishSetup(@Nullable LocationUser user) {
         if(rootLayer != null) {
-            //rootLayer.initMapLayer();
             camera = new MapViewCamera(mapView.getWidth(), mapView.getHeight(), rootLayer.getWidth(), rootLayer.getHeight());
+            camera.initialize(user);
         } else {
             //// TODO: 26/12/2017 Create my own exception for this!
             throw new RuntimeException("You need to create at least one maplayer");

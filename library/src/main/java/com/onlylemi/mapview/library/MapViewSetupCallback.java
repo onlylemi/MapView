@@ -1,6 +1,15 @@
 package com.onlylemi.mapview.library;
 
-@FunctionalInterface
 public interface MapViewSetupCallback {
+
+    /**
+     * Gets called after the message handler has been setup. This allows the user to init and load graphics on a seperate thread
+     * @param handler
+     */
     void onSetup(MapViewHandler handler);
+
+    /**
+     * This gets called once EVERYTHING is setup. Can now set camera mode ex.
+     */
+    void onPostSetup();
 }

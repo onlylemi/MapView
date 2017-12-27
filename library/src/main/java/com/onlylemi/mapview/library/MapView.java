@@ -21,6 +21,8 @@ import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.layer.EmptyMapLayer;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
+import com.onlylemi.mapview.library.messages.ICameraModeCommand;
+import com.onlylemi.mapview.library.messages.MessageDefenitions;
 import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.utils.MapModeOptions;
 import com.onlylemi.mapview.library.utils.MapUtils;
@@ -170,10 +172,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         Log.d(TAG, "Surface resized to: " + width + "x"+height);
-
-        calculateOnContainUserZoom();
-
-        mapLayer.initMapLayer();
         thread.onSurfaceChanged(holder, width, height);
     }
 
@@ -626,14 +624,17 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         thread.setWorldMatrix(worldMatrix);
     }
 
+    @Deprecated
     public float getCurrentZoom() {
         return thread.getZoom();
     }
 
+    @Deprecated
     public void setMaxZoom(float maxZoom) {
         this.maxZoom = maxZoom;
     }
 
+    @Deprecated
     public void setMinZoom(float minZoom) {
         this.minZoom = minZoom;
     }
@@ -653,11 +654,13 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
     }
 
     //This can cause strange behaviours if the input is bad
+    @Deprecated
     public void overrideContainUserZoom(float zoom) {
         defualtContainZoom = zoom;
     }
 
     //Call in onRenderStarted or after
+    @Deprecated
     public float getContainUserZoom() {
         return defualtContainZoom;
     }
@@ -759,6 +762,59 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
             thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), 1, (int) (deltaTimeNano >> 32), (int) deltaTimeNano));
     }
 
+    public void setContainerUserMode() {
+        sendCameraMessageToThread(new ICameraModeCommand() {
+            @Override
+            public void execute(MapViewCamera camera) {
+                camera.switchCameraMode(camera.getFactory().createContainUserMode());
+            }
+        });
+    }
+
+    public void setFreeMode() {
+        sendCameraMessageToThread(new ICameraModeCommand() {
+            @Override
+            public void execute(MapViewCamera camera) {
+                camera.switchCameraMode(camera.getFactory().createFreeMode());
+            }
+        });
+    }
+
+    public void setFollowUserMode() {
+        sendCameraMessageToThread(new ICameraModeCommand() {
+            @Override
+            public void execute(MapViewCamera camera) {
+                camera.switchCameraMode(camera.getFactory().createFollowUserMode());
+            }
+        });
+    }
+
+    public void setContainPointsMode(final List<PointF> points, final boolean includeUser) throws IllegalArgumentException {
+        if(includeUser && points.size() < 1)
+            throw new IllegalArgumentException("Zoom points size < 1, must include at least 1 point when including a user");
+        else if(!includeUser && points.size() <= 1)
+            throw new IllegalArgumentException("Zoom points size is less or equals to 1, must be > 1 if no user is included");
+        sendCameraMessageToThread(new ICameraModeCommand() {
+            @Override
+            public void execute(MapViewCamera camera) {
+                //// TODO: 27/12/2017 This value shouldnt be hardcoded
+                camera.switchCameraMode(camera.getFactory().createContainPointsMode(points, includeUser, 50.0f));
+            }
+        });
+    }
+
+    public void setContainGraphicsPointsMode(final List<? extends BaseGraphics> zoomPoints, final boolean includeUser) throws IllegalArgumentException {
+        setContainPointsMode(MapUtils.getPositionListFromGraphicList(zoomPoints), includeUser);
+    }
+
+    private void sendCameraMessageToThread(ICameraModeCommand command) {
+        if(thread != null && thread.getHandler() != null) {
+            MessageDefenitions.sendExecuteMessage(thread.getHandler(), MessageDefenitions.MESSAGE_CAMERA_MODE_EXECUTE, command);
+        } else {
+            Log.w(TAG, "Trying to call a handler method before the thread has finished setup");
+        }
+    }
+
     public enum TRACKING_MODE {
         ZOOM_WITHIN_POINTS,
         FOLLOW_USER,
@@ -773,6 +829,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
      * @param zoomSpeed speed in seconds to zoom from full zoom to minimum zoom
      * @param includeUser true if the user (if it exists) should be included in the list of points
      */
+    @Deprecated
     public void setZoomPoints(final List<? extends BaseGraphics> zoomPoints, float zoomSpeed, boolean includeUser) throws IllegalArgumentException {
         if(includeUser && zoomPoints.size() < 1)
             throw new IllegalArgumentException("Zoom points size < 1, must include at least 1 point when including a user");
@@ -789,14 +846,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
             else
                 throw new IllegalArgumentException("No user object has ben set");
         }
-
-//        //Via duration we calculate the zoom velocity
-//        float zoomVelocity = (maxZoom - minZoom) / (zoomSpeed * MapMath.NANOSECOND);
-//        //We also need to calculate the translation velocity of returning the camera
-//        //// TODO: 2017-08-09 This calculation is wrong, it should be based on the zoom time and calulcated between each translation
-//        float moveVelocity = (float) Math.sqrt( Math.pow(getMapWidth(), 2.0) + Math.pow(getMapHeight(), 2.0) ) / (zoomSpeed * MapMath.NANOSECOND);
     }
 
+    @Deprecated
     public void setTrackingMode(TRACKING_MODE mode) {
         this.mode = mode;
     }
@@ -811,6 +863,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
                 , mid.x, mid.y);
     }
 
+    @Deprecated
     private float rotation(MotionEvent event, PointF mid) {
         return MapMath.getDegreeBetweenTwoPoints(event.getX(0), event.getY(0)
                 , mid.x, mid.y);
@@ -823,24 +876,29 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
      * @param y
      * @return
      */
+    @Deprecated
     public boolean withFloorPlan(float x, float y) {
         float[] goal = convertMapXYToScreenXY(x, y);
         return goal[0] > 0 && goal[0] < mapLayer.getDimensions().width() && goal[1] > 0
                 && goal[1] < mapLayer.getDimensions().height();
     }
 
+    @Deprecated
     public float getMapWidth() {
         return mapLayer.getDimensions().width();
     }
 
+    @Deprecated
     public float getMapHeight() {
         return mapLayer.getDimensions().height();
     }
 
+    @Deprecated
     public int getCanvasBackgroundColor() {
         return canvasBackgroundColor;
     }
 
+    @Deprecated
     public void setCanvasBackgroundColor(int canvasBackgroundColor) {
         this.canvasBackgroundColor = canvasBackgroundColor;
     }
@@ -849,34 +907,41 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         this.user = user;
     }
 
+    @Deprecated
     public void centerOnUser(LocationUser user) {
         mapCenterWithPoint(user.getPosition().x, user.getPosition().y);
         this.user = user;
         this.isFollowUser = true;
     }
 
+    @Deprecated
     public void disableCenterOnUser() {
         this.isFollowUser = false;
     }
 
+    @Deprecated
     public void setMapModeOptions(MapModeOptions mapModeOptions) {
         modeOptions = mapModeOptions;
     }
 
+    @Deprecated
     public MapModeOptions getMapModeOptions() {
         return modeOptions;
     }
 
+    @Deprecated
     public void setBackground(IBackground background) {
         thread.setBackground(background);
     }
 
+    @Deprecated
     public void setFixedFPS(int FPS) throws InstantiationError {
 //        if(thread != null) {
 //            thread.setFixedFrameRate(FPS);
 //        }
     }
 
+    @Deprecated
     public void disableFixedFPS() {
 //        if(thread != null) {
 //            thread.disableFixedFrameRate();
