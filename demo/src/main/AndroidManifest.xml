@@ -14,7 +14,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="reverseLandscape"
+            android:screenOrientation="landscape"
             android:theme="@style/AppTheme.Boot">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -24,7 +24,7 @@
         </activity>
         <activity
             android:name=".MapLayerTestActivity"
-            android:screenOrientation="reverseLandscape"
+            android:screenOrientation="landscape"
             android:label="MapLayerTest">
         </activity>
         <activity

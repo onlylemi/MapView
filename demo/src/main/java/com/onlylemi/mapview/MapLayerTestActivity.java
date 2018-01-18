@@ -17,7 +17,9 @@ import android.view.View;
 import android.view.WindowManager;
 
 import com.onlylemi.mapview.library.MapView;
+import com.onlylemi.mapview.library.MapViewHandler;
 import com.onlylemi.mapview.library.MapViewListener;
+import com.onlylemi.mapview.library.MapViewSetupCallback;
 import com.onlylemi.mapview.library.graphics.BaseGraphics;
 import com.onlylemi.mapview.library.graphics.BaseMark;
 import com.onlylemi.mapview.library.graphics.implementation.Backgrounds.ColorBackground;
@@ -34,6 +36,7 @@ import com.onlylemi.mapview.library.utils.MapModeOptions;
 import junit.framework.Test;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,14 +47,20 @@ public class MapLayerTestActivity extends AppCompatActivity {
     private MapView mapView;
 
     private LocationUser user;
+    private List<ProximityMark> marks = new ArrayList<>();
 
     private Matrix transformMatrix;
     private PointF position = new PointF(0, 0);
+
+    private LocationLayer.UserHandler userHandler;
+    private MarkLayer.MarkHandler markHandler;
 
     private LocationLayer locationLayer;
     private MarkLayer markLayer;
     private RouteLayer routeLayer;
     private Bitmap bg;
+
+    private boolean inited = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,75 +73,56 @@ public class MapLayerTestActivity extends AppCompatActivity {
         float refreshRating = display.getRefreshRate();
 
         Log.d(TAG, "Refreshrate is: " + refreshRating);
-
+        Bitmap map = null;
         try {
             // TODO: 2017-02-22 get from net
-            Bitmap map = BitmapFactory.decodeStream(getAssets().open("bromma_floor_plan810.png"));
+            map = BitmapFactory.decodeStream(getAssets().open("map.png"));
             bg = BitmapFactory.decodeStream(getAssets().open("bg-coop.png"));
-            transformMatrix = MapMath.createMappingMatrix(map, 7, 5, new PointF(0, 0), new PointF(633, 500));   //<--------- THIS IS FOR THE BACKEND ROOM PNG
+            transformMatrix = MapMath.createMappingMatrix(map, 5, 7, new PointF(0, 0), new PointF(2170, 861));   //<--------- THIS IS FOR THE BACKEND ROOM PNG
 
             try {
                 user = new LocationUser(BitmapFactory.decodeStream(getAssets().open("marker.png")), MapMath.transformPoint(transformMatrix, position), new PointF(1, 0));
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            mapView.setUser(user);
-
-            mapView.loadMap(map);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        mapView.setMapViewListener(new MapViewListener() {
+        mapView.onSetupCallback(new MapViewSetupCallback() {
             @Override
-            public void onMapLoadSuccess() {
-                locationLayer = new LocationLayer(mapView, user);
-                routeLayer = new RouteLayer(mapView, user);
-                markLayer = new MarkLayer(mapView, user);
+            public void onSetup(MapViewHandler handler) {
+                try {
+                    handler.createMap(BitmapFactory.decodeStream(getAssets().open("bromma_floor_plan810_rotated.png")));
+                } catch(IOException ex) {
+                    ex.printStackTrace();
+                }
+                LocationLayer locationLayer = new LocationLayer(mapView, user);
+                handler.addLayer(locationLayer);
+
+                MarkLayer markLayer = new MarkLayer(mapView, user);
+                handler.addLayer(markLayer);
 
                 markLayer.setMarkIsClickListener(new MarkLayer.MarkIsClickListener() {
                     @Override
-                    public void markIsClick(BaseMark iMark, int i) {
-                        //Handle click. You get a reference to the IMark and the index in the mark array
-                        Log.d(TAG, "Clicked a mark");
+                    public void markIsClick(BaseMark num, int index) {
+                        Log.d(TAG, "Clicked mark");
                     }
                 });
 
-                markLayer.setMarkTriggeredListener(new MarkLayer.MarkIsTriggered() {
-                    @Override
-                    public void onEnter(ProximityMark mark, int index) {
+                handler.setTrackedUser(user);
 
-                        mark.setVisible(true);
-
-                        Log.d(TAG, "Trigered mark");
-                    }
-
-                    @Override
-                    public void onExit(ProximityMark mark, int index) {
-                        Log.d(TAG, "Exited mark");
-
-                        mark.setVisible(false);
-
-                    }
-                });
-
-                mapView.addLayer(locationLayer);
-                mapView.addLayer(markLayer);
-                mapView.addLayer(routeLayer);
-                mapView.setDebug(true);
+                userHandler = locationLayer.getUserHandler();
+                markHandler = markLayer.getMarkHandler();
             }
 
             @Override
-            public void onMapLoadFail() {
-                Log.e(TAG, "Failed to load map");
-            }
+            public void onPostSetup() {
+                Log.d(TAG, "Everything has inited, now I can do whatever I want");
 
-            @Override
-            public void onRenderingStarted(int viewWidth, int viewHeight) {
-                mapView.setBackground(new TiledBitmapBackground(getResources(), bg, viewWidth, viewHeight, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT));
+                inited = true;
 
-                //mapView.setFixedFPS(15);
+                mapView.setContainerUserMode();
             }
         });
 
@@ -151,57 +141,53 @@ public class MapLayerTestActivity extends AppCompatActivity {
     private ArrayList<StaticMark> sm = new ArrayList();
     private ArrayList<PointF> route = new ArrayList<>();
 
+    boolean b = true;
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
         boolean handled = false;
 
-        if (mapView.isMapLoadFinish()) {
+        if (inited) {
             if (keyCode == KeyEvent.KEYCODE_W) {
                 position.y -= 0.5f;
-                user.setLookAt(new PointF(0.0f, 1.0f), 0.3f);
+                //user.setLookAt(new PointF(0.0f, 1.0f), 0.3f);
                 handled = true;
             } else if (keyCode == KeyEvent.KEYCODE_A) {
                 position.x -= 0.5f;
-                user.setLookAt(new PointF(-1, 0), 0.3f);
+                //user.setLookAt(new PointF(-1, 0), 0.3f);
                 handled = true;
             } else if (keyCode == KeyEvent.KEYCODE_S) {
                 position.y += 0.5f;
-                user.setLookAt(new PointF(0.0f, -1.0f), 0.3f);
+                //user.setLookAt(new PointF(0.0f, -1.0f), 0.3f);
                 handled = true;
             } else if (keyCode == KeyEvent.KEYCODE_D) {
                 position.x += 0.5f;
-                user.setLookAt(new PointF(1, 0), 0.3f);
+                //user.setLookAt(new PointF(1, 0), 0.3f);
                 handled = true;
             }
 
             if (keyCode == KeyEvent.KEYCODE_H) {
-                debug = !debug;
-                mapView.setDebug(debug);
+                mapView.setFreeMode();
             }
 
             if (keyCode == KeyEvent.KEYCODE_K) {
-
-//                View v = findViewById(R.id.mappi);
-//                v.setVisibility(View.GONE);
-                    mapView.pauseRendering();
-//                markLayer.setStaticMarks(new ArrayList<BaseMark>());
-//                markLayer.setProximityMarks(new ArrayList<ProximityMark>());
-
+                marks.add(new ProximityMark(user.getBmp(), new PointF(user.getPosition().x, user.getPosition().y), user.getBmp().getWidth() * 2.0f, true, false));
+                markHandler.setProximityMarks(marks);
             }
 
             if(keyCode == KeyEvent.KEYCODE_G) {
-                mapView.disableFixedFPS();
+                mapView.setContainerUserMode();
             }
 
             if(keyCode == KeyEvent.KEYCODE_T) {
-                mapView.setFixedFPS(5);
+                mapView.setFollowUserMode();
             }
 
             if (keyCode == KeyEvent.KEYCODE_P) {
+                mapView.setContainGraphicsPointsMode(marks, true);
 //                View v = findViewById(R.id.mappi);
 //                v.setVisibility(View.VISIBLE);
-                mapView.resumeRendering();
 //                try {
 //                    Bitmap markBm = BitmapFactory.decodeStream(getAssets().open("marker.png"));
 //
@@ -224,8 +210,18 @@ public class MapLayerTestActivity extends AppCompatActivity {
 
             //If continious is true it will keep the mark array as a reference
             //mapView.zoomWithinPoints(posis);
+            if(b) {
+                List<PointF> positions = new ArrayList<>();
 
-            user.move(MapMath.transformPoint(transformMatrix, position), 0.1f);
+                positions.add(MapMath.transformPoint(transformMatrix, new PointF(5, 0)));
+                positions.add(MapMath.transformPoint(transformMatrix, new PointF(5, 7)));
+                positions.add(MapMath.transformPoint(transformMatrix, new PointF(0, 7)));
+                positions.add(MapMath.transformPoint(transformMatrix, new PointF(0, 0)));
+
+                userHandler.moveUser(positions, 5.0f, true);
+            } else {
+                userHandler.moveUser(MapMath.transformPoint(transformMatrix, new PointF(5, 7)), 1.0f);
+            }
         }
         return handled;
     }
