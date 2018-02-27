@@ -122,7 +122,7 @@ public class MapLayerTestActivity extends AppCompatActivity {
 
                 mapView.setDebug(true);
 
-                //mapView.setContainerUserMode();
+                mapView.setContainerUserMode();
             }
         });
 

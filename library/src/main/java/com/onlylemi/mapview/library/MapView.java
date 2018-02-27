@@ -255,16 +255,16 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
     public boolean onTouchEvent(MotionEvent event) {
         if(thread != null && thread.getHandler() != null) {
             int action = event.getAction() & MotionEvent.ACTION_MASK;
-            thread.handleInput(action, event);
-//            switch(action) {
-//                case MotionEvent.ACTION_POINTER_DOWN:
-//                    if(event.getPointerCount() == 2) {
-//                        thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), action, (int) event.getX(0), (int) event.getY(0)));
-//                    }
-//                    break;
-//                default:
-//                    thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), action, (int) event.getX(), (int) event.getY()));
-//            }
+//            thread.handleInput(action, event); note: This way we dont spam the message handler, look here first if its causing lags
+            switch(action) {
+                case MotionEvent.ACTION_POINTER_DOWN:
+                    if(event.getPointerCount() == 2) {
+                        thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), action, (int) event.getX(0), (int) event.getY(0)));
+                    }
+                    break;
+                default:
+                    thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), action, (int) event.getX(), (int) event.getY()));
+            }
 
         }
 
