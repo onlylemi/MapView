@@ -42,9 +42,9 @@ public class BitmapLayer extends MapBaseLayer {
     }
 
     @Override
-    public void onTouch(MotionEvent event) {
+    public void onTouch(PointF point) {
         if (onBitmapClickListener != null) {
-            float[] goal = mapView.convertMapXYToScreenXY(event.getX(), event.getY());
+            float[] goal = mapView.convertMapXYToScreenXY(point.x, point.y);
             Log.i("BitmapLayer", "goal: " + goal[0] + ", " + goal[1]);
             if (goal[0] > location.x - bitmap.getWidth() / 2 &&
                     goal[0] < location.x + bitmap.getWidth() / 2 &&

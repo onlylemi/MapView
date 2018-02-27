@@ -4,13 +4,16 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+import android.view.View;
 
 import com.onlylemi.mapview.library.graphics.IBackground;
 import com.onlylemi.mapview.library.graphics.implementation.Backgrounds.ColorBackground;
@@ -30,6 +33,9 @@ import java.util.List;
  * Created by patny on 2017-08-14.
  */
 
+/**
+ * // TODO: 2018-02-17 Document this class properly
+ */
 public class MapViewRenderer extends Thread {
     private static final String TAG = "MapViewRenderer";
 
@@ -55,6 +61,8 @@ public class MapViewRenderer extends Thread {
     private boolean paused = true;
 
     private Handler messageHandler;
+
+    private boolean isSetupDone = false;
 
     //region debug
 
@@ -89,7 +97,9 @@ public class MapViewRenderer extends Thread {
     @Override
     public void run() {
 
-        //Setup the map
+        /*
+            This locks the render thread until the user sets up the setup callback
+         */
         synchronized (setupLock) {
             while(setupCallback == null) {
                 try {
@@ -106,24 +116,7 @@ public class MapViewRenderer extends Thread {
 
         Log.d(TAG, "Preparing message handler");
 
-        messageHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-
-                if(msg.what == MessageDefenitions.MESSAGE_DRAW) {
-                    doFrame((((long) msg.arg1) << 32) |
-                            (((long) msg.arg2) & 0xffffffffL));
-                } else if(msg.what == MessageDefenitions.MESSAGE_EXECUTE) {
-                    ((ICommand) msg.obj).execute();
-                } else if(msg.what == MessageDefenitions.MESSAGE_CAMERA_MODE_EXECUTE) {
-                    ((ICameraModeCommand) msg.obj).execute(camera);
-                } else if(msg.what == 0) {
-                    setRunning(false);
-                }
-
-                //msg.recycle();
-            }
-        };
+        messageHandler = new MapViewMessageHandler();
 
         //// TODO: 27/12/2017 Maybe rename to setup handler?
         MapViewHandler setupHandler = new MapViewHandler(this.mapView, this);
@@ -133,7 +126,7 @@ public class MapViewRenderer extends Thread {
 
         Log.d(TAG, "Setup callback finished");
 
-        Log.d(TAG, "Everything setup, starting rendering");
+        Log.d(TAG, "Everything setup, starting looper");
 
         Looper.loop();
 
@@ -169,9 +162,7 @@ public class MapViewRenderer extends Thread {
             return;
 
         background.draw(canvas);
-
-        //// TODO: 2017-08-14 This will be a seperate controller later on
-        //mapView.updateModes(deltaTimeNano);
+        
         Matrix m = camera.update(deltaTimeNano);
 
         for (MapBaseLayer layer : layers) {
@@ -205,6 +196,7 @@ public class MapViewRenderer extends Thread {
         if(rootLayer != null) {
             camera = new MapViewCamera(mapView.getWidth(), mapView.getHeight(), rootLayer.getWidth(), rootLayer.getHeight());
             camera.initialize(user);
+            isSetupDone = true;
         } else {
             //// TODO: 26/12/2017 Create my own exception for this!
             throw new RuntimeException("You need to create at least one maplayer");
@@ -235,6 +227,10 @@ public class MapViewRenderer extends Thread {
         }
     }
 
+    /**
+     * The callback to call when the mapview is ready
+     * @param callback
+     */
     public void setSetupCallback(MapViewSetupCallback callback) {
         synchronized (setupLock) {
             setupCallback = callback;
@@ -258,30 +254,47 @@ public class MapViewRenderer extends Thread {
         return debug;
     }
 
+    @Deprecated
     public Matrix getWorldMatrix() {
         return worldMatrix;
     }
 
+    @Deprecated
     public void setWorldMatrix(Matrix worldMatrix) {
         this.worldMatrix = worldMatrix;
     }
 
+    @Deprecated
     public float getZoom() {
         return zoom;
     }
 
+    @Deprecated
     public void setZoom(float zoom) {
         this.zoom = zoom;
     }
 
+    //@Deprecated?
+    public boolean isSetupDone()
+    {
+        return isSetupDone;
+    }
+
+    @Deprecated
     public IBackground getBackground() {
         return background;
     }
 
+    @Deprecated
     public void setBackground(IBackground background) {
         this.background = background;
     }
 
+    /**
+     * Draws the current FPS on the screen
+     * @param canvas
+     * @param deltaTimeNano
+     */
     private void drawDebugValues(Canvas canvas, long deltaTimeNano) {
         frameTimeAccumilator += deltaTimeNano;
         frameCounter++;
@@ -298,6 +311,83 @@ public class MapViewRenderer extends Thread {
             p.setColor(Color.YELLOW);
             canvas.drawText("FPS: " + FPS, 10, 80, p);
             canvas.drawText("Hardware accelerated: " + canvas.isHardwareAccelerated(), 10, 120, p);
+        }
+    }
+
+    /**
+     * Any external write/update calls to the render thread MUST go through the handler
+     */
+    private class MapViewMessageHandler extends Handler{
+
+        @Override
+        public void handleMessage(Message msg)
+        {
+            switch (msg.what) {
+                case MessageDefenitions.MESSAGE_DRAW:
+                    doFrame((((long) msg.arg1) << 32) |
+                            (((long) msg.arg2) & 0xffffffffL));
+                    break;
+                case MessageDefenitions.MESSAGE_CAMERA_MODE_EXECUTE:
+                    ((ICameraModeCommand) msg.obj).execute(camera);
+                    break;
+                case MessageDefenitions.MESSAGE_EXECUTE:
+                    ((ICommand) msg.obj).execute();
+                    break;
+                default:
+                    if(msg.what >= MessageDefenitions.MESSAGE_MOTIONEVENT_LOWER_RANGE &&
+                            msg.what <= MessageDefenitions.MESSAGE_MOTIONEVENT_UPPER_RANGE) {
+                        switch(msg.what) {
+                            case MotionEvent.ACTION_POINTER_DOWN:
+                                feedInputToCamera(msg.what, new PointF(msg.arg1, msg.arg2), (int) msg.obj);
+                                break;
+                            case MotionEvent.ACTION_UP:
+                                feedInputToCamera(msg.what, new PointF(msg.arg1, msg.arg2));
+
+                                for (MapBaseLayer layer : layers) {
+                                    layer.onTouch(new PointF(msg.arg1, msg.arg2));
+                                }
+                                break;
+                            default:
+                                feedInputToCamera(msg.what, new PointF(msg.arg1, msg.arg2));
+                        }
+                    }
+            }
+            super.handleMessage(msg);
+        }
+    }
+
+    /**
+     * Sends input events to the camera
+     * @param inputAction
+     * @param point
+     * @param extras any extras information (ex. pointer count). null if nothing
+     */
+    private void feedInputToCamera(int inputAction, PointF point, int extras) {
+        camera.handleInput(inputAction, point, extras);
+    }
+
+    private void feedInputToCamera(int inputAction, PointF point) {
+        camera.handleInput(inputAction, point, -1);
+    }
+
+    public void handleInput(int action, MotionEvent event) {
+        switch(action) {
+            case MotionEvent.ACTION_POINTER_DOWN:
+                feedInputToCamera(action, new PointF(event.getX(), event.getY()), event.getPointerCount());
+                break;
+            case MotionEvent.ACTION_UP:
+                feedInputToCamera(action, new PointF(event.getX(), event.getY()));
+
+                for (MapBaseLayer layer : layers) {
+                    layer.onTouch(new PointF(event.getX(), event.getY()));
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                feedInputToCamera(action, new PointF(event.getX(), event.getY()));
+                break;
+            case MotionEvent.ACTION_DOWN:
+                feedInputToCamera(action, new PointF(event.getX(), event.getY()));
+                break;
         }
     }
 }

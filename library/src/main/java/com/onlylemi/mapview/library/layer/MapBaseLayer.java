@@ -2,6 +2,7 @@ package com.onlylemi.mapview.library.layer;
 
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.PointF;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 
@@ -31,12 +32,7 @@ public abstract class MapBaseLayer {
         this.mapView = mapView;
     }
 
-    /**
-     * touch event
-     *
-     * @param event
-     */
-    public abstract void onTouch(MotionEvent event);
+    public abstract void onTouch(PointF point);
 
     /**
      * draw event

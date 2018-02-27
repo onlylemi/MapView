@@ -50,6 +50,13 @@ public class MapViewCamera {
     private float maxZoom;
     private float minZoom;
 
+    public enum CameraModes {
+        FreeMode,
+        ContainUser,
+        FollowUser,
+        ContainPoints
+    }
+
     public MapViewCamera(int viewWidth, int viewHeight, int mapWidth, int mapHeight) {
         this.viewWidth = viewWidth;
         this.viewHeight = viewHeight;
@@ -103,6 +110,33 @@ public class MapViewCamera {
     }
 
     /**
+     * Same as above but more automatic
+     * @param mode mode to swap to
+     */
+    public void switchCameraMode(CameraModes mode, Object... params) {
+        BaseMode newMode;
+        switch(mode) {
+            case FreeMode:
+                newMode = factory.createFreeMode();
+                break;
+            case ContainUser:
+                newMode = factory.createContainUserMode();
+                break;
+            case ContainPoints:
+                newMode = factory.createContainPointsMode((List<PointF>) params[0],
+                        (boolean) params[1], (float) params[2]);
+                break;
+            case FollowUser:
+                newMode = factory.createFollowUserMode();
+                break;
+            default:
+                Log.e(TAG, "Attempting to swap to an unknown camera mode");
+                return;
+        }
+        switchCameraMode(newMode);
+    }
+
+    /**
      * Calculates the min and max zoom values
      * We assume the default starting mode is the entire map in view centered
      */
@@ -143,6 +177,10 @@ public class MapViewCamera {
         //float newZoom = MapMath.truncateNumber(zoom, minZoom, maxZoom);
         worldMatrix.postScale(zoom / currentZoom, zoom / currentZoom, worldX, worldY);
         currentZoom = zoom;
+    }
+
+    public void handleInput(int action, PointF point, int extras) {
+        currentCameraMode.onInput(action, point, extras);
     }
 
     //region GETSET

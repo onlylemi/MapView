@@ -253,84 +253,99 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (!isMapLoadFinish) {
-            return false;
+        if(thread != null && thread.getHandler() != null) {
+            int action = event.getAction() & MotionEvent.ACTION_MASK;
+            thread.handleInput(action, event);
+//            switch(action) {
+//                case MotionEvent.ACTION_POINTER_DOWN:
+//                    if(event.getPointerCount() == 2) {
+//                        thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), action, (int) event.getX(0), (int) event.getY(0)));
+//                    }
+//                    break;
+//                default:
+//                    thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), action, (int) event.getX(), (int) event.getY()));
+//            }
+
         }
 
-        float newDist;
-        float currentZoom = thread.getZoom();
-        Matrix currentMatrix = thread.getWorldMatrix();
-
-        switch (event.getAction() & MotionEvent.ACTION_MASK) {
-            case MotionEvent.ACTION_DOWN:
-                saveMatrix.set(currentMatrix);
-                startTouch.set(event.getX(), event.getY());
-                currentTouchState = MapView.TOUCH_STATE_SCROLL;
-                break;
-            case MotionEvent.ACTION_POINTER_DOWN:
-                if (event.getPointerCount() == 2) {
-                    saveMatrix.set(currentMatrix);
-                    saveZoom = currentZoom;
-                    startTouch.set(event.getX(0), event.getY(0));
-                    currentTouchState = MapView.TOUCH_STATE_TWO_POINTED;
-
-                    mid = midPoint(event);
-                    oldDist = distance(event, mid);
-                }
-                break;
-            case MotionEvent.ACTION_UP:
-                if (withFloorPlan(event.getX(), event.getY())) {
-                    for (MapBaseLayer layer : layers) {
-                        layer.onTouch(event);
-                    }
-                }
-                currentTouchState = MapView.TOUCH_STATE_NO;
-                break;
-            case MotionEvent.ACTION_POINTER_UP:
-                currentTouchState = MapView.TOUCH_STATE_NO;
-                break;
-            case MotionEvent.ACTION_MOVE:
-                switch (currentTouchState) {
-                    case MapView.TOUCH_STATE_SCROLL:
-                            oldMode = mode == mode.FREE ? oldMode : mode;
-                            currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
-                            mode = TRACKING_MODE.FREE;
-                            currentMatrix.set(saveMatrix);
-                            translate(event.getX() - startTouch.x, event.getY() -
-                                    startTouch.y);
-                            //refresh();
-                        break;
-                    case MapView.TOUCH_STATE_TWO_POINTED:
-                            oldDist = distance(event, mid);
-                            currentTouchState = MapView.TOUCH_STATE_SCALE;
-                        break;
-                    case MapView.TOUCH_STATE_SCALE:
-                        oldMode = mode == mode.FREE ? oldMode : mode;
-                        currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
-                        mode = TRACKING_MODE.FREE;
-                        currentMatrix.set(saveMatrix);
-                        newDist = distance(event, mid);
-                        float scale = newDist / oldDist;
-
-                        if (scale * saveZoom < minZoom) {
-                            scale = minZoom / saveZoom;
-                        } else if (scale * saveZoom > maxZoom) {
-                            scale = maxZoom / saveZoom;
-                        }
-                        thread.setZoom(scale * saveZoom);
-
-                        PointF initPoint = isFollowUser ? user.getWorldPosition() : mid;
-
-                        currentMatrix.postScale(scale, scale, initPoint.x, initPoint.y);
-                        thread.setWorldMatrix(currentMatrix);
-                        break;
-                    default:
-                        break;
-                }
-                break;
-            default:
-                break;
-        }
+//        float newDist;
+//        float currentZoom = thread.getZoom();
+//        Matrix currentMatrix = thread.getWorldMatrix();
+//
+//        //Reserve space for the action range
+//        //Send pre-masked action
+//
+//
+//        switch (event.getAction() & MotionEvent.ACTION_MASK) {
+//            case MotionEvent.ACTION_DOWN:
+//                saveMatrix.set(currentMatrix);
+//                startTouch.set(event.getX(), event.getY());
+//                currentTouchState = MapView.TOUCH_STATE_SCROLL;
+//                break;
+//            case MotionEvent.ACTION_POINTER_DOWN:
+//                if (event.getPointerCount() == 2) {
+//                    saveMatrix.set(currentMatrix);
+//                    saveZoom = currentZoom;
+//                    startTouch.set(event.getX(0), event.getY(0));
+//                    currentTouchState = MapView.TOUCH_STATE_TWO_POINTED;
+//
+//                    mid = midPoint(event);
+//                    oldDist = distance(event, mid);
+//                }
+//                break;
+//            case MotionEvent.ACTION_UP:
+//                if (withFloorPlan(event.getX(), event.getY())) {
+//                    for (MapBaseLayer layer : layers) {
+//                        //layer.onTouch(event);
+//                    }
+//                }
+//                currentTouchState = MapView.TOUCH_STATE_NO;
+//                break;
+//            case MotionEvent.ACTION_POINTER_UP:
+//                currentTouchState = MapView.TOUCH_STATE_NO;
+//                break;
+//            case MotionEvent.ACTION_MOVE:
+//                switch (currentTouchState) {
+//                    case MapView.TOUCH_STATE_SCROLL:
+//                            oldMode = mode == mode.FREE ? oldMode : mode;
+//                            currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
+//                            mode = TRACKING_MODE.FREE;
+//                            currentMatrix.set(saveMatrix);
+//                            translate(event.getX() - startTouch.x, event.getY() -
+//                                    startTouch.y);
+//                            //refresh();
+//                        break;
+//                    case MapView.TOUCH_STATE_TWO_POINTED:
+//                            oldDist = distance(event, mid);
+//                            currentTouchState = MapView.TOUCH_STATE_SCALE;
+//                        break;
+//                    case MapView.TOUCH_STATE_SCALE:
+//                        oldMode = mode == mode.FREE ? oldMode : mode;
+//                        currentFreeModeTime = modeOptions.returnFromFreeModeDelayNanoSeconds;
+//                        mode = TRACKING_MODE.FREE;
+//                        currentMatrix.set(saveMatrix);
+//                        newDist = distance(event, mid);
+//                        float scale = newDist / oldDist;
+//
+//                        if (scale * saveZoom < minZoom) {
+//                            scale = minZoom / saveZoom;
+//                        } else if (scale * saveZoom > maxZoom) {
+//                            scale = maxZoom / saveZoom;
+//                        }
+//                        thread.setZoom(scale * saveZoom);
+//
+//                        PointF initPoint = isFollowUser ? user.getWorldPosition() : mid;
+//
+//                        currentMatrix.postScale(scale, scale, initPoint.x, initPoint.y);
+//                        thread.setWorldMatrix(currentMatrix);
+//                        break;
+//                    default:
+//                        break;
+//                }
+//                break;
+//            default:
+//                break;
+//        }
         return true;
     }
 
@@ -759,7 +774,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
     public void doFrame(long deltaTimeNano) {
         Choreographer.getInstance().postFrameCallback(this);
         if(thread != null && thread.getHandler() != null)
-            thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), 1, (int) (deltaTimeNano >> 32), (int) deltaTimeNano));
+            thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), MessageDefenitions.MESSAGE_DRAW, (int) (deltaTimeNano >> 32), (int) deltaTimeNano));
     }
 
     public void setContainerUserMode() {

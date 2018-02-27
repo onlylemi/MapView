@@ -49,7 +49,8 @@ public class LocationLayer extends MapBaseLayer {
     }
 
     @Override
-    public void onTouch(MotionEvent event) {
+    public void onTouch(PointF point)
+    {
 
     }
 

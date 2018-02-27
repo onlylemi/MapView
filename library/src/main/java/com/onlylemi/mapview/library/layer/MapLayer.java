@@ -106,7 +106,8 @@ public class MapLayer extends MapBaseLayer {
     }
 
     @Override
-    public void onTouch(MotionEvent event) {
+    public void onTouch(PointF point)
+    {
 
     }
 

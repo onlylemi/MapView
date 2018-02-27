@@ -73,18 +73,11 @@ public class MapLayerTestActivity extends AppCompatActivity {
         float refreshRating = display.getRefreshRate();
 
         Log.d(TAG, "Refreshrate is: " + refreshRating);
-        Bitmap map = null;
+
         try {
             // TODO: 2017-02-22 get from net
-            map = BitmapFactory.decodeStream(getAssets().open("map.png"));
+            //map = BitmapFactory.decodeStream(getAssets().open("map.png"));
             bg = BitmapFactory.decodeStream(getAssets().open("bg-coop.png"));
-            transformMatrix = MapMath.createMappingMatrix(map, 5, 7, new PointF(0, 0), new PointF(2170, 861));   //<--------- THIS IS FOR THE BACKEND ROOM PNG
-
-            try {
-                user = new LocationUser(BitmapFactory.decodeStream(getAssets().open("marker.png")), MapMath.transformPoint(transformMatrix, position), new PointF(1, 0));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -93,10 +86,15 @@ public class MapLayerTestActivity extends AppCompatActivity {
             @Override
             public void onSetup(MapViewHandler handler) {
                 try {
-                    handler.createMap(BitmapFactory.decodeStream(getAssets().open("bromma_floor_plan810_rotated.png")));
+                    Bitmap map = BitmapFactory.decodeStream(getAssets().open("bromma_floor_plan810.png"));
+                    handler.createMap(map);
+                    transformMatrix = MapMath.createMappingMatrix(map, 5, 7, new PointF(0, 0), new PointF(2170, 861));   //<--------- THIS IS FOR THE BACKEND ROOM PNG
+                    user = new LocationUser(BitmapFactory.decodeStream(getAssets().open("marker.png")), MapMath.transformPoint(transformMatrix, position), new PointF(1, 0));
                 } catch(IOException ex) {
                     ex.printStackTrace();
+                    return;
                 }
+
                 LocationLayer locationLayer = new LocationLayer(mapView, user);
                 handler.addLayer(locationLayer);
 
@@ -122,7 +120,9 @@ public class MapLayerTestActivity extends AppCompatActivity {
 
                 inited = true;
 
-                mapView.setContainerUserMode();
+                mapView.setDebug(true);
+
+                //mapView.setContainerUserMode();
             }
         });
 
@@ -168,7 +168,8 @@ public class MapLayerTestActivity extends AppCompatActivity {
             }
 
             if (keyCode == KeyEvent.KEYCODE_H) {
-                mapView.setFreeMode();
+                //mapView.setFreeMode();
+                mapView.pauseRendering();
             }
 
             if (keyCode == KeyEvent.KEYCODE_K) {
@@ -177,7 +178,8 @@ public class MapLayerTestActivity extends AppCompatActivity {
             }
 
             if(keyCode == KeyEvent.KEYCODE_G) {
-                mapView.setContainerUserMode();
+                //mapView.setContainerUserMode();
+                mapView.resumeRendering();
             }
 
             if(keyCode == KeyEvent.KEYCODE_T) {
