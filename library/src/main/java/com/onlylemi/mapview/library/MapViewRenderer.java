@@ -369,25 +369,4 @@ public class MapViewRenderer extends Thread {
     private void feedInputToCamera(int inputAction, PointF point) {
         camera.handleInput(inputAction, point, -1);
     }
-
-    public void handleInput(int action, MotionEvent event) {
-        switch(action) {
-            case MotionEvent.ACTION_POINTER_DOWN:
-                feedInputToCamera(action, new PointF(event.getX(), event.getY()), event.getPointerCount());
-                break;
-            case MotionEvent.ACTION_UP:
-                feedInputToCamera(action, new PointF(event.getX(), event.getY()));
-
-                for (MapBaseLayer layer : layers) {
-                    layer.onTouch(new PointF(event.getX(), event.getY()));
-                }
-                break;
-            case MotionEvent.ACTION_MOVE:
-                feedInputToCamera(action, new PointF(event.getX(), event.getY()));
-                break;
-            case MotionEvent.ACTION_DOWN:
-                feedInputToCamera(action, new PointF(event.getX(), event.getY()));
-                break;
-        }
-    }
 }
