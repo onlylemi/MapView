@@ -98,6 +98,9 @@ public class MapViewCamera {
             return;
         }
 
+        Log.d(TAG, "Swapping camera mode from: " + currentCameraMode.toString() + "\n To: " +
+                previousCameraMode.toString());
+
         BaseMode tmp = currentCameraMode;
         currentCameraMode.onEnd();
         currentCameraMode = previousCameraMode;
@@ -110,6 +113,10 @@ public class MapViewCamera {
      * @param cameraMode
      */
     public void switchCameraMode(BaseMode cameraMode) {
+
+        Log.d(TAG, "Swapping camera mode from: " + currentCameraMode.toString() + "\n To: " +
+                cameraMode.toString());
+
         currentCameraMode.onEnd();
         previousCameraMode = currentCameraMode;
         currentCameraMode = cameraMode;
@@ -262,6 +269,10 @@ public class MapViewCamera {
 
         public FreeMode createFreeMode() {
             return new FreeMode(camera, defaultRevertDuration);
+        }
+
+        public FreeMode createFreeMode(long durationNano) {
+            return new FreeMode(camera, durationNano);
         }
 
         public FollowUserMode createFollowUserMode() {

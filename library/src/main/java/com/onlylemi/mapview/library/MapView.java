@@ -795,6 +795,15 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         });
     }
 
+    public void setFreeMode(final long durationNano) {
+        sendCameraMessageToThread(new ICameraModeCommand() {
+            @Override
+            public void execute(MapViewCamera camera) {
+                camera.switchCameraMode(camera.getFactory().createFreeMode(durationNano));
+            }
+        });
+    }
+
     public void setFollowUserMode() {
         sendCameraMessageToThread(new ICameraModeCommand() {
             @Override
