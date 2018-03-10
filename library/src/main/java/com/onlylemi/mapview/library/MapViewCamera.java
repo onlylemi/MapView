@@ -201,11 +201,11 @@ public class MapViewCamera {
      * @param point
      * @param extras
      */
-    public void resendInput(int action, PointF point, int extras) {
+    public void resendInput(int action, PointF point, Object... extras) {
         currentCameraMode.onInput(action, point, extras);
     }
 
-    public void handleInput(int action, PointF point, int extras) {
+    public void handleInput(int action, PointF point, Object... extras) {
         currentCameraMode.onInput(action, point, extras);
     }
 

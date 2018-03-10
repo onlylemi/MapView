@@ -259,11 +259,13 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
             switch(action) {
                 case MotionEvent.ACTION_POINTER_DOWN:
                     if(event.getPointerCount() == 2) {
-                        thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), action, (int) event.getX(0), (int) event.getY(0)));
+                        thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), action, (int) event.getX(0), (int) event.getY(0), event));
                     }
                     break;
+                case MotionEvent.ACTION_MOVE:
+                    thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), action, (int) event.getX(), (int) event.getY(), event));
                 default:
-                    thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), action, (int) event.getX(), (int) event.getY()));
+                    thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), action, (int) event.getX(), (int) event.getY(), event));
             }
 
         }
