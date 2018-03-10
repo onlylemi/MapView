@@ -44,6 +44,7 @@ public abstract class BaseMode {
     public void onInput(int action, PointF point, int extra) {
         if(action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
             camera.switchCameraMode(MapViewCamera.CameraModes.FreeMode);
+            camera.resendInput(action, point, extra);
         }
     }
 }

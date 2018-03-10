@@ -193,6 +193,18 @@ public class MapViewCamera {
         currentZoom = zoom;
     }
 
+    /**
+     * This method is used by camera states to resend some input.
+     * This helps when swapping to FreeMode for ex. as if we do not resend the input
+     * then the user needs to re-touch the screen to move the camera
+     * @param action
+     * @param point
+     * @param extras
+     */
+    public void resendInput(int action, PointF point, int extras) {
+        currentCameraMode.onInput(action, point, extras);
+    }
+
     public void handleInput(int action, PointF point, int extras) {
         currentCameraMode.onInput(action, point, extras);
     }
