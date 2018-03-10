@@ -50,6 +50,8 @@ public class MapViewCamera {
     private float maxZoom;
     private float minZoom;
 
+    private long defaultRevertDuration = 5000000000l; //5 seconds
+
     public enum CameraModes {
         FreeMode,
         ContainUser,
@@ -91,6 +93,11 @@ public class MapViewCamera {
      * Reverts to the previous camera mode
      */
     public void revertCameraMode() {
+        if(previousCameraMode == null) {
+            Log.w(TAG, "Attempted to revert when there was no previous camera mode");
+            return;
+        }
+
         BaseMode tmp = currentCameraMode;
         currentCameraMode.onEnd();
         currentCameraMode = previousCameraMode;
@@ -225,6 +232,10 @@ public class MapViewCamera {
         this.minZoom = minZoom;
     }
 
+    public void setDefaultRevertDuration(long defaultRevertDuration) {
+        this.defaultRevertDuration = defaultRevertDuration;
+    }
+
     public LocationUser getCurrentUser() {
         return currentUser;
     }
@@ -250,7 +261,7 @@ public class MapViewCamera {
         }
 
         public FreeMode createFreeMode() {
-            return new FreeMode(camera);
+            return new FreeMode(camera, defaultRevertDuration);
         }
 
         public FollowUserMode createFollowUserMode() {

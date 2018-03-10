@@ -17,6 +17,9 @@ public class FreeMode extends BaseMode {
     private TouchState currentTouchState = TouchState.TOUCH_STATE_NO;
     private PointF startTouch = new PointF();
 
+    //This represents how long we will stay in this mode until we revert back
+    private long timeout;
+
     float x, y;
 
     enum TouchState {
@@ -24,8 +27,14 @@ public class FreeMode extends BaseMode {
         TOUCH_STATE_NO
     }
 
-    public FreeMode(MapViewCamera camera) {
+//    public FreeMode(MapViewCamera camera) {
+//        super(camera);
+//        timeout = Long.MAX_VALUE; //This is a bit of a haxx but should do the job
+//    }
+
+    public FreeMode(MapViewCamera camera, long durationNano) {
         super(camera);
+        timeout = durationNano;
     }
 
     @Override
@@ -38,6 +47,12 @@ public class FreeMode extends BaseMode {
         worldMatrix.postTranslate(x, y);
         x = 0;
         y = 0;
+
+        timeout -= deltaTimeNano;
+        if(timeout < 0) {
+            camera.revertCameraMode();
+        }
+
         return worldMatrix;
     }
 

@@ -822,6 +822,16 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         setContainPointsMode(MapUtils.getPositionListFromGraphicList(zoomPoints), includeUser);
     }
 
+    public void setCameraDefaultRevertDuration(float durationMS) {
+        final long durationNano = (long) durationMS * 1000000;
+        sendCameraMessageToThread(new ICameraModeCommand() {
+            @Override
+            public void execute(MapViewCamera camera) {
+                camera.setDefaultRevertDuration(durationNano);
+            }
+        });
+    }
+
     private void sendCameraMessageToThread(ICameraModeCommand command) {
         if(thread != null && thread.getHandler() != null) {
             MessageDefenitions.sendExecuteMessage(thread.getHandler(), MessageDefenitions.MESSAGE_CAMERA_MODE_EXECUTE, command);
