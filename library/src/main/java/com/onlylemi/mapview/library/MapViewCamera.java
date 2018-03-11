@@ -5,6 +5,7 @@ import android.graphics.PointF;
 import android.graphics.Region;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.camera.BaseMode;
 import com.onlylemi.mapview.library.camera.ContainPointsMode;
@@ -198,15 +199,18 @@ public class MapViewCamera {
      * This helps when swapping to FreeMode for ex. as if we do not resend the input
      * then the user needs to re-touch the screen to move the camera
      * @param action
-     * @param point
-     * @param extras
+     * @param event
      */
-    public void resendInput(int action, PointF point, Object... extras) {
-        currentCameraMode.onInput(action, point, extras);
+    public void resendInput(int action, MotionEvent event) {
+        currentCameraMode.onInput(action, event);
     }
 
-    public void handleInput(int action, PointF point, Object... extras) {
-        currentCameraMode.onInput(action, point, extras);
+//    public void handleInput(int action, PointF point, Object... extras) {
+//        currentCameraMode.onInput(action, point, extras);
+//    }
+
+    public void handleInput(MotionEvent event) {
+        currentCameraMode.onInput(event.getAction() & MotionEvent.ACTION_MASK, event);
     }
 
     //region GETSET

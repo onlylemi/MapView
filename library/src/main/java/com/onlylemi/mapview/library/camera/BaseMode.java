@@ -38,13 +38,12 @@ public abstract class BaseMode {
     /**
      * Called on touch input - if not overridden will auto swap to freemode on touch
      * @param action
-     * @param point
-     * @param extra
+     * @param event
      */
-    public void onInput(int action, PointF point, Object... extra) {
+    public void onInput(int action, MotionEvent event) {
         if(action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
             camera.switchCameraMode(MapViewCamera.CameraModes.FreeMode);
-            camera.resendInput(action, point, extra);
+            camera.resendInput(action, event);
         }
     }
 }

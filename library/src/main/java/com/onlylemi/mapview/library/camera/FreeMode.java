@@ -24,6 +24,7 @@ public class FreeMode extends BaseMode {
 
     //This represents how long we will stay in this mode until we revert back
     private long timeout;
+    private long currentTimeout;
 
     float x, y;
 
@@ -42,6 +43,7 @@ public class FreeMode extends BaseMode {
     public FreeMode(MapViewCamera camera, long durationNano) {
         super(camera);
         timeout = durationNano;
+        currentTimeout = timeout;
     }
 
     @Override
@@ -51,15 +53,10 @@ public class FreeMode extends BaseMode {
 
     @Override
     public Matrix update(Matrix worldMatrix, long deltaTimeNano) {
-        worldMatrix.postTranslate(x, y);
-        x = 0;
-        y = 0;
-
-        timeout -= deltaTimeNano;
-        if(timeout < 0) {
+        currentTimeout -= deltaTimeNano;
+        if(currentTimeout < 0) {
             camera.revertCameraMode();
         }
-
         return worldMatrix;
     }
 
@@ -69,19 +66,23 @@ public class FreeMode extends BaseMode {
     }
 
     @Override
-    public void onInput(int action, PointF point, Object... extra) {
+    public void onInput(int action, MotionEvent event) {
+
+        currentTimeout = timeout;
+
         switch (action) {
             case MotionEvent.ACTION_DOWN:
-                startTouch.set(point);
+                startTouch.set(event.getX(), event.getY());
                 currentTouchState = TouchState.TOUCH_STATE_SCROLL;
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
+                if(event.getPointerCount() == 2) {
                     saveZoom = camera.getCurrentZoom();
                     currentTouchState = TouchState.TOUCH_STATE_TWO_POINTED;
-
-                    midPoint = MapMath.getMidPointBetweenTwoPoints(point.x, point.y
-                            , ((MotionEvent)extra[0]).getX(1), ((MotionEvent)extra[0]).getY(1));
+                    midPoint = MapMath.getMidPointBetweenTwoPoints(event.getX(0), event.getY(0)
+                            , event.getX(1), event.getY(1));
                     startTouch.set(midPoint);
+                }
                 break;
             case MotionEvent.ACTION_UP:
                 currentTouchState = TouchState.TOUCH_STATE_NO;
@@ -92,27 +93,19 @@ public class FreeMode extends BaseMode {
             case MotionEvent.ACTION_MOVE:
                 switch (currentTouchState) {
                     case TOUCH_STATE_SCROLL:
-                            x = point.x - startTouch.x;
-                            y = point.y - startTouch.y;
-                            startTouch.set(point);
+                        camera.translate(event.getX() - startTouch.x, event.getY() - startTouch.y);
+                        startTouch.set(event.getX(), event.getY());
                         break;
                     case TOUCH_STATE_TWO_POINTED:
-                            oldDistance = MapMath.getDistanceBetweenTwoPoints(((MotionEvent)extra[0]).getX(0),
-                                    ((MotionEvent)extra[0]).getY(0) , midPoint.x, midPoint.y);
+                        oldDistance = MapMath.getDistanceBetweenTwoPoints(event.getX(0),
+                                    event.getY(0) , midPoint.x, midPoint.y);
                             currentTouchState = TouchState.TOUCH_STATE_SCALE;
                         break;
                     case TOUCH_STATE_SCALE:
-                        newDistance = MapMath.getDistanceBetweenTwoPoints(((MotionEvent)extra[0]).getX(0),
-                                ((MotionEvent)extra[0]).getY(0) , midPoint.x, midPoint.y);
+                        newDistance = MapMath.getDistanceBetweenTwoPoints(event.getX(0),
+                                event.getY(0) , midPoint.x, midPoint.y);
                         float scale = newDistance / oldDistance;
                         camera.zoom(scale * saveZoom, startTouch.x, startTouch.y);
-//                        if (scale * saveZoom < minZoom) {
-//                            scale = minZoom / saveZoom;
-//                        } else if (scale * saveZoom > maxZoom) {
-//                            scale = maxZoom / saveZoom;
-//                        }
-//                        currentMatrix.postScale(scale, scale, initPoint.x, initPoint.y);
-//                        thread.setWorldMatrix(currentMatrix);
                         break;
                     default:
                         break;
