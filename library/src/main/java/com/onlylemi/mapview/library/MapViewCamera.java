@@ -205,10 +205,6 @@ public class MapViewCamera {
         currentCameraMode.onInput(action, event);
     }
 
-//    public void handleInput(int action, PointF point, Object... extras) {
-//        currentCameraMode.onInput(action, point, extras);
-//    }
-
     public void handleInput(MotionEvent event) {
         currentCameraMode.onInput(event.getAction() & MotionEvent.ACTION_MASK, event);
     }

@@ -336,24 +336,6 @@ public class MapViewRenderer extends Thread {
                 case MessageDefenitions.MESSAGE_MOTIONEVENT:
                     feedInputToCamera((MotionEvent) msg.obj);
                     break;
-//                default:
-//                    if(msg.what >= MessageDefenitions.MESSAGE_MOTIONEVENT_LOWER_RANGE &&
-//                            msg.what <= MessageDefenitions.MESSAGE_MOTIONEVENT_UPPER_RANGE) {
-//                        switch(msg.what) {
-//                            case MotionEvent.ACTION_POINTER_DOWN:
-//                                feedInputToCamera(msg.what, new PointF(msg.arg1, msg.arg2), msg.obj);
-//                                break;
-//                            case MotionEvent.ACTION_UP:
-//                                feedInputToCamera(msg.what, new PointF(msg.arg1, msg.arg2), msg.obj);
-//
-//                                for (MapBaseLayer layer : layers) {
-//                                    layer.onTouch(new PointF(msg.arg1, msg.arg2));
-//                                }
-//                                break;
-//                            default:
-//                                feedInputToCamera(msg.what, new PointF(msg.arg1, msg.arg2), msg.obj);
-//                        }
-//                    }
             }
             super.handleMessage(msg);
         }
