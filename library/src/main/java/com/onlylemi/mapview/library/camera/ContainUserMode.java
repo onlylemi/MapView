@@ -52,18 +52,22 @@ public class ContainUserMode extends BaseMode {
         timeSpentReturning = maxTimeToReturnNano;
         lastUserPosition.set(user.getPosition());
     }
-    
-    //// TODO: 2018-03-12 This could perhaps be an internal state to save on the if-statements every update 
+
     @Override
     public Matrix update(Matrix worldMatrix, long deltaTimeNano) {
         if (lastUserPosition.x != user.getPosition().x || lastUserPosition.y != user.getPosition().y) {
             //If we got time left on returning this means the user moved during a init step
             initTranslation(timeSpentReturning > 0 ? timeSpentReturning : defaultTimeToReturn);
+        } else if(translateDistance < 0 && zoomDistance < 0) {
+            //If both distances have crossed over we just create our view matrix and return
+            return createViewMatrix(worldMatrix);
         }
+
+        translateDistance -= Math.abs(translateSpeed) * deltaTimeNano;
+        zoomDistance -= Math.abs(zoomSpeed) * deltaTimeNano;
 
         savedPosition = MapUtils.positionFromMatrix(worldMatrix);
         if(translateDistance > 0) {
-            translateDistance -= Math.abs(translateSpeed) * deltaTimeNano;
             savedPosition.x += deltaTimeNano * translateSpeed * translateDirection.x;
             savedPosition.y += deltaTimeNano * translateSpeed * translateDirection.y;
             timeSpentReturning -= deltaTimeNano;
@@ -74,23 +78,23 @@ public class ContainUserMode extends BaseMode {
 
         savedZoom = camera.getCurrentZoom();
         if(zoomDistance > 0) {
-            zoomDistance -= Math.abs(zoomSpeed) * deltaTimeNano;
             savedZoom += deltaTimeNano * zoomSpeed;
             camera.setCurrentZoom(savedZoom);
         } else {
             savedZoom = defaultContainZoom;
             camera.setCurrentZoom(defaultContainZoom);
         }
-
-        //Because I am just too stupid to use the built in Matrix functions
-        float[] ma = { savedZoom, 0, savedPosition.x,
-                        0, savedZoom, savedPosition.y,
-                        0, 0, 1};
-        worldMatrix.setValues(ma);
-
         lastUserPosition.set(user.getPosition());
 
-        return worldMatrix;
+        return createViewMatrix(worldMatrix);
+    }
+
+    private Matrix createViewMatrix(Matrix m) {
+        float[] ma = { savedZoom, 0, savedPosition.x,
+                0, savedZoom, savedPosition.y,
+                0, 0, 1};
+        m.setValues(ma);
+        return m;
     }
 
     //This function calculates where we wanna end up
