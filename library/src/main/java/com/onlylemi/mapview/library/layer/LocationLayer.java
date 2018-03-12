@@ -49,7 +49,7 @@ public class LocationLayer extends MapBaseLayer {
     }
 
     @Override
-    public void onTouch(PointF point)
+    public void onTouch(float x, float y)
     {
 
     }

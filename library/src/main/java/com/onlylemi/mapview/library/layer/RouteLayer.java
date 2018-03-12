@@ -56,7 +56,7 @@ public class RouteLayer extends MapBaseLayer {
     }
 
     @Override
-    public void onTouch(PointF point) {
+    public void onTouch(float x, float y) {
 
     }
 

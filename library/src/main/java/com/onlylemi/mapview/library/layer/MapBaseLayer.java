@@ -32,7 +32,7 @@ public abstract class MapBaseLayer {
         this.mapView = mapView;
     }
 
-    public abstract void onTouch(PointF point);
+    public abstract void onTouch(float x, float y);
 
     /**
      * draw event

@@ -66,11 +66,11 @@ public class MarkLayer extends MapBaseLayer {
     }
 
     @Override
-    public void onTouch(PointF point) {
+    public void onTouch(float x, float y) {
         if (markObjects != null && this.markClickListener != null) {
             if (!markObjects.isEmpty()) {
                 //Log.d("MarkLayer", "Event x: " + event.getX() + ", y: " + event.getY());
-                float[] goal = mapView.convertMapXYToScreenXY(point.x, point.y);
+                float[] goal = mapView.convertMapXYToScreenXY(x, y);
                 //Log.d("MarkLayer", "Goal x: " + goal[0] + ", y: " + goal[1]);
                 for(int i = 0; i < markObjects.size(); i++) {
                     if(markObjects.get(i).getVisible() && markObjects.get(i).hit(new PointF(goal[0], goal[1]))) {
