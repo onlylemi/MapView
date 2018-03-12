@@ -50,7 +50,7 @@ public class MapLayerTestActivity extends AppCompatActivity {
     private List<ProximityMark> marks = new ArrayList<>();
 
     private Matrix transformMatrix;
-    private PointF position = new PointF(0, 0);
+    private PointF position = new PointF(1.4f, 2.0f);
 
     private LocationLayer.UserHandler userHandler;
     private MarkLayer.MarkHandler markHandler;
@@ -122,6 +122,8 @@ public class MapLayerTestActivity extends AppCompatActivity {
 
                 mapView.setDebug(true);
 
+
+                //userHandler.moveUser(MapMath.transformPoint(transformMatrix, new PointF(1.4f, 2.0f)), 5.0f);
                 mapView.setContainerUserMode();
             }
         });
@@ -177,6 +179,10 @@ public class MapLayerTestActivity extends AppCompatActivity {
                 markHandler.setProximityMarks(marks);
             }
 
+            if (keyCode == KeyEvent.KEYCODE_Q) {
+                mapView.setCameraDefaultRevertDuration(1000);
+            }
+
             if(keyCode == KeyEvent.KEYCODE_G) {
                 //mapView.setContainerUserMode();
                 mapView.resumeRendering();
@@ -184,6 +190,10 @@ public class MapLayerTestActivity extends AppCompatActivity {
 
             if(keyCode == KeyEvent.KEYCODE_T) {
                 mapView.setFollowUserMode();
+            }
+
+            if(keyCode == KeyEvent.KEYCODE_E) {
+                mapView.setFreeMode(Long.MAX_VALUE);
             }
 
             if (keyCode == KeyEvent.KEYCODE_P) {
