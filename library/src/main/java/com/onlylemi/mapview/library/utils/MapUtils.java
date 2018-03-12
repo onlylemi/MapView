@@ -366,5 +366,11 @@ public final class MapUtils {
         return  returnList;
     }
 
+    public static PointF positionFromMatrix(Matrix m) {
+        float[] mFloats = new float[9];
+        m.getValues(mFloats);
+
+        return new PointF(mFloats[2], mFloats[5]);
+    }
 
 }

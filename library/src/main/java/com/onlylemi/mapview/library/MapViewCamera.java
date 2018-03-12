@@ -2,7 +2,6 @@ package com.onlylemi.mapview.library;
 
 import android.graphics.Matrix;
 import android.graphics.PointF;
-import android.graphics.Region;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -45,8 +44,8 @@ public class MapViewCamera {
     private int mapHeight;
 
     //These are zoom paddings - Multiples, aka 2 = you can zoom in twice the size of the original
-    private float maxZoomPadding = 2.0f;
-    private float minZoomPadding = 0.5f;
+    private float maxZoomPaddingFactor = 2.0f;
+    private float minZoomPaddingFactor = 0.5f;
 
     private float maxZoom;
     private float minZoom;
@@ -170,9 +169,12 @@ public class MapViewCamera {
             zoom = heightRatio;
         }
 
-        minZoom = currentZoom - (currentZoom * minZoomPadding);
-        //If set to use contain user mode, this value will get overridden to prevent jerking
-        maxZoom = currentZoom * maxZoomPadding;
+        float defaultContainUserZoom = MapMath.max(widthRatio, heightRatio);
+        minZoom = MapMath.min(currentZoom - (currentZoom * minZoomPaddingFactor), defaultContainUserZoom);
+        maxZoom = MapMath.max(currentZoom * maxZoomPaddingFactor, defaultContainUserZoom);
+
+        //Notify the factory of our default contain zoom
+        factory.setDefaultContainUserZoom(defaultContainUserZoom);
 
         zoom(zoom, 0, 0);
         translate((viewWidth / 2) - ((mapWidth * currentZoom) / 2), (viewHeight / 2) - ((mapHeight * currentZoom) / 2));
@@ -185,7 +187,7 @@ public class MapViewCamera {
     }
 
     public void zoom(float zoom) {
-        zoom(zoom, viewWidth / 2, viewHeight / 2);
+        zoom(zoom, getViewWidth() / 2, getViewHeight() / 2);
     }
 
     public void zoom(float zoom, float worldX, float worldY) {
@@ -215,8 +217,16 @@ public class MapViewCamera {
         return currentZoom;
     }
 
+    public void setCurrentZoom(float zoom) {
+        currentZoom = zoom;
+    }
+
     public PointF getCurrentPosition() {
         return currentPosition;
+    }
+
+    public Matrix getWorldMatrix() {
+        return worldMatrix;
     }
 
     public int getViewWidth() {
@@ -271,12 +281,15 @@ public class MapViewCamera {
 
         private MapViewCamera camera;
 
+        //This value is set during setup and is the zooming level that we wanna reach when containing the user within the map
+        private float defaultContainUserZoom = 0.0f;
+
         public CameraModeFactory(MapViewCamera camera) {
             this.camera = camera;
         }
 
         public ContainUserMode createContainUserMode() {
-            return new ContainUserMode(camera, camera.getCurrentUser());
+            return new ContainUserMode(camera, camera.getCurrentUser(), defaultContainUserZoom);
         }
 
         public FreeMode createFreeMode() {
@@ -297,6 +310,10 @@ public class MapViewCamera {
             }
 
             return new ContainPointsMode(camera, points, padding);
+        }
+
+        public void setDefaultContainUserZoom(float zoom) {
+            defaultContainUserZoom = zoom;
         }
 
     }

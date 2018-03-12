@@ -407,4 +407,22 @@ public final class MapMath {
         return value;
     }
 
+    public static float max(float v1, float v2) {
+        return v1 > v2 ? v1 : v2;
+    }
+
+    public static float min(float v1, float v2) {
+        return v1 < v2 ? v1: v2;
+    }
+
+    public static PointF normalize(PointF outPoint) {
+        float length = outPoint.length();
+        outPoint.x /= length;
+        outPoint.y /= length;
+        return outPoint;
+    }
+    public static PointF pointSubtract(PointF p1, PointF p2) {
+        return new PointF(p1.x - p2.x, p1.y - p2.y);
+    }
+
 }
