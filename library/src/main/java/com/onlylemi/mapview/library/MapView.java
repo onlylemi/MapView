@@ -149,6 +149,8 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         }
     }
 
+
+
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         if (thread == null || thread.getState() == Thread.State.TERMINATED){
@@ -181,10 +183,12 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        Log.d(TAG, "Surface is getting destroyed");
         if(thread != null) {
             //Resume thread execution
             Choreographer.getInstance().removeFrameCallback(this);
-            thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), 0));
+            thread.getHandler().sendMessage(Message.obtain(thread.getHandler(),
+                    MessageDefenitions.MESSAGE_EXIT_THREAD));
             try {
                 thread.join();
             }catch (InterruptedException ie) {

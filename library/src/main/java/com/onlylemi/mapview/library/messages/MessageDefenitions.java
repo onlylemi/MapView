@@ -9,6 +9,7 @@ import android.os.Message;
 
 public class MessageDefenitions {
 
+    public static final int MESSAGE_EXIT_THREAD = 255;
     public static final int MESSAGE_DRAW = 256;
     public static final int MESSAGE_EXECUTE = 257;
     public static final int MESSAGE_CAMERA_MODE_EXECUTE = 258;

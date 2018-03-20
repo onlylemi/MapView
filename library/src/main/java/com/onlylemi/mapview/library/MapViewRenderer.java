@@ -213,10 +213,19 @@ public class MapViewRenderer extends Thread {
         }
     }
 
+    /**
+     * Called when we're requested to stop this thread
+     */
+    public void onDestroy() {
+        Looper.myLooper().quit();
+    }
+
+    @Deprecated
     public boolean isRunning() {
         return running;
     }
 
+    @Deprecated
     public void setRunning(boolean running) {
         this.running = running;
         if(!running) {
@@ -360,6 +369,9 @@ public class MapViewRenderer extends Thread {
                     break;
                 case MessageDefenitions.MESSAGE_SURFACE_CHANGED:
                     onSurfaceChanged(msg.arg1, msg.arg2);
+                    break;
+                case MessageDefenitions.MESSAGE_EXIT_THREAD:
+                    onDestroy();
                     break;
             }
             super.handleMessage(msg);
