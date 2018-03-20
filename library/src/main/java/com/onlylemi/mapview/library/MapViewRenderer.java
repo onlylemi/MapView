@@ -23,6 +23,7 @@ import com.onlylemi.mapview.library.layer.MapLayer;
 import com.onlylemi.mapview.library.messages.ICameraModeCommand;
 import com.onlylemi.mapview.library.messages.ICommand;
 import com.onlylemi.mapview.library.messages.MessageDefenitions;
+import com.onlylemi.mapview.library.messages.MotionEventMessage;
 import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.utils.MapRenderTimer;
 
@@ -63,6 +64,14 @@ public class MapViewRenderer extends Thread {
     private Handler messageHandler;
 
     private boolean isSetupDone = false;
+
+    //All values below are cached to prevent GC
+    //region cache
+
+    private MotionEventMessage cachedMotionEvent;
+    private int cachedMotionEventAction;
+
+    //endregion cache
 
     //region debug
 
@@ -290,6 +299,10 @@ public class MapViewRenderer extends Thread {
         this.background = background;
     }
 
+    public MapViewCamera getCamera() {
+        return camera;
+    }
+
     /**
      * Draws the current FPS on the screen
      * @param canvas
@@ -334,7 +347,15 @@ public class MapViewRenderer extends Thread {
                     ((ICommand) msg.obj).execute();
                     break;
                 case MessageDefenitions.MESSAGE_MOTIONEVENT:
-                    feedInputToCamera((MotionEvent) msg.obj);
+                    cachedMotionEvent = (MotionEventMessage) msg.obj;
+                    cachedMotionEventAction = cachedMotionEvent.getAction() & MotionEvent.ACTION_MASK;
+
+                    feedInputToCamera(cachedMotionEventAction, cachedMotionEvent);
+
+                    //If this is a click event feed it to layers
+                    if(cachedMotionEventAction == MotionEvent.ACTION_UP) {
+                        feedInputToLayers(cachedMotionEvent.getX(), cachedMotionEvent.getY());
+                    }
                     break;
             }
             super.handleMessage(msg);
@@ -345,7 +366,13 @@ public class MapViewRenderer extends Thread {
      * Sends input events to the camera
      * @param event
      */
-    private void feedInputToCamera(MotionEvent event) {
-        camera.handleInput(event);
+    private void feedInputToCamera(int action, MotionEventMessage event) {
+        camera.handleInput(action, event);
+    }
+
+    private void feedInputToLayers(float x, float y) {
+        for (MapBaseLayer layer : layers) {
+            layer.onTouch(x, y);
+        }
     }
 }

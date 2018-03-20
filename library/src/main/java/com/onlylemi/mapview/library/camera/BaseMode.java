@@ -5,6 +5,7 @@ import android.graphics.PointF;
 import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapViewCamera;
+import com.onlylemi.mapview.library.messages.MotionEventMessage;
 
 /**
  * Created by patnym on 27/12/2017.
@@ -40,7 +41,7 @@ public abstract class BaseMode {
      * @param action
      * @param event
      */
-    public void onInput(int action, MotionEvent event) {
+    public void onInput(int action, MotionEventMessage event) {
         if(action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
             camera.switchCameraMode(MapViewCamera.CameraModes.FreeMode);
             camera.resendInput(action, event);

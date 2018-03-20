@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapViewCamera;
+import com.onlylemi.mapview.library.messages.MotionEventMessage;
 import com.onlylemi.mapview.library.utils.MapMath;
 
 /**
@@ -66,7 +67,7 @@ public class FreeMode extends BaseMode {
     }
 
     @Override
-    public void onInput(int action, MotionEvent event) {
+    public void onInput(int action, MotionEventMessage event) {
 
         currentTimeout = timeout;
 

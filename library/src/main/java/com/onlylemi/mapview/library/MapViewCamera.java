@@ -12,6 +12,7 @@ import com.onlylemi.mapview.library.camera.ContainUserMode;
 import com.onlylemi.mapview.library.camera.FollowUserMode;
 import com.onlylemi.mapview.library.camera.FreeMode;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
+import com.onlylemi.mapview.library.messages.MotionEventMessage;
 import com.onlylemi.mapview.library.utils.MapMath;
 
 import java.util.List;
@@ -203,11 +204,11 @@ public class MapViewCamera {
      * @param action
      * @param event
      */
-    public void resendInput(int action, MotionEvent event) {
+    public void resendInput(int action, MotionEventMessage event) {
         currentCameraMode.onInput(action, event);
     }
 
-    public void handleInput(int action, MotionEvent event) {
+    public void handleInput(int action, MotionEventMessage event) {
         currentCameraMode.onInput(action, event);
     }
 

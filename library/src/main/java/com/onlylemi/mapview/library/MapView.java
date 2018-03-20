@@ -23,6 +23,7 @@ import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
 import com.onlylemi.mapview.library.messages.ICameraModeCommand;
 import com.onlylemi.mapview.library.messages.MessageDefenitions;
+import com.onlylemi.mapview.library.messages.MotionEventMessage;
 import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.utils.MapModeOptions;
 import com.onlylemi.mapview.library.utils.MapUtils;
@@ -255,7 +256,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
     public boolean onTouchEvent(MotionEvent event) {
         if(thread != null && thread.getHandler() != null) {
             thread.getHandler().sendMessage(Message.obtain(thread.getHandler(),
-                    MessageDefenitions.MESSAGE_MOTIONEVENT, event));
+                    MessageDefenitions.MESSAGE_MOTIONEVENT, MotionEventMessage.MessageFromMotionEvent(event)));
         }
         return true;
     }
