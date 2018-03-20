@@ -37,6 +37,11 @@ public abstract class BaseMode {
     public abstract void onEnd();
 
     /**
+     * Called if the view size changes
+     */
+    public void onViewChanged() {}
+
+    /**
      * Called on touch input - if not overridden will auto swap to freemode on touch
      * @param action
      * @param event

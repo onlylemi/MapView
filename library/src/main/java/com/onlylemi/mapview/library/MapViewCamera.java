@@ -52,6 +52,7 @@ public class MapViewCamera {
     private float minZoom;
 
     private long defaultRevertDuration = 5000000000l; //5 seconds
+    private float defaultContainUserZoom = 0.0f;
 
     public enum CameraModes {
         FreeMode,
@@ -66,7 +67,7 @@ public class MapViewCamera {
         this.mapWidth = mapWidth;
         this.mapHeight = mapHeight;
         this.factory = new CameraModeFactory(this);
-        initZoom();
+        initZoom(true);
     }
 
     /**
@@ -114,7 +115,6 @@ public class MapViewCamera {
      * @param cameraMode
      */
     public void switchCameraMode(BaseMode cameraMode) {
-
         Log.d(TAG, "Swapping camera mode from: " + currentCameraMode.toString() + "\n To: " +
                 cameraMode.toString());
 
@@ -151,11 +151,27 @@ public class MapViewCamera {
         switchCameraMode(newMode);
     }
 
+    public void onViewChanged(int width, int height) {
+        this.viewWidth = width;
+        this.viewHeight = height;
+        initZoom(false);
+
+        //Notify the camera modes
+        currentCameraMode.onViewChanged();
+        if(previousCameraMode != null) {
+            previousCameraMode.onViewChanged();
+        }
+        //Also need to reInitialize the current camera mode
+        //Because they might do some init values based on the camera
+        currentCameraMode.onStart();
+    }
+
     /**
      * Calculates the min and max zoom values
      * We assume the default starting mode is the entire map in view centered
+     * @param initZoomTranslate if true we also set the zoom and translation
      */
-    public void initZoom() {
+    public void initZoom(boolean initZoomTranslate) {
         float widthRatio = (float) viewWidth / mapWidth;
         float heightRatio = (float) viewHeight / mapHeight;
 
@@ -170,15 +186,17 @@ public class MapViewCamera {
             zoom = heightRatio;
         }
 
-        float defaultContainUserZoom = MapMath.max(widthRatio, heightRatio);
+        defaultContainUserZoom = MapMath.max(widthRatio, heightRatio);
         minZoom = MapMath.min(currentZoom - (currentZoom * minZoomPaddingFactor), defaultContainUserZoom);
         maxZoom = MapMath.max(currentZoom * maxZoomPaddingFactor, defaultContainUserZoom);
 
         //Notify the factory of our default contain zoom
         factory.setDefaultContainUserZoom(defaultContainUserZoom);
 
-        zoom(zoom, 0, 0);
-        translate((viewWidth / 2) - ((mapWidth * currentZoom) / 2), (viewHeight / 2) - ((mapHeight * currentZoom) / 2));
+        if(initZoomTranslate) {
+            zoom(zoom, 0, 0);
+            translate((viewWidth / 2) - ((mapWidth * currentZoom) / 2), (viewHeight / 2) - ((mapHeight * currentZoom) / 2));
+        }
     }
 
     public void translate(float x, float y) {
@@ -270,6 +288,10 @@ public class MapViewCamera {
         this.minZoom = minZoom;
     }
 
+    public float getDefaultContainUserZoom() {
+        return defaultContainUserZoom;
+    }
+
     public void setDefaultRevertDuration(long defaultRevertDuration) {
         this.defaultRevertDuration = defaultRevertDuration;
     }
@@ -290,15 +312,12 @@ public class MapViewCamera {
 
         private MapViewCamera camera;
 
-        //This value is set during setup and is the zooming level that we wanna reach when containing the user within the map
-        private float defaultContainUserZoom = 0.0f;
-
         public CameraModeFactory(MapViewCamera camera) {
             this.camera = camera;
         }
 
         public ContainUserMode createContainUserMode() {
-            return new ContainUserMode(camera, camera.getCurrentUser(), defaultContainUserZoom);
+            return new ContainUserMode(camera, camera.getCurrentUser());
         }
 
         public FreeMode createFreeMode() {

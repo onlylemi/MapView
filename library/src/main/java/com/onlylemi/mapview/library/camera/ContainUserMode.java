@@ -39,10 +39,15 @@ public class ContainUserMode extends BaseMode {
 
     private PointF lastUserPosition = new PointF();
 
-    public ContainUserMode(MapViewCamera camera, LocationUser user, float defaultContainZoom) {
+    public ContainUserMode(MapViewCamera camera, LocationUser user) {
         super(camera);
         this.user = user;
-        this.defaultContainZoom = defaultContainZoom;
+        this.defaultContainZoom = camera.getDefaultContainUserZoom();
+    }
+
+    @Override
+    public void onViewChanged() {
+        defaultContainZoom = camera.getDefaultContainUserZoom();
     }
 
     @Override

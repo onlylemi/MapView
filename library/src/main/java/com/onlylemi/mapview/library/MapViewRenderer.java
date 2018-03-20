@@ -99,8 +99,9 @@ public class MapViewRenderer extends Thread {
         layers = new ArrayList<>();
     }
 
-    public void onSurfaceChanged(SurfaceHolder holder, int width, int height) {
+    public void onSurfaceChanged(int width, int height) {
         this.background.onSurfaceChanged(width, height);
+        this.camera.onViewChanged(width, height);
     }
 
     @Override
@@ -356,6 +357,9 @@ public class MapViewRenderer extends Thread {
                     if(cachedMotionEventAction == MotionEvent.ACTION_UP) {
                         feedInputToLayers(cachedMotionEvent.getX(), cachedMotionEvent.getY());
                     }
+                    break;
+                case MessageDefenitions.MESSAGE_SURFACE_CHANGED:
+                    onSurfaceChanged(msg.arg1, msg.arg2);
                     break;
             }
             super.handleMessage(msg);

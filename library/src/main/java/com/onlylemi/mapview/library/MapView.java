@@ -173,7 +173,10 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         Log.d(TAG, "Surface resized to: " + width + "x"+height);
-        thread.onSurfaceChanged(holder, width, height);
+        if(thread != null && thread.getHandler() != null) {
+            thread.getHandler().sendMessage(Message.obtain(thread.getHandler(),
+                    MessageDefenitions.MESSAGE_SURFACE_CHANGED, width, height));
+        }
     }
 
     @Override

@@ -13,6 +13,7 @@ public class MessageDefenitions {
     public static final int MESSAGE_EXECUTE = 257;
     public static final int MESSAGE_CAMERA_MODE_EXECUTE = 258;
     public static final int MESSAGE_MOTIONEVENT = 259;
+    public static final int MESSAGE_SURFACE_CHANGED = 260;
 
     public static void sendExecuteMessage(Handler handler, int what, ICommand commandToExecute) {
         handler.sendMessage(Message.obtain(handler, what, commandToExecute));
