@@ -2,18 +2,16 @@ package com.onlylemi.mapview.library.messages;
 
 import android.view.MotionEvent;
 
-import java.util.Arrays;
-
 /**
  * Created by patnym on 2018-03-20.
  */
 
 public class MotionEventMessage {
 
-    private float[] x;
-    private float[] y;
-    private int pointerCount;
-    private int action;
+    private final float[] x;
+    private final float[] y;
+    private final int pointerCount;
+    private final int action;
 
     public MotionEventMessage(float x, float y, int action) {
         this(new float[] { x }, new float[]{ y }, action, 1);
