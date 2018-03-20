@@ -207,8 +207,16 @@ public class MapViewCamera {
         currentCameraMode.onInput(action, event);
     }
 
-    public void handleInput(MotionEvent event) {
-        currentCameraMode.onInput(event.getAction() & MotionEvent.ACTION_MASK, event);
+    public void handleInput(int action, MotionEvent event) {
+        currentCameraMode.onInput(action, event);
+    }
+
+    public float[] convertMapXYToScreenXY(float x, float y) {
+        Matrix invertMatrix = new Matrix();
+        float[] value = {x, y};
+        worldMatrix.invert(invertMatrix);
+        invertMatrix.mapPoints(value);
+        return value;
     }
 
     //region GETSET
