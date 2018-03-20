@@ -15,6 +15,8 @@ import android.view.Display;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import com.onlylemi.mapview.library.MapView;
 import com.onlylemi.mapview.library.MapViewHandler;
@@ -108,6 +110,18 @@ public class MapLayerTestActivity extends AppCompatActivity {
                     }
                 });
 
+                markLayer.setMarkTriggeredListener(new MarkLayer.MarkIsTriggered() {
+                    @Override
+                    public void onEnter(ProximityMark mark, int index) {
+                        Log.d(TAG, "Entered");
+                    }
+
+                    @Override
+                    public void onExit(ProximityMark mark, int index) {
+                        Log.d(TAG, "Exited");
+                    }
+                });
+
                 handler.setTrackedUser(user);
 
                 userHandler = locationLayer.getUserHandler();
@@ -186,6 +200,20 @@ public class MapLayerTestActivity extends AppCompatActivity {
             if(keyCode == KeyEvent.KEYCODE_G) {
                 //mapView.setContainerUserMode();
                 mapView.resumeRendering();
+            }
+
+            if(keyCode == KeyEvent.KEYCODE_M) {
+                View v = findViewById(R.id.root_view);
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) v.getLayoutParams();
+                params.width = 800;
+                v.setLayoutParams(params);
+            }
+
+            if(keyCode == KeyEvent.KEYCODE_N) {
+                View v = findViewById(R.id.root_view);
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) v.getLayoutParams();
+                params.width = RelativeLayout.LayoutParams.MATCH_PARENT;
+                v.setLayoutParams(params);
             }
 
             if(keyCode == KeyEvent.KEYCODE_T) {

@@ -1,21 +1,11 @@
 package com.onlylemi.mapview;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.PointF;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.onlylemi.mapview.library.MapView;
-import com.onlylemi.mapview.library.MapViewListener;
-import com.onlylemi.mapview.library.layer.BitmapLayer;
-
-import java.io.IOException;
-import java.util.Random;
 
 public class BitmapLayerTestActivity extends AppCompatActivity {
 
@@ -23,7 +13,6 @@ public class BitmapLayerTestActivity extends AppCompatActivity {
     private static final String TAG = "BitmapLayerTestActivity";
 
     private MapView mapView;
-    private BitmapLayer bitmapLayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

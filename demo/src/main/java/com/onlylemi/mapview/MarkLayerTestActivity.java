@@ -50,7 +50,7 @@ public class MarkLayerTestActivity extends AppCompatActivity {
     private List<ProximityMark> marks = new ArrayList<>();
 
     private Matrix transformMatrix;
-    private PointF position = new PointF(0, 0);
+    private PointF position = new PointF(1.4f, 0);
 
     private LocationLayer.UserHandler userHandler;
     private MarkLayer.MarkHandler markHandler;
@@ -123,6 +123,19 @@ public class MarkLayerTestActivity extends AppCompatActivity {
                 mapView.setDebug(true);
 
                 mapView.setContainerUserMode();
+
+                try {
+                    Bitmap markImg = BitmapFactory.decodeStream(getAssets().open("marker.png"));
+                    List<BaseMark> marks = new ArrayList<>();
+                    marks.add(new StaticMark(markImg, MapMath.transformPoint(transformMatrix, new PointF(0.0f, 0.0f))));
+//                    marks.add(new StaticMark(markImg, MapMath.transformPoint(transformMatrix, new PointF(1.7f, 2.0f))));
+//                    marks.add(new StaticMark(markImg, MapMath.transformPoint(transformMatrix, new PointF(0.7f, 2.0f))));
+//                    marks.add(new StaticMark(markImg, MapMath.transformPoint(transformMatrix, new PointF(1.7f, 4.0f))));
+
+                    markHandler.setStaticMarks(marks);
+                }catch(IOException ex) {
+                    ex.printStackTrace();
+                }
             }
         });
 

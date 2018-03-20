@@ -6,6 +6,11 @@
     android:layout_height="match_parent"
     tools:context="com.onlylemi.mapview.MapLayerTestActivity">
 
-    <include layout="@layout/map_view"/>
+    <RelativeLayout
+        android:id="@+id/root_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <include layout="@layout/map_view"/>
+    </RelativeLayout>
 
 </RelativeLayout>
