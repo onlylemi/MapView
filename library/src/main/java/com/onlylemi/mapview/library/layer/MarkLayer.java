@@ -70,10 +70,11 @@ public class MarkLayer extends MapBaseLayer {
         if (markObjects != null && this.markClickListener != null) {
             if (!markObjects.isEmpty()) {
                 //Log.d("MarkLayer", "Event x: " + event.getX() + ", y: " + event.getY());
-                float[] goal = mapView.convertMapXYToScreenXY(x, y);
                 //Log.d("MarkLayer", "Goal x: " + goal[0] + ", y: " + goal[1]);
+                float[] point = renderer.getCamera().convertMapXYToScreenXY(x, y);
+
                 for(int i = 0; i < markObjects.size(); i++) {
-                    if(markObjects.get(i).getVisible() && markObjects.get(i).hit(new PointF(goal[0], goal[1]))) {
+                    if(markObjects.get(i).getVisible() && markObjects.get(i).hit(new PointF(point[0], point[1]))) {
                         this.markClickListener.markIsClick(markObjects.get(i), i);
                         break;
                     }
@@ -161,6 +162,7 @@ public class MarkLayer extends MapBaseLayer {
     @Override
     public void createHandler(MapViewRenderer renderThread) {
         this.handler = new MarkHandler(renderThread.getHandler(), this);
+        super.createHandler(renderThread);
     }
 
     public MarkHandler getMarkHandler() {

@@ -26,6 +26,8 @@ public abstract class MapBaseLayer {
     // layer is/not show
     public boolean isVisible = true;
 
+    protected MapViewRenderer renderer;
+
     protected MapView mapView;
 
     public MapBaseLayer(MapView mapView) {
@@ -46,9 +48,8 @@ public abstract class MapBaseLayer {
 
     public abstract void debugDraw(Canvas canvas, Matrix currentMatrix);
 
-    //todo: This should be abstract later, but not now during development
     public void createHandler(MapViewRenderer renderThread) {
-
+        this.renderer = renderThread;
     }
 
     public void setLevel(int level) {
