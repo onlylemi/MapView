@@ -32,6 +32,7 @@ import com.onlylemi.mapview.library.layer.MarkLayer;
 import com.onlylemi.mapview.library.layer.RouteLayer;
 import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.utils.MapModeOptions;
+import com.onlylemi.mapview.library.utils.MapUtils;
 
 import junit.framework.Test;
 
@@ -208,7 +209,9 @@ public class MarkLayerTestActivity extends AppCompatActivity {
             }
 
             if (keyCode == KeyEvent.KEYCODE_P) {
-                mapView.setContainGraphicsPointsMode(marks, true);
+                mapView.setContainPointsMode(MapUtils.getPositionListFromGraphicList(marks), true, 50.0f);
+//mapView.setContainPointsMode(marks, true, 50);
+                //mapView.setContainGraphicsPointsMode(marks, true, 50);
 //                View v = findViewById(R.id.mappi);
 //                v.setVisibility(View.VISIBLE);
 //                try {

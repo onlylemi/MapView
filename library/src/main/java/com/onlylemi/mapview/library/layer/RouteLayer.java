@@ -24,6 +24,8 @@ import java.util.List;
  *
  * @author: onlylemi
  */
+//// TODO: 2018-03-31 Rewrite this using Path object
+@Deprecated
 public class RouteLayer extends MapBaseLayer {
 
     private List<PointF> routeList; // routes list
@@ -44,15 +46,15 @@ public class RouteLayer extends MapBaseLayer {
     }
 
     private void initLayer() {
-        this.routeWidth = mapView.getMapModeOptions().routeLineWidth;
-
-        routeList = Collections.emptyList();
-        paint = new Paint();
-        paint.setAntiAlias(true);
-        paint.setStrokeJoin(Paint.Join.ROUND);
-        paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setColor(mapView.getMapModeOptions().routeLineColor);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+//        this.routeWidth = mapView.getMapModeOptions().routeLineWidth;
+//
+//        routeList = Collections.emptyList();
+//        paint = new Paint();
+//        paint.setAntiAlias(true);
+//        paint.setStrokeJoin(Paint.Join.ROUND);
+//        paint.setStrokeCap(Paint.Cap.ROUND);
+//        paint.setColor(mapView.getMapModeOptions().routeLineColor);
+//        paint.setStyle(Paint.Style.FILL_AND_STROKE);
     }
 
     @Override
@@ -63,28 +65,28 @@ public class RouteLayer extends MapBaseLayer {
     @Override
     public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
 
-        if(!routeList.isEmpty()) {
-
-            float thickness = currentMatrix.mapRadius(routeWidth);
-            paint.setStrokeWidth(thickness);
-            //We go backwards as to add the user position to the last line
-            for(int i = routeList.size() - 1; i > 0; i--) {
-                float[] start = { routeList.get(i).x, routeList.get(i).y };
-                float[] end = { routeList.get(i - 1).x, routeList.get(i - 1).y };
-                currentMatrix.mapPoints(start);
-                currentMatrix.mapPoints(end);
-                canvas.drawLine(start[0], start[1], end[0], end[1], paint);
-            }
-
-            if(user != null) {
-                float[] start = { routeList.get(0).x, routeList.get(0).y };
-                float[] end = { user.position.x, user.position.y };
-                currentMatrix.mapPoints(start);
-                currentMatrix.mapPoints(end);
-                canvas.drawLine(start[0], start[1], end[0], end[1], paint);
-            }
-
-        }
+//        if(!routeList.isEmpty()) {
+//
+//            float thickness = currentMatrix.mapRadius(routeWidth);
+//            paint.setStrokeWidth(thickness);
+//            //We go backwards as to add the user position to the last line
+//            for(int i = routeList.size() - 1; i > 0; i--) {
+//                float[] start = { routeList.get(i).x, routeList.get(i).y };
+//                float[] end = { routeList.get(i - 1).x, routeList.get(i - 1).y };
+//                currentMatrix.mapPoints(start);
+//                currentMatrix.mapPoints(end);
+//                canvas.drawLine(start[0], start[1], end[0], end[1], paint);
+//            }
+//
+//            if(user != null) {
+//                float[] start = { routeList.get(0).x, routeList.get(0).y };
+//                float[] end = { user.position.x, user.position.y };
+//                currentMatrix.mapPoints(start);
+//                currentMatrix.mapPoints(end);
+//                canvas.drawLine(start[0], start[1], end[0], end[1], paint);
+//            }
+//
+//        }
     }
 
     @Override

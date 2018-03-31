@@ -34,6 +34,7 @@ import com.onlylemi.mapview.library.layer.MarkLayer;
 import com.onlylemi.mapview.library.layer.RouteLayer;
 import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.utils.MapModeOptions;
+import com.onlylemi.mapview.library.utils.MapUtils;
 
 import junit.framework.Test;
 
@@ -90,7 +91,7 @@ public class MapLayerTestActivity extends AppCompatActivity {
                 try {
                     Bitmap map = BitmapFactory.decodeStream(getAssets().open("bromma_floor_plan810.png"));
                     handler.createMap(map);
-                    transformMatrix = MapMath.createMappingMatrix(map, 5, 7, new PointF(0, 0), new PointF(2170, 861));   //<--------- THIS IS FOR THE BACKEND ROOM PNG
+                    transformMatrix = MapMath.createMappingMatrix(map, 5, 7, new PointF(0, 0), new PointF(map.getWidth(), map.getHeight()));   //<--------- THIS IS FOR THE BACKEND ROOM PNG
                     user = new LocationUser(BitmapFactory.decodeStream(getAssets().open("marker.png")), MapMath.transformPoint(transformMatrix, position), new PointF(1, 0));
                 } catch(IOException ex) {
                     ex.printStackTrace();
@@ -225,7 +226,7 @@ public class MapLayerTestActivity extends AppCompatActivity {
             }
 
             if (keyCode == KeyEvent.KEYCODE_P) {
-                mapView.setContainGraphicsPointsMode(marks, true);
+                mapView.setContainPointsMode(MapUtils.getPositionListFromGraphicList(marks), true, 50.0f);
 //                View v = findViewById(R.id.mappi);
 //                v.setVisibility(View.VISIBLE);
 //                try {
