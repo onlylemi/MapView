@@ -103,10 +103,6 @@ public class ContainPointsMode extends BaseContainMode {
                                               float zoom, int viewWidth, int viewHeight) {
         float midX = (((maxX - minX) / 2) + minX) * zoom;
         float midY = (((maxY - minY) / 2) + minY) * zoom;
-
-        float scaledMidViewWidth = viewWidth / 2;
-        float scaledMidViewHeight = viewHeight / 2;
-
-        return new PointF(scaledMidViewWidth - midX, scaledMidViewHeight - midY);
+        return new PointF((viewWidth / 2) - midX, (viewHeight / 2) - midY);
     }
 }
