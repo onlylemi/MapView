@@ -8,6 +8,7 @@ import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.camera.BaseMode;
 import com.onlylemi.mapview.library.camera.ContainPointsMode;
+import com.onlylemi.mapview.library.camera.ContainPointsUserMode;
 import com.onlylemi.mapview.library.camera.ContainUserMode;
 import com.onlylemi.mapview.library.camera.FollowUserMode;
 import com.onlylemi.mapview.library.camera.FreeMode;
@@ -334,10 +335,10 @@ public class MapViewCamera {
 
         public ContainPointsMode createContainPointsMode(List<PointF> points, boolean containUser, float padding) {
             if(containUser) {
-                points.add(camera.getCurrentUser().getPosition());
+                return new ContainPointsUserMode(camera, points, camera.getCurrentUser(), padding);
+            } else {
+                return new ContainPointsMode(camera, points, padding);
             }
-
-            return new ContainPointsMode(camera, points, padding);
         }
 
         public void setDefaultContainUserZoom(float zoom) {

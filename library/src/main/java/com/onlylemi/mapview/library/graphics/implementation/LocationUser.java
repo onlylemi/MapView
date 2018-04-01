@@ -45,6 +45,9 @@ public class LocationUser extends BaseGraphics {
     private IBaseAnimation rotationAnim = null;
     private List<IBaseAnimation> translationAnims = null;
 
+    //To make this testable
+    public LocationUser() {}
+
     //Assumes the bmp looks to the right by default
     public LocationUser(Bitmap bmp, PointF position, PointF lookAt) {
         this(bmp, position, new PointF(1, 0), lookAt);
