@@ -2,9 +2,12 @@ package com.onlylemi.mapview.library.camera;
 
 import android.graphics.Matrix;
 import android.graphics.PointF;
+import android.support.annotation.NonNull;
 
 import com.onlylemi.mapview.library.MapViewCamera;
+import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.utils.MapMath;
+import com.onlylemi.mapview.library.utils.MapUtils;
 
 import java.util.List;
 
@@ -12,75 +15,30 @@ import java.util.List;
  * Created by patnym on 27/12/2017.
  */
 
-public class ContainPointsMode extends BaseMode {
+public class ContainPointsMode extends BaseContainMode {
 
-    private float targetZoom;
-    private PointF targetDst;
+    protected PointF topLeftPoint;
+    protected PointF botRightPoint;
+
+    protected float padding;
 
     public ContainPointsMode(MapViewCamera camera, List<PointF> pointList, float padding) {
         super(camera);
-        float[] minmax = getMaxMinFromPointList(pointList, padding);
-        targetZoom = getZoomWithinPoints(minmax[0], minmax[1], minmax[2], minmax[3]);
-        targetDst = MapMath.getMidPointBetweenTwoPoints(minmax[0], minmax[1], minmax[2], minmax[3]);
+        this.padding = padding;
+        float[] minmax = getMaxMinFromPointList(pointList);
+        topLeftPoint = new PointF(minmax[2] - padding, minmax[3] - padding);
+        botRightPoint = new PointF(minmax[0] + padding, minmax[1] + padding);
     }
 
     @Override
     public void onStart() {
+        init();
+        super.onStart();
     }
 
     @Override
     public Matrix update(Matrix worldMatrix, long deltaTimeNano) {
-        //This is stupid, how do I make this "move" towards a target in a good way?
-        //This could in future be state based instead. Just remember the state each time and if it does not update we use the old state
-        //// TODO: 2017-08-08 This is a refactor stage later on, this works atm and its fine until a later version
-        //Handles the zooming
-        float d = targetZoom - camera.getCurrentZoom();
-        int sign = (int) (d / Math.abs(d));
-        d = d * sign; //Absolute distance
-        float zVelocity = (2.0f / MapMath.NANOSECOND) * sign * deltaTimeNano;
-        d -= Math.abs(zVelocity);
-
-        //move towards target using velocity
-        if (d <= 0.0f) {
-            camera.zoom(targetZoom);
-        } else {
-            camera.zoom(camera.getCurrentZoom() + zVelocity);
-        }
-
-
-        //My point on the view coordinate system
-        float[] b = {targetDst.x, targetDst.y};
-        worldMatrix.mapPoints(b);
-
-        //Mid point of the view coordinate system
-        PointF trueMid = new PointF(camera.getViewWidth() / 2, camera.getViewHeight() / 2);
-
-        //Direction - NOTE we are going from the mid towards our point because graphics yo
-        PointF desti = new PointF(trueMid.x - b[0], trueMid.y - b[1]);
-
-        //This is also the distance from our point to the middle
-        float distance = desti.length();
-
-        PointF dir = new PointF();
-
-        dir.x = desti.x / distance;
-        dir.y = desti.y / distance;
-
-        //Get position from currentMatrix
-        float[] m = new float[9];
-        worldMatrix.getValues(m);
-
-        //Current position
-        PointF pos = new PointF(m[2], m[5]);
-
-        distance -= (2500.0f / MapMath.NANOSECOND) * deltaTimeNano;
-
-        if (distance <= 0.0f) {
-            worldMatrix.postTranslate(desti.x, desti.y);
-        } else {
-            worldMatrix.postTranslate(dir.x * (2500.0f / MapMath.NANOSECOND) * deltaTimeNano, dir.y * (2500.0f / MapMath.NANOSECOND) * deltaTimeNano);
-        }
-        return worldMatrix;
+        return super.update(worldMatrix, deltaTimeNano);
     }
 
     @Override
@@ -88,7 +46,17 @@ public class ContainPointsMode extends BaseMode {
 
     }
 
-    private float[] getMaxMinFromPointList(final List<PointF> pointList, float padding) {
+    protected void init() {
+        targetedZoom = getZoomWithinPoints(botRightPoint.x, botRightPoint.y,
+                topLeftPoint.x, topLeftPoint.y,
+                camera.getViewWidth(), camera.getViewHeight());
+
+        targetedPosition = getTranslationTarget(botRightPoint.x, botRightPoint.y,
+                topLeftPoint.x, topLeftPoint.y,
+                targetedZoom, camera.getViewWidth(), camera.getViewHeight());
+    }
+
+    public static float[] getMaxMinFromPointList(final List<PointF> pointList) {
         PointF initPoint = pointList.get(0);
 
         //Find max point height and max point width
@@ -108,24 +76,37 @@ public class ContainPointsMode extends BaseMode {
             minY = p.y < minY ? p.y : minY;
         }
 
-        float[] r = { maxX + padding, maxY + padding, minX - padding, minY - padding};
+        float[] r = { maxX, maxY, minX, minY};
         return r;
     }
 
-    private float getZoomWithinPoints(float maxX, float maxY, float minX, float minY) {
+    public static float getZoomWithinPoints(float maxX, float maxY, float minX, float minY,
+                                            int viewWidth, int viewHeight) {
         float imageWidth = maxX - minX;
         float imageHeight = maxY - minY;
 
-        float widthRatio = camera.getViewWidth() / imageWidth;
-        float heightRatio = camera.getViewHeight() / imageHeight;
+        float widthRatio = viewWidth / imageWidth;
+        float heightRatio = viewHeight / imageHeight;
         float ratio = 0.0f;
 
-        if (widthRatio * imageHeight <= camera.getViewHeight()) {
+        if (widthRatio * imageHeight <= viewHeight) {
             ratio = widthRatio;
-        } else if (heightRatio * imageWidth <= camera.getViewWidth()) {
+        } else if (heightRatio * imageWidth <= viewWidth) {
             ratio = heightRatio;
         }
 
         return ratio;
+    }
+
+    @NonNull
+    public static PointF getTranslationTarget(float maxX, float maxY, float minX, float minY,
+                                              float zoom, int viewWidth, int viewHeight) {
+        float midX = (((maxX - minX) / 2) + minX) * zoom;
+        float midY = (((maxY - minY) / 2) + minY) * zoom;
+
+        float scaledMidViewWidth = viewWidth / 2;
+        float scaledMidViewHeight = viewHeight / 2;
+
+        return new PointF(scaledMidViewWidth - midX, scaledMidViewHeight - midY);
     }
 }
