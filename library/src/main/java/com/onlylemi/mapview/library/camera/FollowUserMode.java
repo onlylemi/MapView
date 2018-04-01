@@ -11,66 +11,53 @@ import com.onlylemi.mapview.library.utils.MapMath;
  * Created by patnym on 27/12/2017.
  */
 
-public class FollowUserMode extends BaseMode {
+public class FollowUserMode extends BaseContainMode {
+
+    private PointF lastUserPosition;
 
     private LocationUser user;
 
-    public FollowUserMode(MapViewCamera camera, LocationUser user) {
+    public FollowUserMode(MapViewCamera camera) {
+        this(camera, camera.getDefaultContainUserZoom());
+    }
+
+    public FollowUserMode(MapViewCamera camera, float zoomLevel) {
         super(camera);
-        this.user = user;
+        user = camera.getCurrentUser();
+        targetedPosition = new PointF();
+        lastUserPosition = new PointF();
+        targetedZoom = zoomLevel;
     }
 
     @Override
     public void onStart() {
-
+        calculateTarget();
+        timeSpentReturning = maxTimeToReturnNano;
+        super.onStart();
+        lastUserPosition.set(user.getPosition());
     }
 
     @Override
     public Matrix update(Matrix worldMatrix, long deltaTimeNano) {
-        //My point on the view coordinate system
-        PointF dst = new PointF();
-        dst.set(user.getPosition());
-        float[] b = {dst.x, dst.y};
-        worldMatrix.mapPoints(b);
-
-        //My point in view coords
-        dst.x = b[0];
-        dst.y = b[1];
-
-        //Mid point of the view coordinate system
-        PointF trueMid = new PointF(camera.getViewWidth() / 2, camera.getViewHeight() / 2);
-
-        //Direction - NOTE we are going from the mid towards our point because graphics yo
-        PointF desti = new PointF(trueMid.x - b[0], trueMid.y - b[1]);
-
-        //This is also the distance from our point to the middle
-        float distance = desti.length();
-
-        PointF dir = new PointF();
-
-        dir.x = desti.x / distance;
-        dir.y = desti.y / distance;
-
-        //Get position from currentMatrix
-        float[] m = new float[9];
-        worldMatrix.getValues(m);
-
-        //Current position
-        PointF pos = new PointF(m[2], m[5]);
-
-        distance -= (2500.0f / MapMath.NANOSECOND) * deltaTimeNano;
-
-        if (distance <= 0.0f) {
-            worldMatrix.postTranslate(desti.x, desti.y);
-        } else {
-            worldMatrix.postTranslate(dir.x * (2500.0f / MapMath.NANOSECOND) * deltaTimeNano, dir.y * (2500.0f / MapMath.NANOSECOND) * deltaTimeNano);
+        if (lastUserPosition.x != user.getPosition().x || lastUserPosition.y != user.getPosition().y) {
+            //If we got time left on returning this means the user moved during a init step
+            calculateTarget();
+            initTranslation(targetedPosition,
+                    timeSpentReturning > 0 ? timeSpentReturning : defaultTimeToReturn);
+        } else if(translateDistance <= 0 && zoomDistance <= 0) {
+            //If both distances have crossed over we just create our view matrix and return
+            return createViewMatrix(worldMatrix);
         }
-
-        return worldMatrix;
+        return super.update(worldMatrix, deltaTimeNano);
     }
 
     @Override
     public void onEnd() {
 
+    }
+
+    public void calculateTarget() {
+        targetedPosition.x = (camera.getViewWidth() / 2) - (user.getPosition().x * targetedZoom);
+        targetedPosition.y = (camera.getViewHeight() / 2) - (user.getPosition().y * targetedZoom);
     }
 }

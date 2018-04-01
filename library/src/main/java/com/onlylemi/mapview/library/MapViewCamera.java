@@ -330,7 +330,11 @@ public class MapViewCamera {
         }
 
         public FollowUserMode createFollowUserMode() {
-            return new FollowUserMode(camera, camera.getCurrentUser());
+            return new FollowUserMode(camera);
+        }
+
+        public FollowUserMode createFollowUserMode(float zoomLevel) {
+            return new FollowUserMode(camera, zoomLevel);
         }
 
         public ContainPointsMode createContainPointsMode(List<PointF> points, boolean containUser, float padding) {

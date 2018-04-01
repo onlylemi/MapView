@@ -244,6 +244,15 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         });
     }
 
+    public void setFollowUserMode(final float zoomLevel) {
+        sendCameraMessageToThread(new ICameraModeCommand() {
+            @Override
+            public void execute(MapViewCamera camera) {
+                camera.switchCameraMode(camera.getFactory().createFollowUserMode(zoomLevel));
+            }
+        });
+    }
+
     public void setContainPointsMode(final List<PointF> points, final boolean includeUser, final float padding) throws IllegalArgumentException {
         if(includeUser && points.size() < 1)
             throw new IllegalArgumentException("Zoom points size < 1, must include at least 1 point when including a user");
