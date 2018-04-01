@@ -1,10 +1,13 @@
 package com.onlylemi.mapview;
 
+import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 
 import com.onlylemi.mapview.library.MapViewCamera;
 import com.onlylemi.mapview.library.camera.ContainPointsMode;
+import com.onlylemi.mapview.library.camera.ContainPointsUserMode;
+import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.utils.MapUtils;
 
 import junit.framework.Assert;
@@ -123,8 +126,72 @@ public class ContainPointsModeTest {
     }
 
     @Test
-    public void testCameraModeUpdateInstantMoveNegativePadding() {
+    public void testCameraModeContainWithUser() {
+        ArrayList<PointF> points = new ArrayList<>();
+        points.add(new PointF(0, 0));
+        points.add(new PointF(2, 2));
 
+        MapViewCamera camera = new MapViewCamera(20,10, 10, 5);
+
+        MockUser user = new MockUser(new PointF(4, 4));
+        camera.initialize(user);
+
+        ContainPointsUserMode cp = new ContainPointsUserMode(camera, points, user, 0.0f);
+
+        cp.onStart();
+
+        Matrix m = cp.update(camera.getWorldMatrix(), Long.MAX_VALUE);
+
+        float[] b = new float[9];
+        m.getValues(b);
+
+        PointF p = MapUtils.getPositionFromMatrix(m);
+
+        Assert.assertEquals(5.0f, p.x);
+        Assert.assertEquals(0.0f, p.y);
+        Assert.assertEquals(2.5f, b[0]);
+        Assert.assertEquals(2.5f, b[4]);
+    }
+
+    @Test
+    public void testCameraModeContainWithUser_MoveUser() {
+        ArrayList<PointF> points = new ArrayList<>();
+        points.add(new PointF(0, 0));
+        points.add(new PointF(2, 2));
+
+        MapViewCamera camera = new MapViewCamera(20,10, 10, 5);
+
+        MockUser user = new MockUser(new PointF(4, 4));
+        camera.initialize(user);
+
+        ContainPointsUserMode cp = new ContainPointsUserMode(camera, points, user, 0.0f);
+
+        cp.onStart();
+
+        cp.update(camera.getWorldMatrix(), Long.MAX_VALUE);
+
+        user.position.x = 5;
+        user.position.y = 5;
+
+        Matrix m = cp.update(camera.getWorldMatrix(), Long.MAX_VALUE);
+
+        float[] b = new float[9];
+        m.getValues(b);
+
+        PointF p = MapUtils.getPositionFromMatrix(m);
+
+        Assert.assertEquals(5.0f, p.x);
+        Assert.assertEquals(0.0f, p.y);
+        Assert.assertEquals(2.0f, b[0]);
+        Assert.assertEquals(2.0f, b[4]);
+    }
+
+    private class MockUser extends LocationUser {
+
+        public MockUser(PointF position) {
+            super();
+            this.position = position;
+        }
     }
 
 }
