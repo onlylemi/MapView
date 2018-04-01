@@ -186,12 +186,4 @@ public class ContainPointsModeTest {
         Assert.assertEquals(2.0f, b[4]);
     }
 
-    private class MockUser extends LocationUser {
-
-        public MockUser(PointF position) {
-            super();
-            this.position = position;
-        }
-    }
-
 }

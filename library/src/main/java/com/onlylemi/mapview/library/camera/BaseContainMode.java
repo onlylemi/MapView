@@ -94,4 +94,13 @@ public class BaseContainMode extends BaseMode {
     public void onEnd() {
 
     }
+
+    //To allow testing
+    public float getTargetedZoom() {
+        return targetedZoom;
+    }
+
+    public PointF getTargetedPosition() {
+        return targetedPosition;
+    }
 }
