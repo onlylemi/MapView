@@ -167,9 +167,21 @@ public class MapLayerTestActivity extends AppCompatActivity {
 
         if (inited) {
             if (keyCode == KeyEvent.KEYCODE_W) {
-                position.y -= 0.5f;
+                if(b) {
+                    List<PointF> positions = new ArrayList<>();
+
+                    positions.add(MapMath.transformPoint(transformMatrix, new PointF(5, 0)));
+                    positions.add(MapMath.transformPoint(transformMatrix, new PointF(5, 7)));
+                    positions.add(MapMath.transformPoint(transformMatrix, new PointF(0, 7)));
+                    positions.add(MapMath.transformPoint(transformMatrix, new PointF(0, 0)));
+
+                    userHandler.moveUser(positions, 5.0f, true);
+                } else {
+                    userHandler.moveUser(MapMath.transformPoint(transformMatrix, new PointF(5, 7)), 1.0f);
+                }
+                //position.y -= 0.5f;
                 //user.setLookAt(new PointF(0.0f, 1.0f), 0.3f);
-                handled = true;
+                //handled = true;
             } else if (keyCode == KeyEvent.KEYCODE_A) {
                 position.x -= 0.5f;
                 //user.setLookAt(new PointF(-1, 0), 0.3f);
@@ -199,8 +211,8 @@ public class MapLayerTestActivity extends AppCompatActivity {
             }
 
             if(keyCode == KeyEvent.KEYCODE_G) {
-                //mapView.setContainerUserMode();
-                mapView.resumeRendering();
+                mapView.setContainerUserMode();
+                //mapView.resumeRendering();
             }
 
             if(keyCode == KeyEvent.KEYCODE_M) {
@@ -226,43 +238,30 @@ public class MapLayerTestActivity extends AppCompatActivity {
             }
 
             if (keyCode == KeyEvent.KEYCODE_P) {
-                mapView.setContainPointsMode(MapUtils.getPositionListFromGraphicList(marks), true, 50.0f);
-//                View v = findViewById(R.id.mappi);
-//                v.setVisibility(View.VISIBLE);
-//                try {
-//                    Bitmap markBm = BitmapFactory.decodeStream(getAssets().open("marker.png"));
-//
-//                    bs.add(new ProximityMark(markBm, TestData.getMarks().get(index), markBm.getHeight() * 2, true, false));
-//                    sm.add(new StaticMark(markBm, TestData.getMarks().get(index)));
-//                    markLayer.setProximityMarks(bs);
-//                    markLayer.setStaticMarks(sm);
-//                    route.add(TestData.getMarks().get(index));
-//                    routeLayer.setRouteList(route);
-//
-//                    index++;
-//
-//                    mapView.setZoomPoints(bs, 5.0f, true);
-//
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-
+                marks.add(new ProximityMark(user.getBmp(), MapMath.transformPoint(transformMatrix,
+                        new PointF(0, 0)), user.getBmp().getWidth() * 2.0f,
+                        true, false));
+                marks.add(new ProximityMark(user.getBmp(), MapMath.transformPoint(transformMatrix,
+                        new PointF(2, 0)), user.getBmp().getWidth() * 2.0f,
+                        true, false));
+                marks.add(new ProximityMark(user.getBmp(), MapMath.transformPoint(transformMatrix,
+                        new PointF(2, 4)), user.getBmp().getWidth() * 2.0f,
+                        true, false));
+                marks.add(new ProximityMark(user.getBmp(), MapMath.transformPoint(transformMatrix,
+                        new PointF(5, 10)), user.getBmp().getWidth() * 2.0f,
+                        true, false));
+                marks.add(new ProximityMark(user.getBmp(), MapMath.transformPoint(transformMatrix,
+                        new PointF(-25, -10)), user.getBmp().getWidth() * 2.0f,
+                        true, false));
+                marks.add(new ProximityMark(user.getBmp(), MapMath.transformPoint(transformMatrix,
+                        new PointF(3, 19)), user.getBmp().getWidth() * 2.0f,
+                        true, false));
+                markHandler.setStaticMarks(marks);
+                mapView.setContainPointsMode(MapUtils.getPositionListFromGraphicList(marks), false, 500.0f);
             }
 
             //If continious is true it will keep the mark array as a reference
             //mapView.zoomWithinPoints(posis);
-            if(b) {
-                List<PointF> positions = new ArrayList<>();
-
-                positions.add(MapMath.transformPoint(transformMatrix, new PointF(5, 0)));
-                positions.add(MapMath.transformPoint(transformMatrix, new PointF(5, 7)));
-                positions.add(MapMath.transformPoint(transformMatrix, new PointF(0, 7)));
-                positions.add(MapMath.transformPoint(transformMatrix, new PointF(0, 0)));
-
-                userHandler.moveUser(positions, 5.0f, true);
-            } else {
-                userHandler.moveUser(MapMath.transformPoint(transformMatrix, new PointF(5, 7)), 1.0f);
-            }
         }
         return handled;
     }
