@@ -249,6 +249,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
             throw new IllegalArgumentException("Zoom points size < 1, must include at least 1 point when including a user");
         else if(!includeUser && points.size() <= 1)
             throw new IllegalArgumentException("Zoom points size is less or equals to 1, must be > 1 if no user is included");
+        else if(padding < 0.0f) {
+            throw new IllegalArgumentException("Padding must be greater then 0, please choose narrower points instead");
+        }
         sendCameraMessageToThread(new ICameraModeCommand() {
             @Override
             public void execute(MapViewCamera camera) {
