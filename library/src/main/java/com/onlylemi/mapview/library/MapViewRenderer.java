@@ -4,16 +4,15 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.PointF;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.Choreographer;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
-import android.view.View;
 
 import com.onlylemi.mapview.library.graphics.IBackground;
 import com.onlylemi.mapview.library.graphics.implementation.Backgrounds.ColorBackground;
@@ -46,7 +45,7 @@ public class MapViewRenderer extends Thread {
     private MapRenderTimer frameTimer = new MapRenderTimer();
     private Surface root;
     private SurfaceHolder rootHolder;
-    private MapView mapView;
+    protected MapView mapView;
     private boolean running = false;
     private MapLayer rootLayer;
     private List<MapBaseLayer> layers;
@@ -64,6 +63,10 @@ public class MapViewRenderer extends Thread {
     private Handler messageHandler;
 
     private boolean isSetupDone = false;
+
+    //Flagged true if the draw loop is currently running
+    protected boolean rendering = false;
+    protected Object renderStateLock = new Object();
 
     //All values below are cached to prevent GC
     //region cache
@@ -136,7 +139,9 @@ public class MapViewRenderer extends Thread {
 
         Log.d(TAG, "Setup callback finished");
 
-        Log.d(TAG, "Everything setup, starting looper");
+        wakeUp();
+
+        Log.d(TAG, "Rendering started, starting looper");
 
         Looper.loop();
 
@@ -153,6 +158,7 @@ public class MapViewRenderer extends Thread {
     public void doFrame(long timeStamp) {
 
         if((System.nanoTime() - timeStamp) / 1000000 > 15) {
+            Choreographer.getInstance().postFrameCallback(mapView);
             return;
         }
 
@@ -197,6 +203,7 @@ public class MapViewRenderer extends Thread {
 
 
         canvas = null;
+        Choreographer.getInstance().postFrameCallback(mapView);
     }
 
     /**
@@ -299,6 +306,10 @@ public class MapViewRenderer extends Thread {
         return isSetupDone;
     }
 
+    public boolean isRendering() {
+        return rendering;
+    }
+
     @Deprecated
     public IBackground getBackground() {
         return background;
@@ -307,6 +318,33 @@ public class MapViewRenderer extends Thread {
     @Deprecated
     public void setBackground(IBackground background) {
         this.background = background;
+    }
+
+    /**
+     * If called we attempt to wake up the render part of the thread
+     */
+    public void wakeUp() {
+        if(rendering) {
+            return;
+        }
+        Choreographer.getInstance().postFrameCallback(mapView);
+        synchronized (renderStateLock) {
+            rendering = true;
+        }
+    }
+
+    /**
+     * If called we attempt to pause the rendering side of this thread
+     * @return
+     */
+    public void pause() {
+        if(!rendering) {
+            return;
+        }
+        Choreographer.getInstance().removeFrameCallback(mapView);
+        synchronized (renderStateLock) {
+            rendering = false;
+        }
     }
 
     public MapViewCamera getCamera() {
@@ -347,8 +385,10 @@ public class MapViewRenderer extends Thread {
         {
             switch (msg.what) {
                 case MessageDefenitions.MESSAGE_DRAW:
-                    doFrame((((long) msg.arg1) << 32) |
-                            (((long) msg.arg2) & 0xffffffffL));
+                    if(rendering) {
+                        doFrame((((long) msg.arg1) << 32) |
+                                (((long) msg.arg2) & 0xffffffffL));
+                    }
                     break;
                 case MessageDefenitions.MESSAGE_CAMERA_MODE_EXECUTE:
                     ((ICameraModeCommand) msg.obj).execute(camera);

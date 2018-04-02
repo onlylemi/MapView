@@ -46,7 +46,7 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
     private MapLayer mapLayer;
 
     //Main rendering thread
-    private MapViewRenderer thread = new MapViewRenderer();
+    private MapViewRenderer thread; // = new MapViewRenderer();
 
     public MapView(Context context) {
         this(context, null);
@@ -94,27 +94,28 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
      * Suspends teh rendering thread
      */
     public void resumeRendering() {
-        Choreographer.getInstance().postFrameCallback(this);
+        if(thread != null) {
+            thread.wakeUp();
+        }
     }
 
     /**
      * Resumes the rendering thread
      */
     public void pauseRendering() {
-        Choreographer.getInstance().removeFrameCallback(this);
+        if(thread != null) {
+            thread.pause();
+        }
     }
 
     @Override
     public void onVisibilityChanged(View changedView, int state) {
         super.onVisibilityChanged(changedView, state);
 
-        if(thread != null) {
-            //Pause rendering if invisible
-            if ((state == View.GONE || state == View.INVISIBLE) && thread.getState() != Thread.State.TERMINATED) {
-                pauseRendering();
-            }else if(state == View.VISIBLE && thread.getState() != Thread.State.TERMINATED) {
-                resumeRendering();
-            }
+        if ((state == View.GONE || state == View.INVISIBLE)) {
+            pauseRendering();
+        }else if(state == View.VISIBLE) {
+            resumeRendering();
         }
     }
 
@@ -124,17 +125,13 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
             Log.d(TAG, "Creating a new render thread");
             thread = new MapViewRenderer(holder, this);
             thread.setSetupCallback(setupCallback);
-            //thread.setRunning(true);
-            thread.start();  // Start a new thread
-            //onRenderingStarted();
+            thread.start();
         }
         else if(thread.getState() == Thread.State.NEW){
             Log.d(TAG, "Using an old thread");
             thread.init(holder, this);
             thread.setSetupCallback(setupCallback);
-            //thread.setRunning(true);
             thread.start();
-            //onRenderingStarted();
         }
         Log.d(TAG, "Surface created, size to: " + getWidth() + "x" + getHeight());
     }
@@ -169,7 +166,9 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
 
     public void onSetupCallback(MapViewSetupCallback callback) {
         this.setupCallback = callback;
-        this.thread.setSetupCallback(callback);
+        if(this.thread != null) {
+            this.thread.setSetupCallback(callback);
+        }
     }
 
     /**
@@ -203,7 +202,6 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
 
     @Override
     public void doFrame(long deltaTimeNano) {
-        Choreographer.getInstance().postFrameCallback(this);
         if(thread != null && thread.getHandler() != null)
             thread.getHandler().sendMessage(Message.obtain(thread.getHandler(), MessageDefenitions.MESSAGE_DRAW, (int) (deltaTimeNano >> 32), (int) deltaTimeNano));
     }
