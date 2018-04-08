@@ -159,7 +159,7 @@ public class MapViewRenderer extends Thread {
     public void doFrame(long timeStamp) {
 
         if((System.nanoTime() - timeStamp) / 1000000 > 15) {
-            Choreographer.getInstance().postFrameCallback(mapView);
+            requestFrame();
             return;
         }
 
@@ -204,6 +204,13 @@ public class MapViewRenderer extends Thread {
 
 
         canvas = null;
+        requestFrame();
+    }
+
+    /**
+     * Requests to render next frame, this will in turn call doFrame()
+     */
+    private void requestFrame() {
         Choreographer.getInstance().postFrameCallback(mapView);
     }
 
@@ -328,7 +335,7 @@ public class MapViewRenderer extends Thread {
         if(rendering) {
             return;
         }
-        Choreographer.getInstance().postFrameCallback(mapView);
+        requestFrame();
         synchronized (renderStateLock) {
             rendering = true;
         }
