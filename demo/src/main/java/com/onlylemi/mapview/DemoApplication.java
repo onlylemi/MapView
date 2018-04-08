@@ -21,7 +21,7 @@ public class DemoApplication extends Application {
     public void onCreate() {
         super.onCreate();
         context = getApplicationContext();
-        refWatcher = LeakCanary.install(this);
+        //refWatcher = LeakCanary.install(this);
     }
 
     public static Context getContext() {

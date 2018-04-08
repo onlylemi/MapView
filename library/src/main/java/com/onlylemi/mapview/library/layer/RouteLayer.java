@@ -11,7 +11,12 @@ import android.view.MotionEvent;
 
 import com.onlylemi.mapview.library.MapView;
 import com.onlylemi.mapview.library.R;
+import com.onlylemi.mapview.library.graphics.BaseGraphics;
+import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -19,91 +24,82 @@ import java.util.List;
  *
  * @author: onlylemi
  */
+//// TODO: 2018-03-31 Rewrite this using Path object
+@Deprecated
 public class RouteLayer extends MapBaseLayer {
 
-    private List<Integer> routeList; // routes list
-    private List<PointF> nodeList; // nodes list
+    private List<PointF> routeList; // routes list
+    private BaseGraphics user; //Reference to the user graphics
 
-    private float routeWidth; // the width of route
-
-    private Bitmap routeStartBmp;
-    private Bitmap routeEndBmp;
+    private float routeWidth;
 
     private Paint paint;
 
     public RouteLayer(MapView mapView) {
-        this(mapView, null, null);
-    }
-
-    public RouteLayer(MapView mapView, List<PointF> nodeList, List<Integer> routeList) {
         super(mapView);
-        this.nodeList = nodeList;
-        this.routeList = routeList;
-
         initLayer();
     }
 
+    public RouteLayer(MapView mapView, LocationUser user) {
+        this(mapView);
+        this.user = user;
+    }
+
     private void initLayer() {
-        this.routeWidth = 10;
-
-        paint = new Paint();
-        paint.setAntiAlias(true);
-        paint.setColor(Color.BLUE);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-
-        routeStartBmp = BitmapFactory.decodeResource(mapView.getResources(),
-                R.mipmap.start_point);
-        routeEndBmp = BitmapFactory.decodeResource(mapView.getResources(),
-                R.mipmap.end_point);
+//        this.routeWidth = mapView.getMapModeOptions().routeLineWidth;
+//
+//        routeList = Collections.emptyList();
+//        paint = new Paint();
+//        paint.setAntiAlias(true);
+//        paint.setStrokeJoin(Paint.Join.ROUND);
+//        paint.setStrokeCap(Paint.Cap.ROUND);
+//        paint.setColor(mapView.getMapModeOptions().routeLineColor);
+//        paint.setStyle(Paint.Style.FILL_AND_STROKE);
     }
 
     @Override
-    public void onTouch(MotionEvent event) {
+    public void onTouch(float x, float y) {
 
     }
 
     @Override
-    public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, float
-            currentRotateDegrees) {
-        if (isVisible && routeList != null && nodeList != null) {
-            canvas.save();
-            if (!routeList.isEmpty() && !nodeList.isEmpty()) {
-                // draw route
-                for (int i = 0; i < routeList.size() - 1; i++) {
-                    float[] goal1 = {nodeList.get(routeList.get(i)).x,
-                            nodeList.get(routeList.get(i)).y};
-                    float[] goal2 = {nodeList.get(routeList.get(i + 1)).x,
-                            nodeList.get(routeList.get(i + 1)).y};
-                    currentMatrix.mapPoints(goal1);
-                    currentMatrix.mapPoints(goal2);
-                    paint.setStrokeWidth(routeWidth);
-                    canvas.drawLine(goal1[0], goal1[1], goal2[0], goal2[1], paint);
-                }
-
-                // draw bmp
-                float[] goal1 = {nodeList.get(routeList.get(0)).x,
-                        nodeList.get(routeList.get(0)).y};
-                float[]  goal2 = {
-                        nodeList.get(routeList.get(routeList.size() - 1)).x,
-                        nodeList.get(routeList.get(routeList.size() - 1)).y};
-                currentMatrix.mapPoints(goal1);
-                currentMatrix.mapPoints(goal2);
-                canvas.drawBitmap(routeStartBmp,
-                        goal1[0] - routeStartBmp.getWidth() / 2, goal1[1]
-                                - routeStartBmp.getHeight(), paint);
-                canvas.drawBitmap(routeEndBmp,
-                        goal2[0] - routeEndBmp.getWidth() / 2, goal2[1]
-                                - routeEndBmp.getHeight(), paint);
-            }
-            canvas.restore();
-        }
+    public boolean update(Matrix currentMatrix, long deltaTime) {
+        return false;
     }
 
-    public void setNodeList(List<PointF> nodeList) {
-        this.nodeList = nodeList;
+    @Override
+    public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
+
+//        if(!routeList.isEmpty()) {
+//
+//            float thickness = currentMatrix.mapRadius(routeWidth);
+//            paint.setStrokeWidth(thickness);
+//            //We go backwards as to add the user position to the last line
+//            for(int i = routeList.size() - 1; i > 0; i--) {
+//                float[] start = { routeList.get(i).x, routeList.get(i).y };
+//                float[] end = { routeList.get(i - 1).x, routeList.get(i - 1).y };
+//                currentMatrix.mapPoints(start);
+//                currentMatrix.mapPoints(end);
+//                canvas.drawLine(start[0], start[1], end[0], end[1], paint);
+//            }
+//
+//            if(user != null) {
+//                float[] start = { routeList.get(0).x, routeList.get(0).y };
+//                float[] end = { user.position.x, user.position.y };
+//                currentMatrix.mapPoints(start);
+//                currentMatrix.mapPoints(end);
+//                canvas.drawLine(start[0], start[1], end[0], end[1], paint);
+//            }
+//
+//        }
     }
 
-    public void setRouteList(List<Integer> routeList) {
+    @Override
+    public void debugDraw(Canvas canvas, Matrix currentMatrix) {
+
+    }
+
+    public void setRouteList(List<PointF> routeList) {
         this.routeList = routeList;
     }
 }

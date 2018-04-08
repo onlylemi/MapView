@@ -1,8 +1,11 @@
 package com.onlylemi.mapview.library.utils;
 
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.util.Log;
 
+import com.onlylemi.mapview.library.MapView;
 import com.onlylemi.mapview.library.utils.math.FloydAlgorithm;
 import com.onlylemi.mapview.library.utils.math.GeneticAlgorithm;
 import com.onlylemi.mapview.library.utils.math.TSPNearestNeighbour;
@@ -19,6 +22,17 @@ import java.util.List;
 public final class MapMath {
 
     private MapMath() {}
+
+    /**
+     * Represents 1 second in nanoseconds
+     */
+    public static long NANOSECOND = 1000000000;
+
+    /**
+     * Represetns 1 second in miliseconds
+     */
+    public static long MILISECOND = 1000;
+
 
     /**
      * the distance between two points
@@ -300,6 +314,115 @@ public final class MapMath {
 
         return ((p_l1 * p_l1 + l1_l2 * l1_l2) < p_l2 * p_l2)
                 || ((p_l2 * p_l2 + l1_l2 * l1_l2) < p_l1 * p_l1);
+    }
+
+    /**
+     * Creates a mapping matrix that is used to transform a point from the input coordinate system to graphics coordinate system
+     * topLeft 0,0 and botRight mapview.image.width, mapview.image.height is a mapping across the entire image
+     * @param width of the input coordinate system (X)
+     * @param height of the input cooridnate system (Y)
+     * @param mapViewTopLeft topLeft corner on the mapview where the input coordinate system starts.
+     * @param mapViewBotRight botLeft corner on the mapview where the input cooridnate system starts.
+     * @return the transform matrix
+     */
+    public static Matrix createMappingMatrix(Bitmap map, float width, float height, PointF mapViewTopLeft, PointF mapViewBotRight) {
+        //X scale remove the offsets
+        float scaleX = (map.getWidth() - mapViewTopLeft.x - (map.getWidth() - mapViewBotRight.x)) / width;
+        //Y scale
+        float scaleY = (map.getHeight() - mapViewTopLeft.y - (map.getHeight() - mapViewBotRight.y)) / height;
+
+        Matrix mappingMatrix = new Matrix();
+
+        //Set scale
+        mappingMatrix.setScale(scaleX, scaleY);
+
+        //Translate
+        mappingMatrix.postTranslate(mapViewTopLeft.x, mapViewTopLeft.y);
+
+        return mappingMatrix;
+    }
+
+    /**
+     * Transforms a point using the matrix
+     * This is needed bacause Andorid graphics lib is stupid
+     * @param m transform
+     * @param point position
+     * @return transformed position
+     */
+    public static PointF transformPoint(Matrix m, PointF point) {
+        float[] p = { point.x, point.y };
+        m.mapPoints(p, p);
+
+        return new PointF(p[0], p[1]);
+    }
+
+    /**
+     * Multiplies matrix a and b and returns the result
+     * @param a
+     * @param b
+     * @return
+     */
+    public static float[] matrixMultiplication(Matrix a, Matrix b) {
+        float[] A = new float[9];
+        float[] B = new float[9];
+
+        a.getValues(A);
+        b.getValues(B);
+
+        float[] result = new float[9];
+        result[0] = A[0] * B[0] + A[1] * B[3] + A[2] * B[6];
+        result[1] = A[0] * B[1] + A[1] * B[4] + A[2] * B[7];
+        result[2] = A[0] * B[2] + A[1] * B[5] + A[2] * B[8];
+        result[3] = A[3] * B[0] + A[4] * B[3] + A[5] * B[6];
+        result[4] = A[3] * B[1] + A[4] * B[4] + A[5] * B[7];
+        result[5] = A[3] * B[2] + A[4] * B[5] + A[5] * B[8];
+        result[6] = A[6] * B[0] + A[7] * B[3] + A[8] * B[6];
+        result[7] = A[6] * B[1] + A[7] * B[4] + A[8] * B[7];
+        result[8] = A[6] * B[2] + A[7] * B[5] + A[8] * B[8];
+        return result;
+    }
+
+    /**
+     *  Determines the shortest angle between 2 angles. Assumes 360 and not 180 to -180
+     *  Translates destination 0 to 360 to return the correct sign
+     */
+    public static float shortestAngleBetweenAngles(float start, float dst) {
+        float a = (dst == 0 ? 360 : dst) - start;
+        return Math.abs((a + 180) % 360) - 180;
+    }
+
+    /**
+     * Truncates a value between a min and a max. Can never be higher or lower then the input min/max
+     * @param value
+     * @param min
+     * @param max
+     * @return
+     */
+    public static float truncateNumber(float value, float min, float max) {
+        if(value > max)
+            return max;
+        else if(value < min)
+            return min;
+
+        return value;
+    }
+
+    public static float max(float v1, float v2) {
+        return v1 > v2 ? v1 : v2;
+    }
+
+    public static float min(float v1, float v2) {
+        return v1 < v2 ? v1: v2;
+    }
+
+    public static PointF normalize(PointF outPoint) {
+        float length = outPoint.length();
+        outPoint.x /= length;
+        outPoint.y /= length;
+        return outPoint;
+    }
+    public static PointF pointSubtract(PointF p1, PointF p2) {
+        return new PointF(p1.x - p2.x, p1.y - p2.y);
     }
 
 }

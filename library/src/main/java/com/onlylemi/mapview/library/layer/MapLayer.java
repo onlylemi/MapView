@@ -1,13 +1,19 @@
 package com.onlylemi.mapview.library.layer;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Picture;
+import android.graphics.PointF;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewTreeObserver;
 
 import com.onlylemi.mapview.library.MapView;
+import com.onlylemi.mapview.library.utils.MapAABB;
 
 /**
  * MapLayer
@@ -18,91 +24,54 @@ public class MapLayer extends MapBaseLayer {
 
     private static final String TAG = "MapLayer";
 
-    private Picture image;
-    private boolean hasMeasured;
+    private Bitmap bmp;
+
+    private int width;
+    private int height;
+
+    protected boolean hasMeasured;
+    protected Paint paint;
 
     public MapLayer(MapView mapView) {
         super(mapView);
-        level = MAP_LEVEL;
     }
 
-    public void setImage(Picture image) {
-        this.image = image;
-
-        if (mapView.getWidth() == 0) {
-            ViewTreeObserver vto = mapView.getViewTreeObserver();
-            vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                public boolean onPreDraw() {
-                    if (!hasMeasured) {
-                        initMapLayer();
-                        hasMeasured = true;
-                    }
-                    return true;
-                }
-            });
-        } else {
-            initMapLayer();
-        }
-    }
-
-
-    /**
-     * init map image layer
-     */
-    private void initMapLayer() {
-        float zoom = getInitZoom(mapView.getWidth(), mapView.getHeight(), image.getWidth(), image
-                .getHeight());
-        Log.i(TAG, Float.toString(zoom));
-        mapView.setCurrentZoom(zoom, 0, 0);
-
-        float width = mapView.getWidth() - zoom * image.getWidth();
-        float height = mapView.getHeight() - zoom * image.getHeight();
-
-        mapView.translate(width / 2, height / 2);
-    }
-
-    /**
-     * calculate init zoom
-     *
-     * @param viewWidth
-     * @param viewHeight
-     * @param imageWidth
-     * @param imageHeight
-     * @return
-     */
-    private float getInitZoom(float viewWidth, float viewHeight, float imageWidth,
-                              float imageHeight) {
-        float widthRatio = viewWidth / imageWidth;
-        float heightRatio = viewHeight / imageHeight;
-
-        Log.i(TAG, "widthRatio:" + widthRatio);
-        Log.i(TAG, "widthRatio:" + heightRatio);
-
-        if (widthRatio * imageHeight <= viewHeight) {
-            return widthRatio;
-        } else if (heightRatio * imageWidth <= viewWidth) {
-            return heightRatio;
-        }
-        return 0;
+    public void setBmp(Bitmap bmp) {
+        this.bmp = bmp;
+        this.width = bmp.getWidth();
+        this.height = bmp.getHeight();
     }
 
     @Override
-    public void onTouch(MotionEvent event) {
+    public void onTouch(float x, float y)
+    {
 
     }
 
     @Override
-    public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, float
-            currentRotateDegrees) {
-        canvas.save();
-        canvas.setMatrix(currentMatrix);
-        if (image != null) {
-            canvas.drawPicture(image);
-        }
-        canvas.restore();
+    public boolean update(Matrix currentMatrix, long deltaTime) {
+        return hasChanged;
     }
 
-    public Picture getImage() {
-        return image;
+    @Override
+    public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
+        canvas.drawBitmap(bmp, currentMatrix, paint);
+    }
+
+    @Override
+    public void debugDraw(Canvas canvas, Matrix currentMatrix) {
+
+    }
+
+    public Bitmap getImage() {
+        return bmp;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 }

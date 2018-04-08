@@ -2,15 +2,19 @@
 <manifest package="com.onlylemi.mapview"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <supports-screens android:anyDensity="true"/>
+
     <application
         android:allowBackup="true"
         android:name=".DemoApplication"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
+        android:hardwareAccelerated="true"
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="landscape"
             android:theme="@style/AppTheme.Boot">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -20,6 +24,7 @@
         </activity>
         <activity
             android:name=".MapLayerTestActivity"
+            android:screenOrientation="landscape"
             android:label="MapLayerTest">
         </activity>
         <activity

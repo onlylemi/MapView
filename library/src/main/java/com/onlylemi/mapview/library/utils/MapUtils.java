@@ -2,10 +2,14 @@ package com.onlylemi.mapview.library.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Picture;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.Log;
+
+import com.onlylemi.mapview.library.MapView;
+import com.onlylemi.mapview.library.graphics.BaseGraphics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -331,4 +335,42 @@ public final class MapUtils {
         picture.endRecording();
         return picture;
     }
+
+    /**
+     * retrieves the position from input matrix, assumes a openGL stylish matrix where the postions are on the right side
+     * @param m matrix
+     * @return Point representing the position of the matrix
+     */
+    public static PointF getPositionFromMatrix(Matrix m) {
+        float[] mElements = new float[9];
+        m.getValues(mElements);
+
+        //Log.d("User", "Returning position: " + m.toString());
+
+        return new PointF(mElements[2], mElements[5]);
+    }
+
+    /**
+     * Takes a graphics list and converts to a position list
+     * @param baseGraphicsList
+     * @return
+     */
+    public static List<PointF> getPositionListFromGraphicList(List<? extends BaseGraphics> baseGraphicsList) {
+
+        List<PointF> returnList = new ArrayList();
+
+        for(BaseGraphics bg : baseGraphicsList) {
+            returnList.add(bg.position);
+        }
+
+        return  returnList;
+    }
+
+    public static PointF positionFromMatrix(Matrix m) {
+        float[] mFloats = new float[9];
+        m.getValues(mFloats);
+
+        return new PointF(mFloats[2], mFloats[5]);
+    }
+
 }
