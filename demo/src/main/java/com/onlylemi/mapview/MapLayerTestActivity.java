@@ -2,30 +2,21 @@ package com.onlylemi.mapview;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.PointF;
-import android.graphics.Shader;
-import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Choreographer;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.onlylemi.mapview.library.MapView;
-import com.onlylemi.mapview.library.MapViewHandler;
-import com.onlylemi.mapview.library.MapViewListener;
+import com.onlylemi.mapview.library.MapViewSetupHandler;
 import com.onlylemi.mapview.library.MapViewSetupCallback;
-import com.onlylemi.mapview.library.graphics.BaseGraphics;
 import com.onlylemi.mapview.library.graphics.BaseMark;
-import com.onlylemi.mapview.library.graphics.implementation.Backgrounds.ColorBackground;
-import com.onlylemi.mapview.library.graphics.implementation.Backgrounds.TiledBitmapBackground;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.graphics.implementation.ProximityMark;
 import com.onlylemi.mapview.library.graphics.implementation.StaticMark;
@@ -33,13 +24,9 @@ import com.onlylemi.mapview.library.layer.LocationLayer;
 import com.onlylemi.mapview.library.layer.MarkLayer;
 import com.onlylemi.mapview.library.layer.RouteLayer;
 import com.onlylemi.mapview.library.utils.MapMath;
-import com.onlylemi.mapview.library.utils.MapModeOptions;
 import com.onlylemi.mapview.library.utils.MapUtils;
 
-import junit.framework.Test;
-
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -87,7 +74,7 @@ public class MapLayerTestActivity extends AppCompatActivity {
 
         mapView.onSetupCallback(new MapViewSetupCallback() {
             @Override
-            public void onSetup(MapViewHandler handler) {
+            public void onSetup(MapViewSetupHandler handler) {
                 try {
                     Bitmap map = BitmapFactory.decodeStream(getAssets().open("bromma_floor_plan810.png"));
                     handler.createMap(map);
@@ -159,6 +146,7 @@ public class MapLayerTestActivity extends AppCompatActivity {
     private ArrayList<PointF> route = new ArrayList<>();
 
     boolean b = true;
+    boolean force = false;
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -197,8 +185,16 @@ public class MapLayerTestActivity extends AppCompatActivity {
             }
 
             if (keyCode == KeyEvent.KEYCODE_H) {
-                //mapView.setFreeMode();
                 mapView.pauseRendering();
+            }
+
+            if (keyCode == KeyEvent.KEYCODE_R) {
+                force = !force;
+                mapView.enableContinuousRendering(force);
+            }
+
+            if (keyCode == KeyEvent.KEYCODE_J) {
+                mapView.resumeRendering();
             }
 
             if (keyCode == KeyEvent.KEYCODE_K) {
@@ -212,7 +208,6 @@ public class MapLayerTestActivity extends AppCompatActivity {
 
             if(keyCode == KeyEvent.KEYCODE_G) {
                 mapView.setContainerUserMode();
-                //mapView.resumeRendering();
             }
 
             if(keyCode == KeyEvent.KEYCODE_M) {
@@ -256,7 +251,7 @@ public class MapLayerTestActivity extends AppCompatActivity {
                 marks.add(new ProximityMark(user.getBmp(), MapMath.transformPoint(transformMatrix,
                         new PointF(3, 19)), user.getBmp().getWidth() * 2.0f,
                         true, false));
-                markHandler.setStaticMarks(marks);
+                markHandler.setProximityMarks(marks);
                 mapView.setContainPointsMode(MapUtils.getPositionListFromGraphicList(marks), false, 500.0f);
             }
 

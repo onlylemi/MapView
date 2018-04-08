@@ -1,13 +1,12 @@
 package com.onlylemi.mapview;
 
-import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 
-import com.onlylemi.mapview.library.MapViewCamera;
+import com.onlylemi.mapview.Mocks.MockUser;
+import com.onlylemi.mapview.library.camera.MapViewCamera;
 import com.onlylemi.mapview.library.camera.ContainPointsMode;
 import com.onlylemi.mapview.library.camera.ContainPointsUserMode;
-import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.utils.MapUtils;
 
 import junit.framework.Assert;

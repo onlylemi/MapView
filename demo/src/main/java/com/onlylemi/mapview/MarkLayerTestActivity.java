@@ -2,28 +2,19 @@ package com.onlylemi.mapview;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.PointF;
-import android.graphics.Shader;
-import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Choreographer;
 import android.view.Display;
 import android.view.KeyEvent;
-import android.view.View;
 import android.view.WindowManager;
 
 import com.onlylemi.mapview.library.MapView;
-import com.onlylemi.mapview.library.MapViewHandler;
-import com.onlylemi.mapview.library.MapViewListener;
+import com.onlylemi.mapview.library.MapViewSetupHandler;
 import com.onlylemi.mapview.library.MapViewSetupCallback;
-import com.onlylemi.mapview.library.graphics.BaseGraphics;
 import com.onlylemi.mapview.library.graphics.BaseMark;
-import com.onlylemi.mapview.library.graphics.implementation.Backgrounds.ColorBackground;
-import com.onlylemi.mapview.library.graphics.implementation.Backgrounds.TiledBitmapBackground;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.graphics.implementation.ProximityMark;
 import com.onlylemi.mapview.library.graphics.implementation.StaticMark;
@@ -31,13 +22,9 @@ import com.onlylemi.mapview.library.layer.LocationLayer;
 import com.onlylemi.mapview.library.layer.MarkLayer;
 import com.onlylemi.mapview.library.layer.RouteLayer;
 import com.onlylemi.mapview.library.utils.MapMath;
-import com.onlylemi.mapview.library.utils.MapModeOptions;
 import com.onlylemi.mapview.library.utils.MapUtils;
 
-import junit.framework.Test;
-
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,7 +72,7 @@ public class MarkLayerTestActivity extends AppCompatActivity {
 
         mapView.onSetupCallback(new MapViewSetupCallback() {
             @Override
-            public void onSetup(MapViewHandler handler) {
+            public void onSetup(MapViewSetupHandler handler) {
                 try {
                     Bitmap map = BitmapFactory.decodeStream(getAssets().open("map.png"));
                     handler.createMap(map);
