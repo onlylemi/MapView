@@ -14,6 +14,7 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
+import com.onlylemi.mapview.library.camera.MapViewCamera;
 import com.onlylemi.mapview.library.graphics.IBackground;
 import com.onlylemi.mapview.library.graphics.implementation.Backgrounds.ColorBackground;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;

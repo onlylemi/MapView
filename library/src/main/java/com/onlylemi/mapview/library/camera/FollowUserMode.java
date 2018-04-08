@@ -3,9 +3,7 @@ package com.onlylemi.mapview.library.camera;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 
-import com.onlylemi.mapview.library.MapViewCamera;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
-import com.onlylemi.mapview.library.utils.MapMath;
 
 /**
  * Created by patnym on 27/12/2017.

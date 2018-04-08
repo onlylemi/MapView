@@ -1,10 +1,6 @@
 package com.onlylemi.mapview.library;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.graphics.PointF;
 import android.os.Message;
 import android.util.AttributeSet;
@@ -15,18 +11,13 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
-import com.onlylemi.mapview.library.graphics.BaseGraphics;
-import com.onlylemi.mapview.library.graphics.IBackground;
-import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
+import com.onlylemi.mapview.library.camera.MapViewCamera;
 import com.onlylemi.mapview.library.layer.EmptyMapLayer;
 import com.onlylemi.mapview.library.layer.MapBaseLayer;
 import com.onlylemi.mapview.library.layer.MapLayer;
 import com.onlylemi.mapview.library.messages.ICameraModeCommand;
 import com.onlylemi.mapview.library.messages.MessageDefenitions;
 import com.onlylemi.mapview.library.messages.MotionEventMessage;
-import com.onlylemi.mapview.library.utils.MapMath;
-import com.onlylemi.mapview.library.utils.MapModeOptions;
-import com.onlylemi.mapview.library.utils.MapUtils;
 
 import java.util.ArrayList;
 import java.util.List;

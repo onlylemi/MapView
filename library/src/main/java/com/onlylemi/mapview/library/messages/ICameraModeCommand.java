@@ -1,6 +1,6 @@
 package com.onlylemi.mapview.library.messages;
 
-import com.onlylemi.mapview.library.MapViewCamera;
+import com.onlylemi.mapview.library.camera.MapViewCamera;
 
 /**
  * Created by patnym on 27/12/2017.

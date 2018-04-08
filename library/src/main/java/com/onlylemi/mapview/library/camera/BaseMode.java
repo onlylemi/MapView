@@ -1,10 +1,8 @@
 package com.onlylemi.mapview.library.camera;
 
 import android.graphics.Matrix;
-import android.graphics.PointF;
 import android.view.MotionEvent;
 
-import com.onlylemi.mapview.library.MapViewCamera;
 import com.onlylemi.mapview.library.messages.MotionEventMessage;
 
 /**

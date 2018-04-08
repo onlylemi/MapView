@@ -5,7 +5,6 @@ import android.graphics.PointF;
 import android.util.Log;
 import android.view.MotionEvent;
 
-import com.onlylemi.mapview.library.MapViewCamera;
 import com.onlylemi.mapview.library.messages.MotionEventMessage;
 import com.onlylemi.mapview.library.utils.MapMath;
 

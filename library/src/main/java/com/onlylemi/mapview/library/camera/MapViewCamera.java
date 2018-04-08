@@ -1,17 +1,10 @@
-package com.onlylemi.mapview.library;
+package com.onlylemi.mapview.library.camera;
 
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.MotionEvent;
 
-import com.onlylemi.mapview.library.camera.BaseMode;
-import com.onlylemi.mapview.library.camera.ContainPointsMode;
-import com.onlylemi.mapview.library.camera.ContainPointsUserMode;
-import com.onlylemi.mapview.library.camera.ContainUserMode;
-import com.onlylemi.mapview.library.camera.FollowUserMode;
-import com.onlylemi.mapview.library.camera.FreeMode;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.messages.MotionEventMessage;
 import com.onlylemi.mapview.library.utils.MapMath;

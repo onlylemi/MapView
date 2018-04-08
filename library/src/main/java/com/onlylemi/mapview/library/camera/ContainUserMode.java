@@ -4,7 +4,6 @@ import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.support.annotation.NonNull;
 
-import com.onlylemi.mapview.library.MapViewCamera;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.utils.MapMath;
 

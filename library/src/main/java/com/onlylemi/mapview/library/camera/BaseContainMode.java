@@ -3,7 +3,6 @@ package com.onlylemi.mapview.library.camera;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 
-import com.onlylemi.mapview.library.MapViewCamera;
 import com.onlylemi.mapview.library.utils.MapMath;
 import com.onlylemi.mapview.library.utils.MapUtils;
 
