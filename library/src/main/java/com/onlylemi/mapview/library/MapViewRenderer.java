@@ -74,6 +74,7 @@ public class MapViewRenderer extends Thread {
 
     private MotionEventMessage cachedMotionEvent;
     private int cachedMotionEventAction;
+    private Matrix cachedMatrix;
 
     //endregion cache
 
@@ -101,6 +102,7 @@ public class MapViewRenderer extends Thread {
         background = new ColorBackground(Color.RED);
         //layers = mapView.getLayers();
         layers = new ArrayList<>();
+        cachedMatrix = new Matrix();
     }
 
     public void onSurfaceChanged(int width, int height) {
@@ -180,14 +182,14 @@ public class MapViewRenderer extends Thread {
 
         background.draw(canvas);
         
-        Matrix m = camera.update(deltaTimeNano);
+        cachedMatrix.set(camera.update(deltaTimeNano));
 
         for (MapBaseLayer layer : layers) {
             if (layer.isVisible) {
-                layer.draw(canvas, m, camera.getCurrentZoom(), deltaTimeNano);
+                layer.draw(canvas, cachedMatrix, camera.getCurrentZoom(), deltaTimeNano);
 
                 if (debug) {
-                    layer.debugDraw(canvas, m);
+                    layer.debugDraw(canvas, cachedMatrix);
                 }
             }
         }
