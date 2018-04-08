@@ -10,14 +10,14 @@ import com.onlylemi.mapview.library.layer.MapLayer;
  * Created by patnym on 26/12/2017.
  */
 
-public class MapViewHandler {
+public class MapViewSetupHandler {
 
     private MapView view;
     private MapViewRenderer renderer;
 
     private LocationUser currentUser;
 
-    public MapViewHandler(MapView view, MapViewRenderer renderer) {
+    public MapViewSetupHandler(MapView view, MapViewRenderer renderer) {
         this.view = view;
         this.renderer = renderer;
     }

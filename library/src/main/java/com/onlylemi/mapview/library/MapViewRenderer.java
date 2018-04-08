@@ -112,7 +112,7 @@ public class MapViewRenderer extends Thread {
     public void run() {
 
         /*
-            This locks the render thread until the user sets up the setup callback
+         *   This locks the render thread until the user sets up the setup callback
          */
         synchronized (setupLock) {
             while(setupCallback == null) {
@@ -133,7 +133,7 @@ public class MapViewRenderer extends Thread {
         messageHandler = new MapViewMessageHandler();
 
         //// TODO: 27/12/2017 Maybe rename to setup handler?
-        MapViewHandler setupHandler = new MapViewHandler(this.mapView, this);
+        MapViewSetupHandler setupHandler = new MapViewSetupHandler(this.mapView, this);
         setupCallback.onSetup(setupHandler);
         finishSetup(setupHandler.getUser());
         setupCallback.onPostSetup();
@@ -336,6 +336,7 @@ public class MapViewRenderer extends Thread {
 
     /**
      * If called we attempt to pause the rendering side of this thread
+     * NOTE! This does not stop the Thread handler from running
      * @return
      */
     public void pause() {
