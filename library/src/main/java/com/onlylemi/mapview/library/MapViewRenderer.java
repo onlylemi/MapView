@@ -66,11 +66,12 @@ public class MapViewRenderer extends Thread {
     private boolean isSetupDone = false;
 
     //If true, draw every frame regardless of changes
-    protected boolean forceContinousRendering = false;
-    protected boolean isFrameRequested = false;
+    volatile boolean forceContinousRendering = false;
+
+    private boolean isFrameRequested = false;
     //Flagged true if the draw loop is currently running
-    protected boolean rendering = false;
-    protected Object renderStateLock = new Object();
+    private boolean rendering = false;
+    private Object renderStateLock = new Object();
 
     //All values below are cached to prevent GC
     //region cache
@@ -185,7 +186,7 @@ public class MapViewRenderer extends Thread {
             hasUpdated = (layers.get(i).update(cachedMatrix, deltaTimeNano) || hasUpdated);
         }
 
-        if(hasUpdated) {
+        if(hasUpdated || forceContinousRendering) {
             draw(deltaTimeNano);
         }
 

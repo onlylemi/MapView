@@ -258,6 +258,10 @@ public class MapView extends SurfaceView implements SurfaceHolder.Callback, Chor
         });
     }
 
+    public void enableContinuousRendering(boolean enable) {
+        thread.forceContinousRendering = enable;
+    }
+
     public void setCameraDefaultRevertDuration(float durationMS) {
         final long durationNano = (long) durationMS * 1000000;
         sendCameraMessageToThread(new ICameraModeCommand() {
