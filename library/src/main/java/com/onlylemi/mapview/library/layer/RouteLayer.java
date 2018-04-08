@@ -63,6 +63,11 @@ public class RouteLayer extends MapBaseLayer {
     }
 
     @Override
+    public boolean update(Matrix currentMatrix, long deltaTime) {
+        return false;
+    }
+
+    @Override
     public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
 
 //        if(!routeList.isEmpty()) {

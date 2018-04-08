@@ -14,6 +14,7 @@ import com.onlylemi.mapview.library.graphics.BaseGraphics;
 import com.onlylemi.mapview.library.graphics.BaseMark;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
 import com.onlylemi.mapview.library.graphics.implementation.ProximityMark;
+import com.onlylemi.mapview.library.layer.handlers.BaseLayerHandler;
 import com.onlylemi.mapview.library.messages.ICommand;
 import com.onlylemi.mapview.library.messages.MessageDefenitions;
 
@@ -84,21 +85,25 @@ public class MarkLayer extends MapBaseLayer {
     }
 
     @Override
+    public boolean update(Matrix currentMatrix, long deltaTime) {
+        for(int i = 0; i < markObjects.size(); i++) {
+            markObjects.get(i).update(currentMatrix, deltaTime);
+        }
+
+        if(user != null && !proxMarks.isEmpty())
+            checkTriggers();
+
+        return hasChanged;
+    }
+
+    @Override
     public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
         if (isVisible) {
-            if (!markObjects.isEmpty()) {
-                for (int i = 0; i < markObjects.size(); i++) {
-                    BaseMark mark = markObjects.get(i);
-                    mark.update(currentMatrix, deltaTime);
-                    if(mark.getVisible()) {
-                        mark.draw(canvas, paint);
-                    }
+            for (int i = 0; i < markObjects.size(); i++) {
+                if(markObjects.get(i).getVisible()) {
+                    markObjects.get(i).draw(canvas, paint);
                 }
             }
-
-            if(user != null && !proxMarks.isEmpty())
-                checkTriggers();
-
         }
     }
 
@@ -178,17 +183,18 @@ public class MarkLayer extends MapBaseLayer {
         void onExit(ProximityMark mark, int index);
     }
 
-    public class MarkHandler {
+    public class MarkHandler extends BaseLayerHandler {
         private Handler renderHandler;
         private MarkLayer markLayer;
 
         public MarkHandler(Handler renderHandler, MarkLayer markLayer) {
+            super(renderHandler, markLayer);
             this.renderHandler = renderHandler;
             this.markLayer = markLayer;
         }
 
         public void setStaticMarks(final List<? extends BaseMark> marks) {
-            MessageDefenitions.sendExecuteMessage(this.renderHandler, MessageDefenitions.MESSAGE_EXECUTE, new ICommand() {
+            runOnRenderThread(new ICommand() {
                 @Override
                 public void execute() {
                     markLayer.setStaticMarks(marks);
@@ -197,7 +203,7 @@ public class MarkLayer extends MapBaseLayer {
         }
 
         public void setProximityMarks(final List<ProximityMark> proxMarks) {
-            MessageDefenitions.sendExecuteMessage(this.renderHandler, MessageDefenitions.MESSAGE_EXECUTE, new ICommand() {
+            runOnRenderThread(new ICommand() {
                 @Override
                 public void execute() {
                     markLayer.setProximityMarks(proxMarks);

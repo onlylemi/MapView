@@ -49,10 +49,13 @@ public class MapLayer extends MapBaseLayer {
     }
 
     @Override
+    public boolean update(Matrix currentMatrix, long deltaTime) {
+        return hasChanged;
+    }
+
+    @Override
     public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
-        if (bmp != null) {
-            canvas.drawBitmap(bmp, currentMatrix, paint);
-        }
+        canvas.drawBitmap(bmp, currentMatrix, paint);
     }
 
     @Override

@@ -14,6 +14,7 @@ import android.view.MotionEvent;
 import com.onlylemi.mapview.library.MapView;
 import com.onlylemi.mapview.library.MapViewRenderer;
 import com.onlylemi.mapview.library.graphics.implementation.LocationUser;
+import com.onlylemi.mapview.library.layer.handlers.BaseLayerHandler;
 import com.onlylemi.mapview.library.messages.ICommand;
 import com.onlylemi.mapview.library.messages.MessageDefenitions;
 
@@ -55,10 +56,14 @@ public class LocationLayer extends MapBaseLayer {
     }
 
     @Override
+    public boolean update(Matrix currentMatrix, long deltaTime) {
+        hasChanged = user.update(currentMatrix, deltaTime);
+        return hasChanged;
+    }
+
+    @Override
     public void draw(Canvas canvas, Matrix currentMatrix, float currentZoom, long deltaTime) {
-        //Later I wanna handle movement directions and shit in this layer
         if (isVisible) {
-            user.update(currentMatrix, deltaTime);
             user.draw(canvas, locationPaint);
         }
     }
@@ -76,7 +81,7 @@ public class LocationLayer extends MapBaseLayer {
      */
     @Override
     public void createHandler(@NonNull MapViewRenderer renderThread) {
-        this.handler = new UserHandler(renderThread.getHandler(), user);
+        this.handler = new UserHandler(renderThread.getHandler(), this, user);
     }
 
     public UserHandler getUserHandler() {
@@ -87,18 +92,17 @@ public class LocationLayer extends MapBaseLayer {
         return this.handler;
     }
 
-    public class UserHandler {
+    public class UserHandler extends BaseLayerHandler {
 
-        private Handler renderHandler;
         private LocationUser user;
 
-        public UserHandler(Handler renderHandler, LocationUser user) {
+        public UserHandler(Handler renderHandler, LocationLayer layer, LocationUser user) {
+            super(renderHandler, layer);
             this.user = user;
-            this.renderHandler = renderHandler;
         }
 
         public void moveUser(final List<PointF> destinationsQueue,final float duration,final boolean appendToOldList) {
-            MessageDefenitions.sendExecuteMessage(renderHandler, MessageDefenitions.MESSAGE_EXECUTE, new ICommand() {
+            runOnRenderThread(new ICommand() {
                 @Override
                 public void execute() {
                     user.move(destinationsQueue, duration, appendToOldList);
@@ -107,7 +111,7 @@ public class LocationLayer extends MapBaseLayer {
         }
 
         public void moveUser(final PointF position,final float duration) {
-            MessageDefenitions.sendExecuteMessage(renderHandler, MessageDefenitions.MESSAGE_EXECUTE, new ICommand() {
+            runOnRenderThread(new ICommand() {
                 @Override
                 public void execute() {
                     user.move(position, duration);

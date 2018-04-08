@@ -65,6 +65,9 @@ public class MapViewRenderer extends Thread {
 
     private boolean isSetupDone = false;
 
+    //If true, draw every frame regardless of changes
+    protected boolean forceContinousRendering = false;
+    protected boolean isFrameRequested = false;
     //Flagged true if the draw loop is currently running
     protected boolean rendering = false;
     protected Object renderStateLock = new Object();
@@ -159,6 +162,7 @@ public class MapViewRenderer extends Thread {
 
     private long oldTimeStamp;
     public void doFrame(long timeStamp) {
+        isFrameRequested = false;
 
         if((System.nanoTime() - timeStamp) / 1000000 > 15) {
             requestFrame();
@@ -168,6 +172,27 @@ public class MapViewRenderer extends Thread {
         long deltaTimeNano = timeStamp - oldTimeStamp;
         oldTimeStamp = timeStamp;
 
+
+        boolean hasUpdated = false;
+        Matrix m = camera.update(deltaTimeNano);
+
+        if(!m.equals(cachedMatrix)) {
+            cachedMatrix.set(m);
+            hasUpdated = true;
+        }
+
+        for(int i = 0; i < layers.size(); i++) {
+            hasUpdated = (layers.get(i).update(cachedMatrix, deltaTimeNano) || hasUpdated);
+        }
+
+        if(hasUpdated) {
+            draw(deltaTimeNano);
+        }
+
+        requestFrame();
+    }
+
+    private void draw(long deltaTimeNano) {
         //Lock for painting
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             canvas = root.lockHardwareCanvas();
@@ -181,15 +206,13 @@ public class MapViewRenderer extends Thread {
             return;
 
         background.draw(canvas);
-        
-        cachedMatrix.set(camera.update(deltaTimeNano));
 
-        for (MapBaseLayer layer : layers) {
-            if (layer.isVisible) {
-                layer.draw(canvas, cachedMatrix, camera.getCurrentZoom(), deltaTimeNano);
+        for(int i = 0; i < layers.size(); i++) {
+            if(layers.get(i).isVisible) {
+                layers.get(i).draw(canvas, cachedMatrix, camera.getCurrentZoom(), deltaTimeNano);
 
-                if (debug) {
-                    layer.debugDraw(canvas, cachedMatrix);
+                if(debug) {
+                    layers.get(i).debugDraw(canvas, cachedMatrix);
                 }
             }
         }
@@ -204,16 +227,17 @@ public class MapViewRenderer extends Thread {
             rootHolder.unlockCanvasAndPost(canvas);
         }
 
-
         canvas = null;
-        requestFrame();
     }
 
     /**
      * Requests to render next frame, this will in turn call doFrame()
      */
     private void requestFrame() {
-        Choreographer.getInstance().postFrameCallback(mapView);
+        if(!isFrameRequested) {
+            isFrameRequested = true;
+            Choreographer.getInstance().postFrameCallback(mapView);
+        }
     }
 
     /**
@@ -401,29 +425,33 @@ public class MapViewRenderer extends Thread {
                                 (((long) msg.arg2) & 0xffffffffL));
                     }
                     break;
-                case MessageDefenitions.MESSAGE_CAMERA_MODE_EXECUTE:
-                    ((ICameraModeCommand) msg.obj).execute(camera);
-                    break;
-                case MessageDefenitions.MESSAGE_EXECUTE:
-                    ((ICommand) msg.obj).execute();
-                    break;
-                case MessageDefenitions.MESSAGE_MOTIONEVENT:
-                    cachedMotionEvent = (MotionEventMessage) msg.obj;
-                    cachedMotionEventAction = cachedMotionEvent.getAction() & MotionEvent.ACTION_MASK;
+                default:
+                    switch (msg.what) {
+                        case MessageDefenitions.MESSAGE_CAMERA_MODE_EXECUTE:
+                            ((ICameraModeCommand) msg.obj).execute(camera);
+                            break;
+                        case MessageDefenitions.MESSAGE_EXECUTE:
+                            ((ICommand) msg.obj).execute();
+                            break;
+                        case MessageDefenitions.MESSAGE_MOTIONEVENT:
+                            cachedMotionEvent = (MotionEventMessage) msg.obj;
+                            cachedMotionEventAction = cachedMotionEvent.getAction() & MotionEvent.ACTION_MASK;
 
-                    feedInputToCamera(cachedMotionEventAction, cachedMotionEvent);
+                            feedInputToCamera(cachedMotionEventAction, cachedMotionEvent);
 
-                    //If this is a click event feed it to layers
-                    if(cachedMotionEventAction == MotionEvent.ACTION_UP) {
-                        feedInputToLayers(cachedMotionEvent.getX(), cachedMotionEvent.getY());
+                            //If this is a click event feed it to layers
+                            if(cachedMotionEventAction == MotionEvent.ACTION_UP) {
+                                feedInputToLayers(cachedMotionEvent.getX(), cachedMotionEvent.getY());
+                            }
+                            break;
+                        case MessageDefenitions.MESSAGE_SURFACE_CHANGED:
+                            onSurfaceChanged(msg.arg1, msg.arg2);
+                            break;
+                        case MessageDefenitions.MESSAGE_EXIT_THREAD:
+                            onDestroy();
+                            break;
                     }
-                    break;
-                case MessageDefenitions.MESSAGE_SURFACE_CHANGED:
-                    onSurfaceChanged(msg.arg1, msg.arg2);
-                    break;
-                case MessageDefenitions.MESSAGE_EXIT_THREAD:
-                    onDestroy();
-                    break;
+                    requestFrame();
             }
             super.handleMessage(msg);
         }

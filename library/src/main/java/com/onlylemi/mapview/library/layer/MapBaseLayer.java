@@ -26,6 +26,8 @@ public abstract class MapBaseLayer {
     // layer is/not show
     public boolean isVisible = true;
 
+    protected boolean hasChanged = false;
+
     protected MapViewRenderer renderer;
 
     protected MapView mapView;
@@ -36,6 +38,7 @@ public abstract class MapBaseLayer {
 
     public abstract void onTouch(float x, float y);
 
+    public abstract boolean update(Matrix currentMatrix, long deltaTime);
     /**
      * draw event
      *
@@ -59,5 +62,9 @@ public abstract class MapBaseLayer {
     protected float setValue(float value) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, mapView.getResources()
                 .getDisplayMetrics());
+    }
+
+    public void triggerChange() {
+        hasChanged = true;
     }
 }

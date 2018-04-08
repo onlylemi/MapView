@@ -35,7 +35,7 @@ public class StaticMark extends BaseMark {
         clickRadius = bmp.getWidth() > bmp.getHeight() ? bmp.getWidth() / 2 : bmp.getHeight() / 2;
     }
 
-    public void update(final Matrix m, long deltaTime) {
+    public boolean update(final Matrix m, long deltaTime) {
         worldPosition = MapMath.transformPoint(m, position);
 
         tMatrix = new Matrix();
@@ -43,6 +43,8 @@ public class StaticMark extends BaseMark {
 
         //Dont use a model matrix atm so, fix this later
         tMatrix.setValues(MapMath.matrixMultiplication(m, tMatrix));
+
+        return false;
     }
 
     public void draw(final Canvas canvas,final Paint paint) {

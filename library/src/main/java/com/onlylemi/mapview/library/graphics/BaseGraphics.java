@@ -42,7 +42,7 @@ public abstract class BaseGraphics {
      * Called each refresh before drawing
      * @param m transform matrix
      */
-    public abstract void update(final Matrix m, long deltaTime);
+    public abstract boolean update(final Matrix m, long deltaTime);
 
     /**
      * Called each refresh after updating

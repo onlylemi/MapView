@@ -35,8 +35,6 @@ public class LocationUser extends BaseGraphics {
     private PointF worldMidPosition;
 
     private float radius;
-    private float maxRadius;
-    private float minRadius;
 
     private List<PointF> moveToDestinations;
 
@@ -69,20 +67,21 @@ public class LocationUser extends BaseGraphics {
         this.setLookAt(lookAt);
         this.worldMidPosition = new PointF(bmp.getWidth() / 2, bmp.getHeight() / 2);
         this.radius = bmp.getHeight() > bmp.getWidth() ? bmp.getHeight() / 2 : bmp.getWidth() / 2;
-        this.minRadius = radius / 2;
-        this.maxRadius = radius * 1.3f;
         this.translationAnims = new ArrayList<>();
         this.moveToDestinations = new ArrayList<>();
     }
 
-    public void update(final Matrix m, long deltaTime) {
+    public boolean update(final Matrix m, long deltaTime) {
         worldMidPosition = MapMath.transformPoint(m, position);
 
         tMatrix.set(mMatrix);
-        
+
+        boolean hasChanged = false;
+
         //Handle rotation first
         if(rotationAnim != null && !rotationAnim.isDone()) {
             rotationAnim.update(tMatrix, deltaTime);
+            hasChanged = true;
         }
         else {
             tMatrix.preRotate(this.rotation, bmp.getWidth() / 2, bmp.getHeight() / 2);
@@ -95,6 +94,7 @@ public class LocationUser extends BaseGraphics {
                 translationAnims.remove(0);
                 moveToDestinations.remove(0);
             }
+            hasChanged = true;
         } else {
             tMatrix.postTranslate(position.x - bmp.getWidth() / 2, position.y - bmp.getHeight() / 2);
         }
@@ -102,6 +102,8 @@ public class LocationUser extends BaseGraphics {
 
 
         tMatrix.setValues(MapMath.matrixMultiplication(m, tMatrix));
+
+        return hasChanged;
     }
 
     public void draw(final Canvas canvas, final Paint paint) {
